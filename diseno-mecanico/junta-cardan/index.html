@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doble junta cardan · Simulador · Miguel Ángel Serrano García</title>
+  <meta name="description" content="Simulador interactivo de la cinemática de una doble junta cardan: configuraciones Z, W y espaciales, fluctuación de velocidad y condición de homocinetismo.">
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+  <style>
+    .sim { display: grid; grid-template-columns: 300px 1fr; gap: 16px; margin-top: 1.5em; }
+    @media (max-width: 820px) { .sim { grid-template-columns: 1fr; } }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+    .ctrl { margin-bottom: 14px; }
+    .ctrl label { display: flex; justify-content: space-between; font-size: .88rem; margin-bottom: 4px; }
+    .ctrl output { font-family: var(--mono); color: var(--accent); }
+    .ctrl input[type=range] { width: 100%; accent-color: var(--accent); }
+    .btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 14px; }
+    button { font: inherit; font-size: .82rem; padding: .4em .75em; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+    button:hover { border-color: var(--fg); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 4px; }
+    .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 8px; }
+    .kpi span { display: block; font-size: .7rem; color: var(--muted); }
+    .kpi b { font-family: var(--mono); font-size: .95rem; }
+    .kpi.ok b { color: #1a8a4a; }
+    .plot { width: 100%; height: 440px; }
+    #chart { height: 340px; }
+    .chart-panel { margin-top: 16px; }
+    .theory { max-width: 760px; }
+    .theory p, .theory li { color: var(--fg); }
+    .eq { font-family: var(--mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; overflow-x: auto; white-space: nowrap; }
+    .note { font-size: .82rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="../../">Miguel Ángel Serrano García</a>
+      <nav><a href="../" aria-current="page">Diseño mecánico</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Doble junta cardan</p>
+    <h1>Doble junta cardan</h1>
+    <p class="lead">Una junta cardan no transmite velocidad constante: el eje de salida acelera y frena dos veces por vuelta. Con dos juntas bien montadas, las fluctuaciones se cancelan. Mueve los parámetros y compruébalo.</p>
+
+    <section class="sim">
+      <div class="panel" aria-label="Parámetros">
+        <div class="ctrl"><label for="d1">Flexión junta 1, δ₁ <output id="d1o"></output></label><input id="d1" type="range" min="0" max="45" step="0.5" value="15"></div>
+        <div class="ctrl"><label for="d2">Flexión junta 2, δ₂ <output id="d2o"></output></label><input id="d2" type="range" min="0" max="45" step="0.5" value="15"></div>
+        <div class="ctrl"><label for="beta">Azimut del eje 3, β <output id="betao"></output></label><input id="beta" type="range" min="0" max="180" step="1" value="0"></div>
+        <div class="ctrl"><label for="off">Desfase horquillas eje 2 <output id="offo"></output></label><input id="off" type="range" min="-180" max="180" step="1" value="20"></div>
+        <div class="ctrl"><label for="phi">Posición del motor, φ₁ <output id="phio"></output></label><input id="phi" type="range" min="0" max="360" step="1" value="30"></div>
+
+        <div class="btns">
+          <button data-preset="Z">Montaje Z</button>
+          <button data-preset="W">Montaje W</button>
+          <button data-preset="E">Espacial</button>
+        </div>
+        <div class="btns">
+          <button id="homo">Hacer homocinética</button>
+          <button id="play" class="primary">▶ Animar</button>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi"><span>ω₃ mín</span><b id="wmin"></b></div>
+          <div class="kpi"><span>ω₃ máx</span><b id="wmax"></b></div>
+          <div class="kpi" id="kr"><span>Rizado</span><b id="rip"></b></div>
+        </div>
+        <p class="note">ω₁ = 100 rad/s. Rizado = (ω₃,máx − ω₃,mín) / ω₁.</p>
+      </div>
+
+      <div class="panel">
+        <div id="scene" class="plot" aria-label="Vista 3D del mecanismo"></div>
+      </div>
+    </section>
+
+    <div class="panel chart-panel"><div id="chart" class="plot" aria-label="Velocidades angulares"></div></div>
+
+    <section class="theory">
+      <h2>Cómo funciona</h2>
+      <p>En una junta cardan con ángulo de flexión δ, la relación de velocidades depende de la posición angular φ₁ de la horquilla de entrada, medida desde el plano que forman los dos ejes:</p>
+      <p class="eq">ω₂ / ω₁ = cos δ / (1 − sin²δ · cos²φ₁)&nbsp;&nbsp;&nbsp;&nbsp;tan φ₂ = tan φ₁ / cos δ</p>
+      <p>La relación oscila entre cos δ y 1/cos δ dos veces por vuelta. En la segunda junta se aplica la misma ley, pero el ángulo que cuenta es el de la horquilla del eje intermedio medido desde el plano de los ejes 2 y 3:</p>
+      <p class="eq">ψ = φ₂ + 90° + desfase − β</p>
+      <p>Las fluctuaciones de las dos juntas se cancelan y la salida es homocinética cuando se cumplen dos condiciones:</p>
+      <ul>
+        <li><b>Ángulos iguales:</b> δ₁ = δ₂.</li>
+        <li><b>Horquillas del eje intermedio desfasadas el mismo ángulo que giran los planos:</b> desfase = β. En los montajes Z y W (β = 0° o 180°) eso equivale a horquillas alineadas.</li>
+      </ul>
+      <p class="note">Modelo puramente cinemático: ejes rígidos, sin holguras ni deformaciones. La geometría 3D de las horquillas se obtiene de la propia cruceta (cada brazo es perpendicular a su eje y al brazo opuesto) y se ha verificado frente a las fórmulas analíticas.</p>
+      <p><a href="Velocidades_Junta_Cardan.m" download>Descargar el script de MATLAB original</a></p>
+    </section>
+  </main>
+
+  <footer class="site"><div class="wrap">© 2026 Miguel Ángel Serrano García</div></footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const rad = d => d * Math.PI / 180;
+  const W1 = 100, N = 721;
+  const L1 = 3, L2 = 4, L3 = 3, R = 0.6;
+
+  // Álgebra de vectores
+  const add = (a, b) => a.map((v, i) => v + b[i]);
+  const mul = (a, s) => a.map(v => v * s);
+  const dot = (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+  const cross = (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+  const norm = a => mul(a, 1 / Math.hypot(...a));
+  const rotar = (v, k, t) => add(add(mul(v, Math.cos(t)), mul(cross(k, v), Math.sin(t))), mul(k, dot(k, v) * (1 - Math.cos(t))));
+
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const ids = ['d1', 'd2', 'beta', 'off', 'phi'];
+  const get = () => Object.fromEntries(ids.map(k => [k, parseFloat($(k).value)]));
+
+  function cinematica(p) {
+    const d1 = rad(p.d1), d2 = rad(p.d2), b = rad(p.beta), o = rad(p.off);
+    const x = [], w2 = [], w3 = [];
+    let prev = 0, k = 0;
+    for (let i = 0; i < N; i++) {
+      const deg = 360 * i / (N - 1), f1 = rad(deg);
+      let f2 = Math.atan2(Math.sin(f1), Math.cos(f1) * Math.cos(d1));
+      // unwrap
+      while (f2 + k - prev > Math.PI) k -= 2 * Math.PI;
+      while (f2 + k - prev < -Math.PI) k += 2 * Math.PI;
+      f2 += k; prev = f2;
+      const a = W1 * Math.cos(d1) / (1 - Math.sin(d1) ** 2 * Math.cos(f1) ** 2);
+      const psi = f2 + Math.PI / 2 + o - b;
+      x.push(deg); w2.push(a);
+      w3.push(a * Math.cos(d2) / (1 - Math.sin(d2) ** 2 * Math.cos(psi) ** 2));
+    }
+    return { x, w2, w3 };
+  }
+
+  function geometria(p) {
+    const d1 = rad(p.d1), d2 = rad(p.d2), b = rad(p.beta);
+    const ux = [Math.cos(d1), Math.sin(d1), 0], uy = [-Math.sin(d1), Math.cos(d1), 0], uz = [0, 0, 1];
+    const P0 = [0, 0, 0], P1 = [L1, 0, 0], P2 = add(P1, mul(ux, L2));
+    const a3 = add(mul(ux, Math.cos(d2)), mul(add(mul(uy, Math.cos(b)), mul(uz, Math.sin(b))), Math.sin(d2)));
+    const P3 = add(P2, mul(a3, L3));
+    const f1 = rotar([0, 1, 0], [1, 0, 0], rad(p.phi));
+    const f2a = norm(cross(ux, f1));
+    const f2b = rotar(f2a, ux, rad(p.off));
+    const f3 = norm(cross(a3, f2b));
+    return { P0, P1, P2, P3, forks: [[P1, f1], [P1, f2a], [P2, f2b], [P2, f3]] };
+  }
+
+  const seg = (A, B, color, width, name, show = true) => ({
+    type: 'scatter3d', mode: 'lines', x: [A[0], B[0]], y: [A[1], B[1]], z: [A[2], B[2]],
+    line: { color, width }, name, showlegend: show, hoverinfo: 'skip'
+  });
+
+  function layoutBase() {
+    const fg = css('--fg'), line = css('--line');
+    return { paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)', font: { color: fg, family: 'system-ui, sans-serif', size: 12 }, gridc: line };
+  }
+
+  function dibujar3D(p) {
+    const g = geometria(p), lb = layoutBase();
+    const ink = css('--fg'), blue = css('--blue'), red = css('--accent');
+    const forkCol = [ink, blue, blue, red];
+    const forkName = ['Horquilla eje 1', 'Horquillas eje 2', '', 'Horquilla eje 3'];
+    const traces = [
+      seg(g.P0, g.P1, ink, 10, 'Eje 1 (motor)'),
+      seg(g.P1, g.P2, blue, 9, 'Eje 2 (intermedio)'),
+      seg(g.P2, g.P3, red, 10, 'Eje 3 (salida)'),
+      ...g.forks.map(([P, f], i) => seg(add(P, mul(f, -R)), add(P, mul(f, R)), forkCol[i], 5, forkName[i], i !== 2)),
+      { type: 'scatter3d', mode: 'markers', x: [g.P1[0], g.P2[0]], y: [g.P1[1], g.P2[1]], z: [g.P1[2], g.P2[2]],
+        marker: { size: 5, color: '#f2c200', line: { color: ink, width: 1 } }, showlegend: false, hoverinfo: 'skip' }
+    ];
+    const ax = t => ({ title: t, gridcolor: lb.gridc, zerolinecolor: lb.gridc, showbackground: false, range: undefined });
+    const layout = {
+      paper_bgcolor: lb.paper_bgcolor, font: lb.font, margin: { l: 0, r: 0, t: 0, b: 0 },
+      legend: { orientation: 'h', y: 0.02, x: 0, font: { size: 11 } },
+      scene: { aspectmode: 'data', xaxis: ax('X'), yaxis: ax('Y'), zaxis: ax('Z'),
+               camera: { eye: innerWidth < 600 ? { x: 0.8, y: -4.2, z: 2.0 } : { x: 0.4, y: -2.1, z: 1.0 } } },
+      uirevision: 'keep'
+    };
+    Plotly.react('scene', traces, layout, { displaylogo: false, responsive: true });
+  }
+
+  function dibujarGrafica(p, c) {
+    const lb = layoutBase(), ink = css('--fg'), blue = css('--blue'), red = css('--accent');
+    const traces = [
+      { x: c.x, y: c.x.map(() => W1), mode: 'lines', name: 'ω₁ motor', line: { color: ink, dash: 'dash', width: 1.5 } },
+      { x: c.x, y: c.w2, mode: 'lines', name: 'ω₂ intermedio', line: { color: blue, width: 2 } },
+      { x: c.x, y: c.w3, mode: 'lines', name: 'ω₃ salida', line: { color: red, width: 2.5 } }
+    ];
+    const layout = {
+      paper_bgcolor: lb.paper_bgcolor, plot_bgcolor: lb.plot_bgcolor, font: lb.font,
+      margin: { l: 56, r: 12, t: 10, b: 44 },
+      xaxis: { title: 'Ángulo del motor φ₁ (°)', range: [0, 360], dtick: 45, gridcolor: lb.gridc, zeroline: false },
+      yaxis: { title: 'Velocidad angular (rad/s)', gridcolor: lb.gridc, zeroline: false },
+      legend: { orientation: 'h', y: 1.12, x: 0 },
+      shapes: [{ type: 'line', x0: p.phi, x1: p.phi, yref: 'paper', y0: 0, y1: 1, line: { color: lb.font.color, width: 1, dash: 'dot' } }],
+      uirevision: 'keep'
+    };
+    Plotly.react('chart', traces, layout, { displaylogo: false, responsive: true });
+  }
+
+  let cache = null, cacheKey = '';
+  function actualizar() {
+    const p = get();
+    $('d1o').value = p.d1.toFixed(1) + '°';
+    $('d2o').value = p.d2.toFixed(1) + '°';
+    $('betao').value = p.beta.toFixed(0) + '°';
+    $('offo').value = p.off.toFixed(0) + '°';
+    $('phio').value = p.phi.toFixed(0) + '°';
+    const key = [p.d1, p.d2, p.beta, p.off].join();
+    if (key !== cacheKey) { cache = cinematica(p); cacheKey = key; }
+    const mn = Math.min(...cache.w3), mx = Math.max(...cache.w3), rip = (mx - mn) / W1 * 100;
+    $('wmin').textContent = mn.toFixed(2);
+    $('wmax').textContent = mx.toFixed(2);
+    $('rip').textContent = rip.toFixed(2) + ' %';
+    $('kr').classList.toggle('ok', rip < 0.01);
+    dibujar3D(p);
+    dibujarGrafica(p, cache);
+  }
+
+  ids.forEach(k => $(k).addEventListener('input', actualizar));
+
+  const presets = { Z: { beta: 180, off: 0 }, W: { beta: 0, off: 0 }, E: { beta: 90, off: 0 } };
+  document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => {
+    const s = presets[btn.dataset.preset];
+    $('beta').value = s.beta; $('off').value = s.off; actualizar();
+  }));
+
+  $('homo').addEventListener('click', () => {
+    $('d2').value = $('d1').value;
+    let o = parseFloat($('beta').value);
+    if (o > 180) o -= 360;
+    $('off').value = o;
+    actualizar();
+  });
+
+  let anim = null;
+  $('play').addEventListener('click', () => {
+    if (anim) { cancelAnimationFrame(anim); anim = null; $('play').textContent = '▶ Animar'; return; }
+    $('play').textContent = '❚❚ Parar';
+    let last = performance.now();
+    const step = t => {
+      const dt = t - last; last = t;
+      $('phi').value = (parseFloat($('phi').value) + dt * 0.06) % 360;
+      actualizar();
+      anim = requestAnimationFrame(step);
+    };
+    anim = requestAnimationFrame(step);
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', actualizar);
+  actualizar();
+})();
+</script>
+</body>
+</html>
