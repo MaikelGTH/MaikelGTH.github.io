@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MEP, MEC y HCCI · Simulador · Miguel Ángel Serrano García</title>
+  <meta name="description" content="Simulador interactivo que compara un motor de gasolina, un diésel y un HCCI con un modelo termodinámico 0D: presión, calor liberado, rendimiento, NOx y control de la autoignición.">
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+  <script src="modelo.js"></script>
+  <style>
+    :root { --mep: #2a78d6; --mec: #eb6834; --hcci: #1baf7a; --warn: #b26a00; --warn-bg: #fff3dc; --bad: #c8102e; --bad-bg: #fde7ea; }
+    @media (prefers-color-scheme: dark) {
+      :root { --mep: #3987e5; --mec: #d95926; --hcci: #199e70; --warn: #f0b44c; --warn-bg: #3a2c12; --bad: #ff6b7d; --bad-bg: #3b1a20; }
+    }
+    .sim { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; margin-top: 1.5em; }
+    .duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+    @media (max-width: 860px) { .sim, .duo { grid-template-columns: 1fr; } }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+    .panel h3 { margin: 0 0 4px; font-size: 1rem; }
+    .panel .sub { margin: 0 0 10px; font-size: .82rem; color: var(--muted); }
+    .grp { border-top: 1px solid var(--line); margin-top: 14px; padding-top: 12px; }
+    .grp-t { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 8px; }
+    .ctrl { margin-bottom: 12px; }
+    .ctrl label { display: flex; justify-content: space-between; gap: 8px; font-size: .88rem; margin-bottom: 4px; }
+    .ctrl output { font-family: var(--mono); color: var(--accent); white-space: nowrap; }
+    .ctrl input[type=range] { width: 100%; accent-color: var(--accent); }
+    .ctrl.off { opacity: .45; }
+    .seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; margin-bottom: 12px; }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label { text-align: center; font-size: .8rem; padding: .45em .3em; cursor: pointer; color: var(--muted); }
+    .seg input:checked + label { background: var(--fg); color: var(--bg); }
+    .seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: .88rem; }
+    details summary { cursor: pointer; font-size: .88rem; color: var(--muted); }
+    details[open] summary { margin-bottom: 10px; }
+    .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+    button { font: inherit; font-size: .8rem; padding: .4em .7em; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+    button:hover { border-color: var(--fg); }
+    button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+    .tabs button { border-color: transparent; background: none; color: var(--muted); }
+    .tabs button[aria-selected="true"] { border-color: var(--line); background: var(--bg); color: var(--fg); font-weight: 600; }
+    .plot { width: 100%; height: 400px; }
+    .plot.sm { height: 330px; }
+    .msg { font-size: .85rem; color: var(--muted); min-height: 1.4em; margin: 6px 0 0; }
+    /* Tabla de resultados */
+    .tw { overflow-x: auto; }
+    table.res { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+    table.res th, table.res td { padding: 6px 10px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+    table.res th:first-child, table.res td:first-child { text-align: left; color: var(--muted); font-weight: 400; }
+    table.res thead th { font-size: .95rem; border-bottom: 2px solid var(--line); vertical-align: bottom; }
+    table.res thead th .sw { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+    table.res td b { font-weight: 700; }
+    table.res tr.key td { font-weight: 600; color: var(--fg); }
+    table.res tr.key td:first-child { color: var(--fg); }
+    .chips { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px; min-height: 1.5em; }
+    .chip { font-family: var(--mono); font-size: .68rem; font-weight: 400; padding: .15em .5em; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+    .chip.warn { color: var(--warn); background: var(--warn-bg); border-color: transparent; }
+    .chip.bad { color: var(--bad); background: var(--bad-bg); border-color: transparent; }
+    .note { font-size: .82rem; color: var(--muted); }
+    @media (max-width: 560px) {
+      table.res { font-size: .78rem; }
+      table.res th, table.res td { padding: 5px 4px; white-space: normal; }
+      table.res td:not(:first-child), table.res th:not(:first-child) { white-space: nowrap; }
+      table.res thead th { font-size: .8rem; }
+    }
+    .theory { max-width: 760px; }
+    .eq { font-family: var(--mono); font-size: .88rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; overflow-x: auto; white-space: nowrap; }
+    .theory ul { padding-left: 1.2em; }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="../../">Miguel Ángel Serrano García</a>
+      <nav>
+        <a href="../../diseno-mecanico/">Diseño mecánico</a>
+        <a href="../" aria-current="page">Motores térmicos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="breadcrumb"><a href="../">Motores térmicos</a> / MEP, MEC y HCCI</p>
+    <h1>MEP, MEC y HCCI</h1>
+    <p class="lead">Tres motores con la misma cilindrada (2,0 L) y tres formas de quemar el combustible. Cambia la carga y el régimen y compara presión, rendimiento y NOx. En el HCCI no hay chispa ni inyección que marquen el encendido: lo decide la química de la mezcla, y aquí puedes ver lo estrecha que es la ventana para controlarlo.</p>
+
+    <section class="sim">
+      <div class="panel" aria-label="Parámetros">
+        <div class="ctrl"><label for="carga">Carga <output id="cargao"></output></label><input id="carga" type="range" min="15" max="100" step="1" value="40"></div>
+        <div class="ctrl"><label for="rpm">Régimen <output id="rpmo"></output></label><input id="rpm" type="range" min="1000" max="6500" step="100" value="2500"></div>
+        <div class="btns" aria-label="Puntos de ejemplo">
+          <button data-preset="parcial">Carga parcial</button>
+          <button data-preset="baja">Baja carga</button>
+          <button data-preset="plena">Plena carga</button>
+          <button data-preset="fallo">Fallo HCCI</button>
+          <button data-preset="ringing">Ringing HCCI</button>
+        </div>
+
+        <div class="grp">
+          <div class="grp-t">Control del HCCI</div>
+          <div class="seg" role="radiogroup" aria-label="Modo de control">
+            <input type="radio" name="modo" id="lc" value="lc" checked><label for="lc">CA50 objetivo</label>
+            <input type="radio" name="modo" id="la" value="la"><label for="la">T de admisión fija</label>
+          </div>
+          <div class="ctrl" id="c-ca50"><label for="ca50">CA50 objetivo <output id="ca50o"></output></label><input id="ca50" type="range" min="-4" max="16" step="0.5" value="6"></div>
+          <div class="ctrl" id="c-tivc"><label for="tivc">T en cierre de admisión <output id="tivco"></output></label><input id="tivc" type="range" min="380" max="560" step="1" value="460"></div>
+          <div class="ctrl"><label for="lmin">λ mínimo en HCCI <output id="lmino"></output></label><input id="lmin" type="range" min="1.6" max="3" step="0.1" value="2"></div>
+        </div>
+
+        <details class="grp">
+          <summary>Relaciones de compresión y pérdidas</summary>
+          <div class="ctrl"><label for="rcMEP">r<sub>c</sub> MEP <output id="rcMEPo"></output></label><input id="rcMEP" type="range" min="8" max="13" step="0.5" value="10.5"></div>
+          <div class="ctrl"><label for="rcMEC">r<sub>c</sub> MEC <output id="rcMECo"></output></label><input id="rcMEC" type="range" min="14" max="22" step="0.5" value="17.5"></div>
+          <div class="ctrl"><label for="rcHCCI">r<sub>c</sub> HCCI <output id="rcHCCIo"></output></label><input id="rcHCCI" type="range" min="12" max="18" step="0.5" value="15"></div>
+          <label class="chk"><input type="checkbox" id="wos" checked> Pérdidas de calor a pared (Woschni)</label>
+        </details>
+      </div>
+
+      <div class="panel">
+        <div class="tabs" role="tablist" aria-label="Vista del ciclo" id="tabsCiclo">
+          <button role="tab" data-v="p" aria-selected="true">Presión</button>
+          <button role="tab" data-v="pv" aria-selected="false">Diagrama p–V</button>
+          <button role="tab" data-v="hrr" aria-selected="false">Calor liberado</button>
+          <button role="tab" data-v="T" aria-selected="false">Temperatura</button>
+        </div>
+        <div id="gCiclo" class="plot" aria-label="Gráfica del ciclo"></div>
+      </div>
+    </section>
+
+    <div class="panel" style="margin-top:16px">
+      <h3>Resultados en este punto</h3>
+      <div class="tw"><table class="res" id="tabla"></table></div>
+      <p class="note">NOx: índice cinético relativo al MEP a plena carga y al mismo régimen; compara tendencias, no da ppm. Las filas destacadas son las que mejor resumen cada concepto.</p>
+    </div>
+
+    <div class="duo">
+      <div class="panel">
+        <h3>Barrido de carga</h3>
+        <p class="sub" id="subBarrido"></p>
+        <div class="tabs" role="tablist" aria-label="Variable del barrido" id="tabsBarrido">
+          <button role="tab" data-v="eta" aria-selected="true">Rendimiento</button>
+          <button role="tab" data-v="nox" aria-selected="false">NOx</button>
+          <button role="tab" data-v="imep" aria-selected="false">IMEP neta</button>
+          <button role="tab" data-v="lam" aria-selected="false">λ</button>
+        </div>
+        <div id="gBarrido" class="plot sm" aria-label="Barrido de carga"></div>
+        <p class="msg" id="msgBarrido"></p>
+      </div>
+      <div class="panel">
+        <h3>Ventana de control del HCCI</h3>
+        <p class="sub" id="subControl"></p>
+        <div id="gControl" class="plot sm" aria-label="CA50 frente a temperatura de admisión"></div>
+        <p class="msg" id="msgControl"></p>
+      </div>
+    </div>
+
+    <section class="theory">
+      <h2>Cómo funciona</h2>
+      <p>Cada motor se simula con un modelo cero-dimensional de una zona: entre el cierre de admisión y la apertura de escape el cilindro es un sistema cerrado de gas ideal y la presión sale del primer principio:</p>
+      <p class="eq">dp/dθ = (γ−1)/V · (dQ<sub>c</sub>/dθ − dQ<sub>w</sub>/dθ) − γ · p/V · dV/dθ,&nbsp;&nbsp;&nbsp;γ = γ(T)</p>
+      <p>La liberación de calor dQ<sub>c</sub> sigue una ley de Wiebe, x<sub>b</sub> = 1 − exp[−a((θ−θ<sub>0</sub>)/Δθ)<sup>m+1</sup>]. El diésel usa dos (Watson): una fase premezclada corta y una fase de difusión larga. Las pérdidas a pared dQ<sub>w</sub> usan la correlación de Woschni.</p>
+
+      <h2>Qué distingue a cada motor</h2>
+      <ul>
+        <li><b>MEP (gasolina).</b> Mezcla estequiométrica siempre. La carga se regula cerrando la mariposa, y el pistón paga ese vacío como trabajo de bombeo. Por eso su rendimiento cae a carga parcial.</li>
+        <li><b>MEC (diésel).</b> Sin mariposa: la carga se regula con la cantidad de combustible (λ variable). Relación de compresión alta y sin bombeo, así que es el más eficiente. Pero la llama de difusión arde a λ local ≈ 1, así que produce NOx aunque la mezcla global sea muy pobre.</li>
+        <li><b>HCCI.</b> Mezcla homogénea y pobre que se autoinflama por compresión en todo el volumen a la vez. Quema rápido y frío, con rendimiento cercano al diésel y muy poco NOx. Solo funciona entre dos límites: con la mezcla demasiado pobre o fría no se enciende, y con demasiada carga quema tan rápido que el gradiente de presión (<i>ringing</i>) daña el motor. Fuera de su ventana, este motor pasa a modo chispa.</li>
+      </ul>
+
+      <h2>El encendido del HCCI</h2>
+      <p>El inicio de la combustión se calcula con la integral de Livengood-Wu: la mezcla se autoinflama cuando el tiempo acumulado, ponderado por el retraso de autoignición τ(p, T), llega a uno.</p>
+      <p class="eq">∫ dt / τ = 1,&nbsp;&nbsp;&nbsp;τ = 1,3·10⁻⁴ · p<sup>−1,05</sup> · φ<sup>−0,77</sup> · χ<sub>O₂</sub><sup>−1,41</sup> · exp(33 700 / R<sub>u</sub>T)&nbsp;&nbsp;[ms]</p>
+      <p>La correlación de τ es la de He et al. (2005) para iso-octano. En modo <b>CA50 objetivo</b>, el simulador busca la temperatura de cierre de admisión que coloca el 50 % del combustible quemado en el ángulo pedido. Un motor real lo consigue reteniendo gases calientes del ciclo anterior o recirculando EGR. En modo <b>T de admisión fija</b> eliges tú esa temperatura y ves qué hace la combustión: unos 20 a 30 K separan el fallo de encendido de una combustión tan adelantada que empieza antes del PMS y frena al pistón.</p>
+      <p>El ringing depende sobre todo de la energía liberada por ciclo. Por eso fija el λ mínimo, es decir, la carga máxima del modo HCCI. Prueba a bajar el λ mínimo a 1,6 y subir la carga al 60 %: el gradiente de presión supera los 5 bar/°.</p>
+
+      <h2>Hipótesis</h2>
+      <ul class="note">
+        <li>Ciclo cerrado ideal; no se modela el intercambio de gases. El bombeo se estima como p<sub>escape</sub> − p<sub>admisión</sub>.</li>
+        <li>El rendimiento volumétrico es una curva supuesta, no calculada.</li>
+        <li>La correlación de τ está validada entre ~943 y 1027 K y entre 9 y 23 atm; por encima de esa presión es una extrapolación.</li>
+        <li>No se modela el picado en modo chispa.</li>
+        <li>La temperatura de quemados ignora la disociación, así que se sobreestima.</li>
+        <li>La fricción usa la correlación de Chen-Flynn con coeficientes orientativos.</li>
+        <li>El límite de ringing se toma en dp/dθ = 5 bar/°.</li>
+        <li>La duración de la combustión del HCCI es fija (12°). En un motor real, adelantar la fase también acelera la combustión, así que el ringing aparece antes que aquí.</li>
+      </ul>
+      <p class="note">El mismo modelo está escrito en Python y en MATLAB. Esta página usa un port en JavaScript (<a href="modelo.js">modelo.js</a>) que da los mismos resultados con cuatro cifras significativas.</p>
+      <p><a href="simulacion_motores.m" download>Descargar el script de MATLAB</a></p>
+    </section>
+  </main>
+
+  <footer class="site"><div class="wrap">© 2026 Miguel Ángel Serrano García</div></footer>
+
+<script>
+(() => {
+  const M = window.Motor0D;
+  const $ = id => document.getElementById(id);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const KEYS = ['MEP', 'MEC', 'HCCI'];
+  const COL = { MEP: '--mep', MEC: '--mec', HCCI: '--hcci' };
+  const NOMBRE = innerWidth < 560 ? { MEP: 'MEP', MEC: 'MEC', HCCI: 'HCCI' } : { MEP: 'MEP · gasolina', MEC: 'MEC · diésel', HCCI: 'HCCI' };
+  const RINGING = 5e5;                       // [Pa/deg]
+  const fmt = (v, d) => (v === null || v === undefined || !isFinite(v)) ? '–' : v.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d });
+
+  // ------------------------------------------------------------ estado
+  const ids = ['carga', 'rpm', 'ca50', 'tivc', 'lmin', 'rcMEP', 'rcMEC', 'rcHCCI'];
+  let vistaCiclo = 'p', vistaBarrido = 'eta';
+
+  function leer() {
+    const v = Object.fromEntries(ids.map(k => [k, parseFloat($(k).value)]));
+    v.lazoCerrado = $('lc').checked;
+    v.woschni = $('wos').checked;
+    return v;
+  }
+
+  function motores(v) {
+    return {
+      MEP: Object.assign({}, M.MOTORES.MEP, { rc: v.rcMEP }),
+      MEC: Object.assign({}, M.MOTORES.MEC, { rc: v.rcMEC }),
+      HCCI: Object.assign({}, M.MOTORES.HCCI, {
+        rc: v.rcHCCI, lambdaMin: v.lmin,
+        ca50Obj: v.lazoCerrado ? v.ca50 : null,
+        Tivc: v.lazoCerrado ? M.MOTORES.HCCI.Tivc : v.tivc
+      })
+    };
+  }
+  const opciones = v => Object.assign({}, M.OPC, { woschni: v.woschni });
+
+  // ------------------------------------------------------- base de Plotly
+  function base(extra) {
+    const fg = css('--fg'), grid = css('--line'), muted = css('--muted');
+    const ax = o => Object.assign({ gridcolor: grid, zeroline: false, linecolor: grid, tickfont: { color: muted }, title: { font: { color: muted, size: 12 } } }, o);
+    return Object.assign({
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: fg, family: 'system-ui, -apple-system, "Segoe UI", sans-serif', size: 12 },
+      margin: { l: 58, r: 14, t: 8, b: 46 },
+      legend: { orientation: 'h', y: 1.0, yanchor: 'bottom', x: 0, font: { size: 12 } },
+      hoverlabel: { font: { family: 'ui-monospace, Menlo, monospace', size: 12 } },
+      hovermode: 'x unified', uirevision: 'keep', ax
+    }, extra);
+  }
+  const CFG = { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d'] };
+
+  // --------------------------------------------------- 1) punto actual
+  let ciclos = {}, ref = {};
+  function calcularPunto(v) {
+    const mot = motores(v), opc = opciones(v), carga = v.carga / 100;
+    ciclos = {};
+    for (const k of KEYS) ciclos[k] = v.rpm <= mot[k].nMax ? M.ciclo(mot[k], carga, v.rpm, opc) : null;
+    const clave = [v.rpm, v.rcMEP, v.woschni].join();
+    if (ref.clave !== clave) ref = { clave, nox: M.ciclo(mot.MEP, 1, v.rpm, opc).nox };
+  }
+
+  function dibujarCiclo() {
+    const L = base({}), ax = L.ax; delete L.ax;
+    const tr = [];
+    for (const k of KEYS) {
+      const r = ciclos[k]; if (!r) continue;
+      const c = css(COL[k]), th = Array.from(r.th);
+      const nm = k + (r.modo === 'Fallo' ? ' (fallo)' : '');
+      if (vistaCiclo === 'p') tr.push({ x: th, y: Array.from(r.p, x => x / 1e5), name: nm, line: { color: c, width: 2 }, hovertemplate: '%{y:.1f} bar' });
+      if (vistaCiclo === 'pv') tr.push({ x: Array.from(r.V, x => x * 1e6), y: Array.from(r.p, x => x / 1e5), name: nm, line: { color: c, width: 2 }, hovertemplate: '%{x:.0f} cm³ · %{y:.1f} bar' });
+      if (vistaCiclo === 'hrr') tr.push({ x: th, y: Array.from(r.hrr), name: nm, line: { color: c, width: 2 }, hovertemplate: '%{y:.1f} J/°' });
+      if (vistaCiclo === 'T') {
+        tr.push({ x: th, y: Array.from(r.T), name: nm, legendgroup: k, line: { color: c, width: 2 }, hovertemplate: 'media %{y:.0f} K' });
+        tr.push({ x: th, y: r.Tb, name: k + ' quemados', legendgroup: k, showlegend: false, line: { color: c, width: 1.3, dash: 'dash' }, hovertemplate: 'quemados %{y:.0f} K', connectgaps: false });
+      }
+    }
+    const xa = { title: { text: 'Ángulo de cigüeñal θ [°]  (0 = PMS)' }, dtick: 20 };
+    if (vistaCiclo === 'p') { L.xaxis = ax(Object.assign(xa, { range: [-60, 90] })); L.yaxis = ax({ title: { text: 'Presión [bar]' }, rangemode: 'tozero' }); }
+    if (vistaCiclo === 'hrr') { L.xaxis = ax(Object.assign(xa, { range: [-40, 90] })); L.yaxis = ax({ title: { text: 'dQ/dθ [J/°]' }, rangemode: 'tozero' }); }
+    if (vistaCiclo === 'T') {
+      L.xaxis = ax(Object.assign(xa, { range: [-40, 90] })); L.yaxis = ax({ title: { text: 'Temperatura [K]' } });
+      L.shapes = [{ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: 1800, y1: 1800, line: { color: css('--muted'), width: 1, dash: 'dot' } }];
+      L.annotations = [{ xref: 'paper', x: 0.01, y: 1800, yanchor: 'bottom', xanchor: 'left', showarrow: false, text: 'NO térmico relevante (~1800 K) · línea discontinua: zona quemada', font: { size: 11, color: css('--muted') } }];
+    }
+    if (vistaCiclo === 'pv') {
+      L.hovermode = 'closest';
+      L.xaxis = ax({ type: 'log', title: { text: 'Volumen [cm³] (escala log)' } });
+      L.yaxis = ax({ type: 'log', title: { text: 'Presión [bar] (escala log)' } });
+    }
+    Plotly.react('gCiclo', tr, L, CFG);
+  }
+
+  function chips(k, r, mot) {
+    if (!r) return '<span class="chip">fuera de rango</span>';
+    const c = [];
+    if (r.modo === 'Fallo') c.push('<span class="chip bad">fallo de encendido</span>');
+    else if (k === 'HCCI' && r.modo === 'HCCI' && r.dpmax > RINGING) c.push('<span class="chip warn">ringing</span>');
+    if (k === 'HCCI' && r.modo === 'Chispa') c.push('<span class="chip">modo chispa</span>');
+    if (k === 'HCCI' && r.modo === 'HCCI' && $('lc').checked && Math.abs(r.ca50 - mot.ca50Obj) > 0.5) c.push('<span class="chip warn">CA50 no alcanzable</span>');
+    return c.join('');
+  }
+
+  function dibujarTabla(v) {
+    const mot = motores(v);
+    const filas = [
+      ['Combustión', r => r.modo === 'Chispa' ? 'Chispa' : r.modo === 'Difusión' ? 'Difusión' : r.modo === 'HCCI' ? 'Autoignición' : 'Sin combustión'],
+      ['λ', r => fmt(r.lam, 2)],
+      ['T en cierre de admisión [K]', r => fmt(r.Tivc, 0)],
+      ['CA50 [° tras PMS]', r => r.ca50 === null ? '–' : (r.ca50 >= 0 ? '+' : '') + fmt(r.ca50, 1)],
+      ['IMEP neta [bar]', r => fmt(r.imepN / 1e5, 2)],
+      ['Bombeo, PMEP [bar]', r => fmt(r.pmep / 1e5, 2)],
+      ['Rendimiento indicado [%]', r => r.fallo ? '–' : fmt(r.etaI * 100, 1), true, r => r.etaI],
+      ['p máx [bar]', r => fmt(r.pmax / 1e5, 1)],
+      ['dp/dθ máx [bar/°]', r => fmt(r.dpmax / 1e5, 2), true],
+      ['T máx media [K]', r => fmt(r.Tmax, 0)],
+      ['NOx (rel.)', r => r.nox / ref.nox < 0.001 ? '< 0,001' : fmt(r.nox / ref.nox, 3), true, r => -r.nox],
+      ['Par efectivo [Nm]', r => fmt(M.parEfectivo(r).par, 0)],
+      ['Potencia efectiva [CV]', r => fmt(M.parEfectivo(r).pot, 0)]
+    ];
+    let h = '<thead><tr><th scope="col"><span class="note">' + v.carga + ' % · ' + v.rpm + ' rpm</span></th>';
+    for (const k of KEYS) h += '<th scope="col"><span class="sw" style="background:var(' + COL[k] + ')"></span>' + NOMBRE[k] + '<div class="chips">' + chips(k, ciclos[k], mot[k]) + '</div></th>';
+    h += '</tr></thead><tbody>';
+    for (const [nom, f, key, mejor] of filas) {
+      let best = null;
+      if (mejor) {
+        const vals = KEYS.filter(k => ciclos[k] && ciclos[k].modo !== 'Fallo').map(k => [k, mejor(ciclos[k])]);
+        if (vals.length) best = vals.reduce((a, b) => b[1] > a[1] ? b : a)[0];
+      }
+      h += '<tr' + (key ? ' class="key"' : '') + '><td>' + nom + '</td>';
+      for (const k of KEYS) {
+        const r = ciclos[k], txt = r ? f(r) : '–';
+        h += '<td>' + (k === best ? '<b>' + txt + '</b>' : txt) + '</td>';
+      }
+      h += '</tr>';
+    }
+    $('tabla').innerHTML = h + '</tbody>';
+  }
+
+  // ------------------------------------------- 2) cálculos pesados (diferidos)
+  let token = 0, timer = null, barrido = null, control = null;
+  const pausa = () => new Promise(r => setTimeout(r, 0));
+
+  async function calcularPesado(v, t) {
+    const mot = motores(v), opc = opciones(v);
+    $('msgBarrido').textContent = 'Calculando…';
+    $('msgControl').textContent = 'Calculando…';
+    // Barrido de carga
+    const cargas = []; for (let c = 15; c <= 100; c += 5) cargas.push(c);
+    const B = { cargas, v };
+    for (const k of KEYS) {
+      B[k] = { eta: [], nox: [], imep: [], lam: [] };
+      for (const c of cargas) {
+        if (t !== token) return;
+        const r = v.rpm <= mot[k].nMax ? M.ciclo(mot[k], c / 100, v.rpm, opc) : null;
+        const ok = r && r.modo !== 'Fallo';
+        B[k].eta.push(ok ? r.etaI * 100 : null);
+        B[k].nox.push(ok ? Math.max(r.nox / ref.nox, 1e-6) : null);
+        B[k].imep.push(r ? r.imepN / 1e5 : null);
+        B[k].lam.push(r ? r.lam : null);
+      }
+      await pausa();
+    }
+    barrido = B; dibujarBarrido();
+    $('msgBarrido').textContent = v.rpm > mot.MEC.nMax ? 'El MEC no llega a ' + v.rpm + ' rpm (régimen máximo 4500).' : '';
+
+    // Ventana de control del HCCI (lazo abierto, T de admisión variable)
+    const h = Object.assign({}, mot.HCCI, { ca50Obj: null });
+    const e = M.estrategia(h, v.carga / 100);
+    const C = { v, T: [], ca50: [], dp: [], eta: [], hcci: e.modo === 'HCCI' };
+    if (C.hcci) {
+      for (let Ti = 380; Ti <= 560; Ti += 2.5) {
+        if (t !== token) return;
+        const r = M.ciclo(Object.assign({}, h, { Tivc: Ti }), v.carga / 100, v.rpm, opc);
+        C.T.push(Ti); C.ca50.push(r.ca50); C.dp.push(r.dpmax / 1e5); C.eta.push(r.etaI * 100);
+        if (C.T.length % 12 === 0) await pausa();
+      }
+    }
+    control = C; dibujarControl();
+  }
+
+  function programar(v) {
+    const t = ++token;
+    clearTimeout(timer);
+    timer = setTimeout(() => calcularPesado(v, t), 220);
+  }
+
+  function dibujarBarrido() {
+    if (!barrido) return;
+    const L = base({}), ax = L.ax; delete L.ax;
+    const meta = { eta: ['Rendimiento indicado [%]', '.1f', ' %'], nox: ['Índice NOx (MEP plena carga = 1)', '.3g', ''], imep: ['IMEP neta [bar]', '.2f', ' bar'], lam: ['λ', '.2f', ''] }[vistaBarrido];
+    const tr = KEYS.map(k => ({ x: barrido.cargas, y: barrido[k][vistaBarrido], name: k, mode: 'lines', line: { color: css(COL[k]), width: 2 }, hovertemplate: '%{y:' + meta[1] + '}' + meta[2], connectgaps: false }));
+    const v = leer(), lim = 100 / v.lmin, muted = css('--muted');
+    L.xaxis = ax({ title: { text: 'Carga [%]' }, range: [15, 100], dtick: 10 });
+    L.yaxis = ax({ title: { text: meta[0] }, type: vistaBarrido === 'nox' ? 'log' : 'linear', exponentformat: 'power' });
+    L.shapes = [
+      { type: 'line', x0: lim, x1: lim, yref: 'paper', y0: 0, y1: 1, line: { color: muted, width: 1, dash: 'dash' } },
+      { type: 'line', x0: v.carga, x1: v.carga, yref: 'paper', y0: 0, y1: 1, line: { color: css('--fg'), width: 1, dash: 'dot' } }
+    ];
+    L.annotations = [{ x: lim, yref: 'paper', y: 0.02, xanchor: 'left', yanchor: 'bottom', showarrow: false, text: ' fin ventana HCCI', font: { size: 11, color: muted } }];
+    Plotly.react('gBarrido', tr, L, CFG);
+    $('subBarrido').textContent = 'A ' + barrido.v.rpm + ' rpm. La línea de puntos marca la carga actual.';
+  }
+
+  function dibujarControl() {
+    if (!control) return;
+    const C = control, v = C.v, L = base({ hovermode: 'closest' }), ax = L.ax; delete L.ax;
+    const muted = css('--muted');
+    $('subControl').textContent = 'CA50 frente a la temperatura en cierre de admisión, a ' + v.carga + ' % y ' + v.rpm + ' rpm.';
+    if (!C.hcci) {
+      Plotly.react('gControl', [], Object.assign(L, {
+        xaxis: ax({ visible: false }), yaxis: ax({ visible: false }),
+        annotations: [{ xref: 'paper', yref: 'paper', x: 0.5, y: 0.5, showarrow: false, font: { size: 13, color: muted },
+          text: 'Con ' + v.carga + ' % de carga el HCCI ya trabaja en modo chispa.<br>Baja la carga por debajo del ' + Math.floor(100 / v.lmin) + ' % o reduce el λ mínimo.' }]
+      }), CFG);
+      $('msgControl').textContent = '';
+      return;
+    }
+    const iOn = C.ca50.findIndex(x => x !== null);
+    const iRing = C.dp.findIndex((d, i) => C.ca50[i] !== null && d > RINGING / 1e5);
+    const Tmin = C.T[0], Tmax = C.T[C.T.length - 1];
+    const shapes = [], ann = [];
+    const banda = (x0, x1, fill, txt, col) => {
+      shapes.push({ type: 'rect', x0, x1, yref: 'paper', y0: 0, y1: 1, fillcolor: fill, line: { width: 0 }, layer: 'below' });
+      ann.push({ x: (x0 + x1) / 2, yref: 'paper', y: 0.97, showarrow: false, text: txt, font: { size: 11, color: col }, yanchor: 'top' });
+    };
+    if (iOn > 0) banda(Tmin, C.T[iOn] - 1.25, css('--bad-bg'), 'Fallo de<br>encendido', css('--bad'));
+    if (iOn === -1) banda(Tmin, Tmax, css('--bad-bg'), 'No se autoinflama en todo el rango', css('--bad'));
+    const iAdel = C.ca50.findIndex(x => x !== null && x < 0);
+    if (iRing >= 0) banda(C.T[iRing] - 1.25, Tmax, css('--warn-bg'), 'Ringing<br>dp/dθ > 5 bar/°', css('--warn'));
+    else if (iAdel >= 0) banda(C.T[iAdel] - 1.25, Tmax, css('--bg'), 'CA50 antes del PMS:<br>la combustión frena al pistón', muted);
+    const obj = $('lc').checked ? v.ca50 : null;
+    if (obj !== null) shapes.push({ type: 'line', xref: 'paper', x0: 0, x1: 1, y0: obj, y1: obj, line: { color: muted, width: 1, dash: 'dot' } });
+    const r = ciclos.HCCI;
+    const tr = [{
+      x: C.T, y: C.ca50, name: 'CA50', mode: 'lines', line: { color: css('--hcci'), width: 2.5 }, connectgaps: false,
+      customdata: C.T.map((_, i) => [C.dp[i], C.eta[i]]),
+      hovertemplate: 'T<sub>IVC</sub> %{x:.0f} K<br>CA50 %{y:+.1f}°<br>dp/dθ %{customdata[0]:.2f} bar/°<br>η %{customdata[1]:.1f} %<extra></extra>'
+    }];
+    if (r && r.modo === 'HCCI') tr.push({
+      x: [r.Tivc], y: [r.ca50], name: 'Punto actual', mode: 'markers',
+      marker: { size: 11, color: css('--hcci'), line: { color: css('--surface'), width: 2 } },
+      hovertemplate: 'Punto actual<br>T<sub>IVC</sub> %{x:.0f} K · CA50 %{y:+.1f}°<extra></extra>'
+    });
+    L.xaxis = ax({ title: { text: 'T en cierre de admisión [K]' }, range: [Tmin, Tmax] });
+    L.yaxis = ax({ title: { text: 'CA50 [° tras PMS]' }, range: [-12, 25] });
+    L.shapes = shapes; L.annotations = ann; L.showlegend = false;
+    Plotly.react('gControl', tr, L, CFG);
+    if (iOn >= 0) {
+      const Tlim = iRing >= 0 ? C.T[iRing] : iAdel >= 0 ? C.T[iAdel] : null;
+      $('msgControl').textContent = Tlim
+        ? 'Ventana útil: de ' + C.T[iOn] + ' a ' + Tlim + ' K. Son ' + (Tlim - C.T[iOn]).toFixed(0) + ' K para controlar todo el encendido' + (iRing >= 0 ? ' antes de entrar en ringing.' + '' : '.')
+        : 'Se autoinflama a partir de ' + C.T[iOn] + ' K.';
+    } else $('msgControl').textContent = '';
+  }
+
+  // ------------------------------------------------------------ interfaz
+  function etiquetas(v) {
+    $('cargao').value = v.carga + ' %';
+    $('rpmo').value = v.rpm + ' rpm';
+    $('ca50o').value = (v.ca50 >= 0 ? '+' : '') + v.ca50.toFixed(1) + '°';
+    $('lmino').value = v.lmin.toFixed(1) + '  (hasta ' + Math.floor(100 / v.lmin) + ' %)';
+    ['MEP', 'MEC', 'HCCI'].forEach(k => $('rc' + k + 'o').value = v['rc' + k].toFixed(1));
+    $('c-ca50').classList.toggle('off', !v.lazoCerrado);
+    $('c-tivc').classList.toggle('off', v.lazoCerrado);
+    $('ca50').disabled = !v.lazoCerrado;
+    $('tivc').disabled = v.lazoCerrado;
+  }
+
+  function actualizar() {
+    const v = leer();
+    calcularPunto(v);
+    if (v.lazoCerrado && ciclos.HCCI) $('tivc').value = Math.round(ciclos.HCCI.Tivc);
+    etiquetas(v);
+    $('tivco').value = (v.lazoCerrado ? (ciclos.HCCI ? ciclos.HCCI.Tivc.toFixed(0) : '–') + ' K (calculada)' : v.tivc + ' K');
+    dibujarCiclo(); dibujarTabla(v);
+    if (barrido) dibujarBarrido();
+    programar(v);
+  }
+
+  ids.forEach(k => $(k).addEventListener('input', actualizar));
+  ['lc', 'la', 'wos'].forEach(k => $(k).addEventListener('change', actualizar));
+
+  function tabs(id, set) {
+    const cont = $(id);
+    cont.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      cont.querySelectorAll('button').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+      set(b.dataset.v);
+    }));
+  }
+  tabs('tabsCiclo', x => { vistaCiclo = x; dibujarCiclo(); });
+  tabs('tabsBarrido', x => { vistaBarrido = x; dibujarBarrido(); });
+
+  const presets = {
+    parcial: { carga: 40, rpm: 2500, modo: 'lc', ca50: 6, lmin: 2 },
+    baja: { carga: 20, rpm: 1500, modo: 'lc', ca50: 6, lmin: 2 },
+    plena: { carga: 100, rpm: 4000, modo: 'lc', ca50: 6, lmin: 2 },
+    fallo: { carga: 40, rpm: 2500, modo: 'la', tivc: 435, lmin: 2 },
+    ringing: { carga: 60, rpm: 2500, modo: 'lc', ca50: 6, lmin: 1.6 }
+  };
+  document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+    const p = presets[b.dataset.preset];
+    $('carga').value = p.carga; $('rpm').value = p.rpm; $(p.modo).checked = true;
+    if (p.ca50 !== undefined) $('ca50').value = p.ca50;
+    if (p.tivc !== undefined) $('tivc').value = p.tivc;
+    $('lmin').value = p.lmin;
+    actualizar();
+  }));
+
+  const redibujar = () => { dibujarCiclo(); dibujarBarrido(); dibujarControl(); };
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redibujar);
+  new MutationObserver(redibujar).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  actualizar();
+})();
+</script>
+</body>
+</html>
