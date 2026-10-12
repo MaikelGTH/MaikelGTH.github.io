@@ -197,7 +197,8 @@
       const [xb, dxb] = quemado(th[i], cb);
       hrr[i] = Qtot * dxb;
       Tb[i] = xb >= 0.01 ? mot.Tivc * Math.pow(p[i] / p0, (mot.g - 1) / mot.g) + dTad : null;
-      const tasa = Tb[i] ? (lamFl / lam) * xb * Math.exp(-38370 / Tb[i]) * Math.sqrt(xO2b) : 0;
+      // Zeldovich con [O] en equilibrio (Heywood, ec. 11.8): d[NO]/dt ∝ T^-1/2·exp(-69090/T)·[O2]^1/2
+      const tasa = Tb[i] ? (lamFl / lam) * xb * Math.pow(Tb[i], -0.5) * Math.exp(-69090 / Tb[i]) * Math.sqrt(xO2b) : 0;
       if (i > 0) {
         W += 0.5 * (p[i] + p[i - 1]) * (V[i] - V[i - 1]);
         nox += 0.5 * (tasa + tasaPrev) * opc.dth;

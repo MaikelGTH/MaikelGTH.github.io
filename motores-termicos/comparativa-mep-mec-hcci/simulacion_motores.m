@@ -303,7 +303,8 @@ function r = cicloCerrado(mot, geo, amb, opts, carga, n)
     Tb   = Tu + dTad;  Tb(xb < 0.01) = NaN;               % sin disociación: sobreestima
     r.Tb = Tb;
     xO2b = max(0.21*(lamFl - 1)/lamFl, 0.01);             % suelo ~ O2 por disociación
-    tasa = (lamFl/lambda)*xb.*exp(-38370./Tb)*sqrt(xO2b);  tasa(isnan(tasa)) = 0;
+    % Zeldovich con [O] en equilibrio (Heywood, ec. 11.8): d[NO]/dt ~ T^-1/2 exp(-69090/T) [O2]^1/2
+    tasa = (lamFl/lambda)*xb.*Tb.^-0.5.*exp(-69090./Tb)*sqrt(xO2b);  tasa(isnan(tasa)) = 0;
     r.noxIdx = trapz(th, tasa)/(6*n);                     % integral temporal
 end
 
