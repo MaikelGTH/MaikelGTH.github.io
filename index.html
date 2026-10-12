@@ -3,9 +3,65 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Miguel Ángel Serrano García</title>
-  <meta name="description" content="Miguel Ángel Serrano García — Ingeniería Mecánica (UPM). Powertrain, motores térmicos y fabricación. Simuladores interactivos de proyectos personales.">
+  <title>Miguel Ángel Serrano García · Ingeniería Mecánica</title>
+  <meta name="description" content="Miguel Ángel Serrano García, estudiante de Ingeniería Mecánica en la UPM. Desarrollo de motores de combustión: sistemas de admisión, CFD, simulación 1D y fabricación. Busca prácticas desde febrero de 2027.">
+  <link rel="canonical" href="https://miguelangelserranogarcia.com/">
+  <meta property="og:title" content="Miguel Ángel Serrano García · Ingeniería Mecánica">
+  <meta property="og:description" content="Desarrollo de motores de combustión: sistemas de admisión, CFD, simulación 1D y fabricación.">
+  <meta property="og:url" content="https://miguelangelserranogarcia.com/">
+  <meta property="og:type" content="profile">
   <link rel="stylesheet" href="assets/style.css">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Miguel Ángel Serrano García",
+    "url": "https://miguelangelserranogarcia.com/",
+    "jobTitle": "Estudiante de Ingeniería Mecánica",
+    "alumniOf": { "@type": "CollegeOrUniversity", "name": "Universidad Politécnica de Madrid" },
+    "address": { "@type": "PostalAddress", "addressLocality": "Madrid", "addressCountry": "ES" },
+    "knowsAbout": ["Motores de combustión interna", "Sistemas de admisión", "CFD", "Simulación 1D de motores", "Fabricación"],
+    "sameAs": ["https://www.linkedin.com/in/miguelangelserranogarcia", "https://github.com/MaikelGTH"]
+  }
+  </script>
+  <style>
+    .hero { padding: 1.5em 0 .5em; }
+    .hero h1 { margin-top: .25em; }
+    .hero .lead { max-width: 680px; }
+    .status { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.2em; font-size: .9rem; padding: .35em .8em; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1a8a4a; }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.2em; }
+    .btn { display: inline-block; padding: .5em 1em; border: 1px solid var(--line); border-radius: 8px; text-decoration: none; font-size: .92rem; background: var(--surface); }
+    .btn:hover { border-color: var(--fg); }
+    .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+
+    section.block { margin-top: 3em; }
+    section.block > h2 { margin-top: 0; }
+    .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+
+    /* Línea de tiempo */
+    .tl { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
+    .tl > li { position: relative; padding: 0 0 1.6em 1.3em; }
+    .tl > li::before { content: ""; position: absolute; left: -7px; top: .45em; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); }
+    .tl > li:last-child { padding-bottom: 0; }
+    .tl .when { font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+    .tl h3 { margin: .15em 0 .1em; font-size: 1.05rem; }
+    .tl .org { color: var(--muted); font-size: .92rem; margin: 0 0 .5em; }
+    .tl ul { margin: .3em 0 0; padding-left: 1.1em; }
+    .tl li li { margin: .2em 0; }
+
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+    .panel h3 { margin: 0 0 .6em; font-size: 1rem; }
+    .panel ul { margin: 0; padding-left: 1.1em; }
+    .panel li { margin: .35em 0; }
+    .panel .note { color: var(--muted); font-size: .85rem; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips span { font-size: .85rem; padding: .25em .65em; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+
+    .card .meta { font-family: var(--mono); font-size: .75rem; color: var(--muted); margin-top: .6em; }
+  </style>
 </head>
 <body>
   <header class="site">
@@ -19,25 +75,169 @@
   </header>
 
   <main class="wrap">
-    <p class="eyebrow">Ingeniería Mecánica · UPM</p>
-    <h1>Miguel Ángel Serrano García</h1>
-    <p class="lead">Powertrain, motores térmicos y fabricación. Aquí publico miniproyectos personales en forma de simuladores interactivos: cambia los parámetros y mira qué pasa.</p>
+    <section class="hero">
+      <p class="eyebrow">Ingeniería Mecánica · Universidad Politécnica de Madrid</p>
+      <h1>Miguel Ángel Serrano García</h1>
+      <p class="lead">Estudiante de Ingeniería Mecánica, especialidad en motores y vibraciones. Trabajo en el desarrollo de motores de combustión, sobre todo en sistemas de admisión: desde el diseño y la simulación CFD y 1D hasta la fabricación y el banco de potencia.</p>
+      <p class="status">Busco prácticas de ingeniería a partir de febrero de 2027 · Madrid</p>
+      <div class="links">
+        <a class="btn primary" href="https://www.linkedin.com/in/miguelangelserranogarcia" rel="me">LinkedIn</a>
+        <a class="btn" href="https://github.com/MaikelGTH" rel="me">GitHub</a>
+        <a class="btn" href="#proyectos">Proyectos y simuladores</a>
+      </div>
+    </section>
 
-    <h2>Secciones</h2>
-    <div class="grid">
-      <a class="card" href="diseno-mecanico/">
-        <span class="tag">1 simulador</span>
-        <h3>Diseño mecánico</h3>
-        <p>Cinemática de mecanismos y transmisiones.</p>
-      </a>
-      <a class="card" href="motores-termicos/">
-        <span class="tag">1 simulador</span>
-        <h3>Motores térmicos</h3>
-        <p>Ciclos termodinámicos, combustión y control de motores.</p>
-      </a>
-    </div>
+    <section class="block" id="experiencia">
+      <h2>Experiencia</h2>
+      <ul class="tl">
+        <li>
+          <span class="when">oct 2025 – actualidad</span>
+          <h3>Desarrollo de powertrain · Sistemas de admisión</h3>
+          <p class="org">UPM MotoStudent Petrol</p>
+          <p>Adaptación de un motor KTM de motocross a un prototipo de competición en circuito, desde el análisis y el CAD hasta la fabricación.</p>
+          <ul>
+            <li>Sistema de admisión: <i>packaging</i>, arquitectura de flujo y conjuntos: conductos <i>ram-air</i>, caja de aire, trompetas y mecanismo de geometría variable para mejorar el rendimiento volumétrico en todo el rango de régimen.</li>
+            <li>Diseño en 3DEXPERIENCE, CFD en STAR-CCM+ y simulación 1D del motor completo.</li>
+            <li>Herramientas propias en Python y MATLAB para predecir parámetros del mapa motor y acelerar las iteraciones de diseño.</li>
+            <li>Apoyo en la fabricación de los colectores de escape, el depósito y el circuito de venteo de combustible.</li>
+            <li>Coordinación de interfaces entre áreas para que cada componente encaje y funcione en banco y en pista.</li>
+          </ul>
+        </li>
+        <li>
+          <span class="when">feb 2025 – actualidad</span>
+          <h3>Comisario de pista con licencia FIA</h3>
+          <p class="org">Circuito de Madrid Jarama – RACE</p>
+          <ul>
+            <li>Banderas, intervención en incidentes (accidentes, salidas de pista, incendios) y control del pit-lane.</li>
+            <li>Apoyo a dirección de carrera: conteo de vueltas, control de entrada a boxes y sanciones.</li>
+            <li>Comisario en el Gran Premio de Fórmula 1 en el MADRING (F1, F2 y F3).</li>
+          </ul>
+        </li>
+        <li>
+          <span class="when">oct 2024 – ago 2025</span>
+          <h3>Formula Student Academy</h3>
+          <p class="org">UPM Racing</p>
+          <ul>
+            <li>Diseño CAD y validación por elementos finitos de componentes de suspensión.</li>
+            <li>Disposición de la transmisión trasera, con junta cardan para transmitir par al eje con desalineación angular.</li>
+            <li>Integración electrónica del control del prototipo con microcontroladores.</li>
+            <li>Prototipado por impresión 3D, fabricación, montaje y pruebas; defensa del diseño ante ingenieros de la industria.</li>
+          </ul>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block" id="proyectos">
+      <h2>Proyectos</h2>
+      <div class="grid">
+        <a class="card" href="motores-termicos/comparativa-mep-mec-hcci/">
+          <span class="tag">Simulador · Termodinámica</span>
+          <h3>MEP, MEC y HCCI</h3>
+          <p>Modelo 0D de ciclo cerrado que compara gasolina, diésel y autoignición homogénea, con encendido por Livengood-Wu y control de CA50 en lazo cerrado.</p>
+          <p class="meta">JavaScript · Python · MATLAB</p>
+        </a>
+        <a class="card" href="diseno-mecanico/junta-cardan/">
+          <span class="tag">Simulador · Cinemática 3D</span>
+          <h3>Doble junta cardan</h3>
+          <p>Fluctuación de velocidad en montajes Z, W y espaciales, y condición de homocinetismo.</p>
+          <p class="meta">JavaScript · MATLAB</p>
+        </a>
+        <a class="card" href="https://github.com/MaikelGTH/motor0d">
+          <span class="tag">Código abierto</span>
+          <h3>motor0d</h3>
+          <p>Repositorio del modelo de motores: código en Python y MATLAB, tests e informe técnico.</p>
+          <p class="meta">GitHub</p>
+        </a>
+        <div class="card">
+          <span class="tag">Herramienta · Diseño</span>
+          <h3>Ultimate Shaft Solver</h3>
+          <p>Cálculo a fatiga de ejes y tornillos según Norton y Shigley: coeficientes de seguridad estático, Goodman y ASME, vida estimada y optimización de geometría. Usado para validar estribos en el equipo.</p>
+          <p class="meta">Python</p>
+        </div>
+        <div class="card">
+          <span class="tag">Taller · desde 2023</span>
+          <h3>Restauración de un kart de competición</h3>
+          <p>Kart de los años 2000: piezas fabricadas y adaptadas a medida, soldadura, ajuste de tolerancias y puesta a punto.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="formacion">
+      <h2>Formación</h2>
+      <div class="two">
+        <div class="panel">
+          <h3>Grado en Ingeniería Mecánica</h3>
+          <p>Universidad Politécnica de Madrid · 2023 – 2027</p>
+          <p class="note">Especialidad en motores y vibraciones: diseño mecánico, análisis estructural, termodinámica, mecánica de fluidos y dinámica de máquinas.</p>
+        </div>
+        <div class="panel">
+          <h3>Flow Phenomena in Turbomachinery Blade Channels</h3>
+          <p>Technische Universität Wien · Programa ATHENS · calificación A</p>
+          <p class="note">Simulación CFD y modelos de turbulencia aplicados a álabes de turbina.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="representacion">
+      <h2>Representación universitaria</h2>
+      <ul class="tl">
+        <li>
+          <span class="when">2023 – actualidad</span>
+          <h3>Delegado de clase y de titulación</h3>
+          <p class="org">Grado en Ingeniería Mecánica · UPM</p>
+          <p>Delegado de curso desde primero y representante de toda la titulación ante la Escuela.</p>
+        </li>
+        <li>
+          <span class="when">2025 – 2026</span>
+          <h3>Miembro del Consejo de Departamento</h3>
+          <p class="org">Departamento de Ingeniería Mecánica, Química y Diseño Industrial · UPM</p>
+        </li>
+        <li>
+          <span class="when">marzo 2026</span>
+          <h3>Representante de la UPM en la feria AULA</h3>
+          <p class="org">IFEMA, Madrid · seleccionado por el Rectorado</p>
+        </li>
+      </ul>
+    </section>
+
+    <section class="block" id="competencias">
+      <h2>Competencias</h2>
+      <div class="two">
+        <div class="panel">
+          <h3>Herramientas</h3>
+          <div class="chips">
+            <span>3DEXPERIENCE</span><span>STAR-CCM+</span><span>Ansys</span><span>Simulación 1D de motores</span><span>Python</span><span>MATLAB</span><span>AutoCAD</span><span>Impresión 3D</span>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>Idiomas</h3>
+          <ul>
+            <li>Español: nativo</li>
+            <li>Inglés: C1 (IELTS Academic 7.0)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <h3>Certificaciones y cursos</h3>
+        <ul>
+          <li>Licencia FIA de comisario de ruta · Real Federación Española de Automovilismo</li>
+          <li>Technical knowledge in motorsport y Advanced technical knowledge in motorsport · Lebalap Racing Performance</li>
+          <li>Mecánica básica de motocicletas · EMA Competición</li>
+          <li>Trabajo en equipo · Centro de Liderazgo y Tecnología UPM</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="block" id="contacto">
+      <h2>Contacto</h2>
+      <p>La forma más rápida de contactarme es por LinkedIn.</p>
+      <div class="links">
+        <a class="btn primary" href="https://www.linkedin.com/in/miguelangelserranogarcia">LinkedIn</a>
+        <a class="btn" href="https://github.com/MaikelGTH">GitHub</a>
+      </div>
+    </section>
   </main>
 
-  <footer class="site"><div class="wrap">© 2026 Miguel Ángel Serrano García</div></footer>
+  <footer class="site"><div class="wrap">© 2026 Miguel Ángel Serrano García · Madrid</div></footer>
 </body>
 </html>
