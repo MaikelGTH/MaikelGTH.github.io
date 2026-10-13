@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cálculo de ejes a fatiga · Ultimate Shaft Solver · Miguel Ángel Serrano García</title>
+  <meta name="description" content="Calculadora interactiva de ejes, bulones y tornillos a fatiga (Shigley / Norton): Von Mises, Goodman, ASME, Langer, vida por Basquin, diagrama de Haigh y optimización del diámetro.">
+  <link rel="stylesheet" href="../../assets/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+  <script src="modelo.js"></script>
+  <style>
+    :root { --ok: #1a8a4a; --warn: #b26a00; --safe: #2e7d5b; --violet: #8a5cc2; }
+    @media (prefers-color-scheme: dark) { :root { --ok: #3cc17a; --warn: #f0a540; --safe: #4fbf8a; --violet: #b48ae6; } }
+
+    .sim { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; margin-top: 1.5em; align-items: start; }
+    @media (max-width: 860px) { .sim { grid-template-columns: 1fr; } }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+    fieldset { border: 0; padding: 0; margin: 0 0 14px; min-width: 0; }
+    legend { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-bottom: 6px; padding: 0; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .row3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .f { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; font-size: .82rem; color: var(--muted); }
+    .f input, .f select { font: inherit; font-size: .9rem; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: .38em .5em; width: 100%; min-width: 0; }
+    .f input:focus, .f select:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .f input:disabled { opacity: .45; }
+    .chk { display: flex; align-items: center; gap: 8px; font-size: .86rem; margin: 2px 0 8px; }
+    .chk input { accent-color: var(--accent); }
+    .load { border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 4px; }
+    .load b { font-size: .86rem; font-weight: 600; }
+    .err { color: var(--accent); font-size: .78rem; min-height: 0; }
+    .matinfo { font-family: var(--mono); font-size: .75rem; color: var(--muted); margin: -2px 0 6px; }
+
+    button { font: inherit; font-size: .85rem; padding: .45em .85em; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+    button:hover { border-color: var(--fg); }
+    button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+    .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+    .kpi span { display: block; font-size: .7rem; color: var(--muted); }
+    .kpi b { font-family: var(--mono); font-size: 1.15rem; }
+    .kpi.ok b { color: var(--ok); } .kpi.warn b { color: var(--warn); } .kpi.bad b { color: var(--accent); }
+    .kpi small { display: block; font-size: .68rem; color: var(--muted); }
+
+    .rep { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 24px; margin-top: 14px; }
+    .rep h4 { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 12px 0 4px; font-weight: 500; }
+    .rep table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    .rep td { padding: 2px 0; border-bottom: 1px solid var(--line); }
+    .rep td:last-child { text-align: right; font-family: var(--mono); white-space: nowrap; }
+    .notes { margin: 12px 0 0; padding-left: 1.1em; font-size: .8rem; color: var(--muted); }
+    .notes li { margin: .2em 0; }
+    .notes li.w { color: var(--warn); }
+
+    .plots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+    @media (max-width: 1000px) { .plots { grid-template-columns: 1fr; } }
+    .plot { width: 100%; height: 440px; }
+
+    .opt { margin-top: 16px; }
+    .opt .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 12px; align-items: end; }
+    .optres { margin-top: 10px; font-size: .9rem; }
+    .optres code { font-family: var(--mono); }
+
+    .theory { max-width: 780px; }
+    .eq { font-family: var(--mono); font-size: .88rem; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; overflow-x: auto; white-space: nowrap; }
+    .note { font-size: .82rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="../../">Miguel Ángel Serrano García</a>
+      <nav><a href="../" aria-current="page">Diseño mecánico</a> <a href="../../motores-termicos/">Motores térmicos</a></nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Cálculo de ejes a fatiga</p>
+    <h1>Cálculo de ejes a fatiga</h1>
+    <p class="lead">Ejes, bulones y tornillos sometidos a flexión, axil y torsión combinados. Coeficientes de seguridad estático y a fatiga, vida estimada y optimización del diámetro, según Shigley y Norton. Los resultados se recalculan al cambiar cualquier dato.</p>
+
+    <section class="sim">
+      <form class="panel" id="form" aria-label="Datos de entrada" onsubmit="return false">
+        <fieldset>
+          <legend>Material</legend>
+          <div class="f"><select id="mat" aria-label="Material"></select></div>
+          <p class="matinfo" id="matinfo"></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Geometría</legend>
+          <div class="row">
+            <label class="f">Diámetro ext. D (mm)<input id="D" type="number" min="0.5" step="0.1" value="25"></label>
+            <label class="f">Longitud / brazo L (mm)<input id="L" type="number" min="0.1" step="1" value="120"></label>
+          </div>
+          <label class="chk"><input id="macizo" type="checkbox" checked> Macizo</label>
+          <label class="f">Espesor de pared t (mm)<input id="t" type="number" min="0.1" step="0.1" value="3" disabled></label>
+          <label class="chk"><input id="gira" type="checkbox" checked> La pieza gira bajo la flexión</label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Cargas</legend>
+          <label class="f">Origen de la flexión
+            <select id="fmode">
+              <option value="dir">Momento flector directo (eje)</option>
+              <option value="tip">Fuerza en punta, M = F·L (voladizo)</option>
+            </select>
+          </label>
+          <div class="load" data-load="flex"></div>
+          <div class="load" data-load="axil"></div>
+          <div class="load" data-load="tor"></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Concentradores de tensión</legend>
+          <div class="row3">
+            <label class="f">Kf flexión<input id="kff" type="number" min="1" step="0.05" value="1.7"></label>
+            <label class="f">Kf axial<input id="kfa" type="number" min="1" step="0.05" value="1.7"></label>
+            <label class="f">Kfs torsión<input id="kft" type="number" min="1" step="0.05" value="1.5"></label>
+          </div>
+        </fieldset>
+      </form>
+
+      <div>
+        <div class="panel">
+          <div class="kpis">
+            <div class="kpi" id="k-static"><span>FoS estático</span><b></b><small>Von Mises vs Sy, sin Kf</small></div>
+            <div class="kpi" id="k-langer"><span>FoS fluencia</span><b></b><small>Langer, con Kf</small></div>
+            <div class="kpi" id="k-goodman"><span>FoS fatiga</span><b></b><small>Goodman modificado</small></div>
+            <div class="kpi" id="k-asme"><span>FoS fatiga</span><b></b><small>ASME elíptico</small></div>
+            <div class="kpi" id="k-life"><span>Vida</span><b></b><small id="k-life-s"></small></div>
+          </div>
+          <div class="rep" id="rep"></div>
+          <ul class="notes" id="notes"></ul>
+        </div>
+
+        <div class="panel opt">
+          <legend>Optimizar el diámetro</legend>
+          <div class="grid4">
+            <label class="f">Geometría
+              <select id="ogeo">
+                <option value="fixed_t">Espesor fijo (macizo sigue macizo)</option>
+                <option value="ratio">Relación d.int/D fija</option>
+                <option value="mass">Mínima masa (D y t libres)</option>
+              </select>
+            </label>
+            <label class="f">Criterio
+              <select id="omodo">
+                <option value="fat">Fatiga (mín. Goodman, ASME)</option>
+                <option value="stat">Estático</option>
+              </select>
+            </label>
+            <label class="f">FoS objetivo<input id="otarget" type="number" min="0.1" step="0.1" value="2"></label>
+            <label class="f mass-only">t mínimo (mm)<input id="otmin" type="number" min="0.1" step="0.1" value="1"></label>
+            <label class="f mass-only">D máximo (mm)<input id="odmax" type="number" min="1" step="1" value="1000"></label>
+            <label class="f mass-only">D/t máximo<input id="odt" type="number" min="2" step="1" value="20"></label>
+            <div class="f"><button id="obtn" class="primary" type="button">Optimizar</button></div>
+          </div>
+          <div class="optres" id="ores" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="plots">
+      <div class="panel"><div id="p-sn" class="plot" aria-label="Curva S-N"></div></div>
+      <div class="panel"><div id="p-st" class="plot" aria-label="Criterios estáticos"></div></div>
+      <div class="panel"><div id="p-haigh" class="plot" aria-label="Diagrama de Haigh"></div></div>
+    </section>
+
+    <section class="theory">
+      <h2>Cómo se calcula</h2>
+      <p>Cada carga se descompone en componente media y alternante. Para fatiga se aplican los Kf a las tensiones nominales y se combinan con Von Mises; el axial alternante se divide entre k<sub>c</sub> = 0,85 para poder usar un único S<sub>e</sub> de flexión (Shigley, ec. 7-7):</p>
+      <p class="eq">σ'ₐ = √[ (Kf·σb,a + Kf,ax·σax,a/0,85)² + 3·(Kfs·τa)² ]&nbsp;&nbsp;&nbsp;&nbsp;σ'ₘ = √[ (Kf·σb,m + Kf,ax·σax,m)² + 3·(Kfs·τm)² ]</p>
+      <p>Si la media normal resulta de compresión no penaliza la fatiga y solo cuenta la torsión media. El límite de fatiga se corrige con los factores de Marin (acabado mecanizado, tamaño con d<sub>e</sub> = 0,37·d si la pieza no gira, carga y fiabilidad del 99 %):</p>
+      <p class="eq">Se = kₐ·k_b·k_c·k_d·k_e·Se'&nbsp;&nbsp;&nbsp;&nbsp;1/n = σ'ₐ/Se + σ'ₘ/Sut&nbsp;(Goodman)&nbsp;&nbsp;&nbsp;&nbsp;1/n² = (σ'ₐ/Se)² + (σ'ₘ/Sy)²&nbsp;(ASME)</p>
+      <p>La vida se estima con la recta de Basquin entre 0,9·Sut (o f·Sut en acero) a 10³ ciclos y Se a N<sub>inf</sub>, usando la tensión totalmente alternante equivalente σ<sub>rev</sub> = σ'ₐ / (1 − σ'ₘ/Sut). El FoS estático usa el pico nominal sin Kf, porque el material es dúctil.</p>
+      <ul class="note">
+        <li>El aluminio no tiene límite de fatiga real: Se' es la resistencia a 5·10⁸ ciclos y la «vida infinita» significa más de esos ciclos.</li>
+        <li>En tornillos manda la rosca: para un cálculo fino usa el Se de rosca (Shigley tabla 8-17) o VDI 2230. El titanio es casi totalmente sensible a la entalla: usa Kf ≈ Kt.</li>
+        <li>No se comprueba pandeo global ni pandeo local de pared (relevante a partir de D/t ≈ 30), ni velocidades críticas o deformaciones.</li>
+        <li>Flexión y axil alternantes se suman en fase, lo que es conservador si en realidad van desfasados.</li>
+      </ul>
+      <p class="note">Esta página usa un port en JavaScript (<a href="modelo.js">modelo.js</a>) del programa original en Python, contrastado con él en 300 casos aleatorios (mismos resultados a precisión de máquina) y en la optimización.</p>
+      <p><a href="ultimate_shaft_solver.py" download>Descargar el programa en Python</a></p>
+    </section>
+  </main>
+
+  <footer class="site"><div class="wrap">© 2026 Miguel Ángel Serrano García</div></footer>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const num = (x, d = 2) => Number.isFinite(x) ? x.toLocaleString('es-ES', { minimumFractionDigits: d, maximumFractionDigits: d }) : '∞';
+  const sci = x => { const e = Math.floor(Math.log10(x)); const m = x / 10 ** e; return `${m.toFixed(2).replace('.', ',')}·10${String(e).replace(/./g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'['0123456789'.indexOf(c)] || '⁻')}`; };
+
+  // ------------------------------------------------------------ formulario
+  const mats = USS.MATERIALS;
+  $('mat').innerHTML = Object.entries(mats).map(([k, m]) => `<option value="${k}">${m.nombre}</option>`).join('');
+
+  const LOADS = {
+    flex: { nombre: 'Flexión', unidad: () => $('fmode').value === 'tip' ? 'N' : 'N·m', max: 120, tipo: 'r', media: 0 },
+    axil: { nombre: 'Axil', unidad: () => 'N', max: 0, tipo: 'v', media: 0 },
+    tor:  { nombre: 'Torsor', unidad: () => 'N·m', max: 60, tipo: 'p', media: 0 },
+  };
+  document.querySelectorAll('[data-load]').forEach(el => {
+    const k = el.dataset.load, L = LOADS[k];
+    el.innerHTML = `
+      <b>${L.nombre}</b> <span class="note" id="${k}-u"></span>
+      <div class="row">
+        <label class="f">Máximo (pico)<input id="${k}-max" type="number" min="0" step="any" value="${L.max}"></label>
+        <label class="f">Ciclo
+          <select id="${k}-tipo">
+            <option value="p">Pulsante (0 a máx)</option>
+            <option value="r">Alternante (±máx)</option>
+            <option value="v">Variable (máx y media)</option>
+          </select>
+        </label>
+      </div>
+      <label class="f" id="${k}-mwrap">Media${k === 'axil' ? ' (negativa = compresión)' : ''}<input id="${k}-media" type="number" step="any" value="${L.media}"></label>
+      <div class="err" id="${k}-err"></div>`;
+    $(`${k}-tipo`).value = L.tipo;
+  });
+
+  function leerCarga(k) {
+    const mx = Math.abs(parseFloat($(`${k}-max`).value) || 0), tipo = $(`${k}-tipo`).value;
+    $(`${k}-mwrap`).style.display = tipo === 'v' ? '' : 'none';
+    $(`${k}-err`).textContent = '';
+    if (mx === 0) return [0, 0, 0];
+    if (tipo === 'p') return [mx, mx / 2, mx / 2];
+    if (tipo === 'r') return [mx, 0, mx];
+    let me = parseFloat($(`${k}-media`).value) || 0;
+    if (Math.abs(me) > mx) { $(`${k}-err`).textContent = '|media| no puede superar el máximo: se limita al máximo.'; me = Math.sign(me) * mx; }
+    return [mx, me, mx - Math.abs(me)];
+  }
+
+  function leer() {
+    const D = Math.max(parseFloat($('D').value) || 0, 0.5);
+    const L = Math.max(parseFloat($('L').value) || 0, 0.1);
+    const macizo = $('macizo').checked;
+    $('t').disabled = macizo;
+    let t = macizo ? 0 : Math.max(parseFloat($('t').value) || 0, 0);
+    const tip = $('fmode').value === 'tip';
+    for (const k in LOADS) $(`${k}-u`).textContent = `(${LOADS[k].unidad()})`;
+    const f = leerCarga('flex'), a = leerCarga('axil'), q = leerCarga('tor');
+    const cargas = {
+      flex: f.map(v => tip ? v * L : v * 1e3),       // N·mm
+      axil: a,                                        // N
+      tor: q.map(v => v * 1e3),                       // N·mm
+    };
+    const kf = id => Math.max(parseFloat($(id).value) || 1, 1);
+    return { matKey: $('mat').value, D, L, t, macizo: macizo || t >= D / 2, gira: $('gira').checked, cargas,
+             kf_f: kf('kff'), kf_a: kf('kfa'), kf_t: kf('kft') };
+  }
+
+  // ------------------------------------------------------------ informe
+  function claseFoS(n) { return n >= 1.5 ? 'ok' : n >= 1 ? 'warn' : 'bad'; }
+  function setKpi(id, n) { const el = $(id); el.className = 'kpi ' + claseFoS(n); el.querySelector('b').textContent = num(n, 2); }
+
+  function informe(p, r) {
+    const mat = mats[p.matKey];
+    ['static', 'langer', 'goodman', 'asme'].forEach(k => setKpi('k-' + k, r.fos[k]));
+    const lv = $('k-life'), lb = lv.querySelector('b'), ls = $('k-life-s');
+    const ty = r.life.type;
+    lv.className = 'kpi ' + ({ inf: 'ok', finite: 'warn', low: 'bad', static: 'bad' })[ty];
+    if (ty === 'inf') { lb.textContent = r.family === 'aluminum' ? `> ${sci(r.N_e)}` : 'Infinita'; ls.textContent = r.family === 'aluminum' ? 'ciclos (sin límite real)' : 'σ_rev ≤ Se'; }
+    else if (ty === 'finite') { lb.textContent = sci(r.life.N); ls.textContent = 'ciclos (Basquin)'; }
+    else if (ty === 'low') { lb.textContent = '< 10³'; ls.textContent = 'ciclos: bajo nº de ciclos'; }
+    else { lb.textContent = 'Fallo'; ls.textContent = 'estático: σ\'m ≥ Sut'; }
+
+    const masa = r.masa_por_mm * p.L;
+    const f = r.factors;
+    const tab = rows => `<table>${rows.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('')}</table>`;
+    const geo = [
+      ['Diámetro exterior', num(p.D, 2) + ' mm'],
+      p.macizo ? ['Sección', 'maciza'] : ['Espesor / d.int', `${num(p.t, 2)} / ${num(r.d_int, 2)} mm`],
+      ...(p.macizo ? [] : [['D/t', num(p.D / p.t, 1)]]),
+      ['Masa estimada (L)', num(masa, 1) + ' g'],
+      ['Giro', p.gira ? 'rotativo' : 'no gira (dₑ = 0,37·d)'],
+    ];
+    const c = p.cargas;
+    const ld = [
+      ['M flex. pico / m / a', `${num(c.flex[0] / 1e3, 1)} / ${num(c.flex[1] / 1e3, 1)} / ${num(c.flex[2] / 1e3, 1)} N·m`],
+      ['F axial pico / m / a', `${num(c.axil[0], 0)} / ${num(c.axil[1], 0)} / ${num(c.axil[2], 0)} N`],
+      ['T pico / m / a', `${num(c.tor[0] / 1e3, 1)} / ${num(c.tor[1] / 1e3, 1)} / ${num(c.tor[2] / 1e3, 1)} N·m`],
+    ];
+    const mt = [
+      ['Sy / Sut', `${mat.S_y} / ${mat.S_ut} MPa`],
+      ["Se' base", `${num(r.S_prime, 1)} MPa a ${sci(r.N_e)}`],
+      ['kₐ · k_b · k_c', `${num(f.ka, 3)} · ${num(f.kb, 3)} · ${num(f.kc, 2)}`],
+      ['k_d · k_e (99 %)', `${num(f.kd, 2)} · ${num(f.ke, 3)}`],
+      ['Se corregido', num(r.Se, 1) + ' MPa'],
+    ];
+    const st = [
+      ['VM pico (estática)', num(r.vm_peak, 1) + ' MPa'],
+      ["σ'ₘ (con Kf)", num(r.vm_m, 1) + ' MPa'],
+      ["σ'ₐ (con Kf)", num(r.vm_a, 1) + ' MPa'],
+      ['σ_rev equivalente', Number.isFinite(r.sig_rev) ? num(r.sig_rev, 1) + ' MPa' : '—'],
+    ];
+    $('rep').innerHTML = `<div><h4>Geometría</h4>${tab(geo)}<h4>Cargas</h4>${tab(ld)}</div>
+                          <div><h4>Material y límite de fatiga</h4>${tab(mt)}<h4>Tensiones</h4>${tab(st)}</div>`;
+
+    const notes = [];
+    notes.push(['', `Datos: ${mat.src}.`]);
+    if (r.family === 'aluminum') notes.push(['', "Aluminio: sin límite de fatiga; Se' es la resistencia a 5·10⁸ ciclos."]);
+    if (r.family === 'titanium') notes.push(['', 'Titanio: muy sensible a la entalla (q ≈ 1). Usa Kf ≈ Kt.']);
+    if (r.family === 'bolt') notes.push(['', 'Tornillo: manda la rosca. Para un cálculo fino usa Se de rosca (Shigley tabla 8-17) o VDI 2230.']);
+    if (r.family === 'stainless') notes.push(['', "Inoxidable: Se' es una aproximación (0,45·Sut)."]);
+    if (r.compresion) notes.push(['', 'Media normal de compresión: no penaliza la fatiga.']);
+    if (!p.macizo && p.D / p.t > 30) notes.push(['w', 'D/t > 30: habría que comprobar el pandeo local, que no se calcula.']);
+    if (!c.flex[0] && !c.axil[0] && !c.tor[0]) notes.push(['w', 'Sin cargas: introduce al menos una.']);
+    $('notes').innerHTML = notes.map(([k, t]) => `<li class="${k}">${t}</li>`).join('');
+  }
+
+  // ------------------------------------------------------------ gráficas
+  const cfg = { displaylogo: false, responsive: true, modeBarButtonsToRemove: ['lasso2d', 'select2d', 'autoScale2d'] };
+  function base(title, xt, yt) {
+    const fg = css('--fg'), line = css('--line');
+    return {
+      title: { text: title, font: { size: 13 }, x: 0.02, xanchor: 'left' },
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+      font: { color: fg, family: 'system-ui, sans-serif', size: 11 },
+      margin: { l: 58, r: 12, t: 40, b: 120 },
+      xaxis: { title: xt, gridcolor: line, zerolinecolor: line },
+      yaxis: { title: yt, gridcolor: line, zerolinecolor: line },
+      legend: { orientation: 'h', yanchor: 'top', y: -0.2, x: 0, font: { size: 10 } },
+      uirevision: 'keep',
+    };
+  }
+  const alpha = (hex, a) => { const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
+
+  function graficas(r) {
+    const SAFE = css('--safe'), BLUE = css('--blue'), VIO = css('--violet'), PT = css('--accent'), MUT = css('--muted');
+    const { S_y: Sy, S_ut: Sut, Se, S_1000: S1k, N_e: Ne } = r, fo = r.fos;
+
+    // 1) S-N
+    {
+      const Nend = Ne * 100;
+      const b = Math.log10(S1k / Se) / Math.log10(1e3 / Ne), a = S1k / 1e3 ** b;
+      const Nn = Array.from({ length: 120 }, (_, i) => 10 ** (3 + (Math.log10(Ne) - 3) * i / 119));
+      const sr = r.sig_rev, ok = Number.isFinite(sr);
+      const ymin = Math.max(1, Math.min(Se, ok ? sr : Se) * 0.3), ymax = Math.max(S1k, ok ? sr : S1k) * 1.4;
+      const al = r.family === 'aluminum';
+      const tr = [
+        { x: [...Nn, Ne, Nend, Nend, 1e3], y: [...Nn.map(n => a * n ** b), Se, Se, ymin, ymin], fill: 'toself', fillcolor: alpha(SAFE, .10), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
+        { x: Nn, y: Nn.map(n => a * n ** b), mode: 'lines', name: 'Basquin', line: { color: SAFE, width: 2 } },
+        { x: [Ne, Nend], y: [Se, Se], mode: 'lines', name: al ? 'Se a 5·10⁸ (sin límite real)' : 'Límite de fatiga Se', line: { color: SAFE, width: 2, dash: al ? 'dash' : 'solid' } },
+      ];
+      let px = null, lab = '';
+      if (r.life.type === 'finite') { px = r.life.N; lab = `Tu punto: N = ${sci(r.life.N)}`; }
+      else if (r.life.type === 'inf') { px = Ne * 10; lab = `Tu punto: σ_rev = ${num(sr, 0)} ≤ Se`; }
+      else if (r.life.type === 'low') { px = 1e3; lab = 'Tu punto: N < 10³'; }
+      if (px) tr.push({ x: [px], y: [sr], mode: 'markers', name: lab, marker: { color: PT, size: 11, line: { color: '#fff', width: 1 } } });
+      const L = base(`Curva S-N · Se = ${num(Se, 0)} MPa`, 'Ciclos N', "σ alternante eq. (MPa)");
+      L.xaxis.type = 'log'; L.yaxis.type = 'log';
+      L.xaxis.range = [3, Math.log10(Nend)]; L.yaxis.range = [Math.log10(ymin), Math.log10(ymax)];
+      L.xaxis.exponentformat = 'power'; L.yaxis.exponentformat = 'none'; const tv = []; for (let e = Math.floor(Math.log10(ymin)); e <= Math.ceil(Math.log10(ymax)); e++) for (const m of [1, 2, 5]) { const v = m * 10 ** e; if (v >= ymin && v <= ymax) tv.push(v); }
+      L.yaxis.tickvals = tv; L.yaxis.ticktext = tv.map(v => v.toLocaleString('es-ES'));
+      L.shapes = [{ type: 'line', x0: Ne, x1: Ne, yref: 'paper', y0: 0, y1: 1, line: { color: MUT, width: 1, dash: 'dot' } }];
+      Plotly.react('p-sn', tr, L, cfg);
+    }
+
+    // 2) Estáticos: plano σ-τ
+    {
+      const n = 200, sg = Array.from({ length: n }, (_, i) => -Sy + 2 * Sy * i / (n - 1));
+      const tvm = sg.map(s => Math.sqrt(Math.max(Sy * Sy - s * s, 0) / 3));
+      const ttr = sg.map(s => Math.sqrt(Math.max(Sy * Sy - s * s, 0)) / 2);
+      const sp = r.sx_peak, tp = r.t_peak, lim = Math.max(Sy, sp * 1.1, tp * 1.9);
+      const tr = [
+        { x: [...sg, ...sg.slice().reverse()], y: [...tvm, ...tvm.map(v => -v).reverse()], fill: 'toself', fillcolor: alpha(SAFE, .12), line: { color: SAFE, width: 2 }, name: 'Zona segura (Von Mises)' },
+        { x: [...sg, null, ...sg], y: [...ttr, null, ...ttr.map(v => -v)], mode: 'lines', name: 'Tresca', line: { color: BLUE, width: 1.5, dash: 'dash' } },
+        { x: [0, sp], y: [0, tp], mode: 'lines', line: { color: PT, width: 1, dash: 'dot' }, hoverinfo: 'skip', showlegend: false },
+        { x: [sp], y: [tp], mode: 'markers', name: `Tu punto: FoS = ${num(fo.static, 2)}`, marker: { color: PT, size: 11, line: { color: '#fff', width: 1 } } },
+      ];
+      const L = base(`Criterios estáticos · Sy = ${Sy} MPa`, 'σ normal (MPa)', 'τ cortante (MPa)');
+      L.xaxis.range = [-lim, lim]; L.yaxis.range = [-lim / 1.6, lim / 1.6];
+      Plotly.react('p-st', tr, L, cfg);
+    }
+
+    // 3) Haigh
+    {
+      const n = 200, sm = Array.from({ length: n }, (_, i) => Sut * i / (n - 1));
+      const good = sm.map(s => Se * (1 - s / Sut));
+      const asme = sm.map(s => s <= Sy ? Se * Math.sqrt(Math.max(1 - (s / Sy) ** 2, 0)) : null);
+      const lang = sm.map(s => Math.max(Sy - s, 0));
+      const safe = sm.map((s, i) => Math.min(good[i], lang[i]));
+      const vm = r.vm_m, va = r.vm_a;
+      const k = Number.isFinite(fo.goodman) ? fo.goodman : 1;
+      const tr = [
+        { x: sm, y: safe, fill: 'tozeroy', fillcolor: alpha(SAFE, .12), line: { width: 0 }, name: 'Zona segura (Goodman + Langer)', hoverinfo: 'skip' },
+        { x: sm, y: good, mode: 'lines', name: `Goodman (FoS = ${num(fo.goodman, 2)})`, line: { color: SAFE, width: 2 } },
+        { x: sm, y: asme, mode: 'lines', name: `ASME (FoS = ${num(fo.asme, 2)})`, line: { color: BLUE, width: 1.8, dash: 'dash' } },
+        { x: sm, y: lang, mode: 'lines', name: `Langer (FoS = ${num(fo.langer, 2)})`, line: { color: VIO, width: 1.3, dash: 'dashdot' } },
+        { x: [0, vm * k], y: [0, va * k], mode: 'lines', name: 'Recta de carga', line: { color: PT, width: 1, dash: 'dot' } },
+        { x: [vm], y: [va], mode: 'markers', name: 'Tu punto', marker: { color: PT, size: 11, line: { color: '#fff', width: 1 } } },
+      ];
+      const L = base(`Diagrama de Haigh · Se = ${num(Se, 0)} | Sut = ${Sut} MPa`, "σ' media (MPa)", "σ' alternante (MPa)");
+      L.xaxis.range = [0, Math.max(Sut, vm * 1.1) * 1.02]; L.yaxis.range = [0, Math.max(Se, Sy * 0.5, va * 1.2) * 1.1];
+      Plotly.react('p-haigh', tr, L, cfg);
+    }
+  }
+
+  // ------------------------------------------------------------ ciclo
+  let ultimo = null;
+  function actualizar() {
+    const p = leer(), m = mats[p.matKey];
+    $('matinfo').textContent = `Sy ${m.S_y} · Sut ${m.S_ut} MPa · ρ ${num(m.rho * 1e6, 2)} g/cm³ · N_inf ${sci(m.N_e)}`;
+    if (!p.macizo && p.t <= 0) { $('t').value = Math.min(3, p.D / 4).toFixed(1); return actualizar(); }
+    const r = USS.calcular(p.D, p.macizo ? 0 : p.t, p.cargas, p.kf_f, p.kf_a, p.kf_t, p.matKey, p.gira);
+    ultimo = p;
+    informe(p, r);
+    graficas(r);
+  }
+
+  $('form').addEventListener('input', actualizar);
+  $('form').addEventListener('change', actualizar);
+
+  // ------------------------------------------------------------ optimización
+  const massOnly = () => document.querySelectorAll('.mass-only').forEach(el => el.style.display = $('ogeo').value === 'mass' ? '' : 'none');
+  $('ogeo').addEventListener('change', massOnly); massOnly();
+
+  $('obtn').addEventListener('click', () => {
+    const p = leer(), modo = $('omodo').value, target = Math.max(parseFloat($('otarget').value) || 1, 0.01);
+    const args = { cargas: p.cargas, kf_f: p.kf_f, kf_a: p.kf_a, kf_t: p.kf_t, matKey: p.matKey, gira: p.gira, modo };
+    const opts = { tmin: parseFloat($('otmin').value) || 1, Dmax: parseFloat($('odmax').value) || 1000, DTmax: parseFloat($('odt').value) || 20 };
+    if (!p.cargas.flex[0] && !p.cargas.axil[0] && !p.cargas.tor[0]) { $('ores').textContent = 'Introduce alguna carga antes de optimizar.'; return; }
+    $('ores').textContent = 'Optimizando…';
+    setTimeout(() => {
+      const sol = USS.optimizar($('ogeo').value, p.macizo ? 0 : p.t, p.D, args, target, opts);
+      if (!sol) { $('ores').textContent = `No hay solución con esas restricciones para FoS = ${target}. Revisa cargas, objetivo o límites.`; return; }
+      const macizo = sol.t >= sol.D / 2 - 1e-9;
+      const g = USS.geometria(sol.D, macizo ? 0 : sol.t);
+      const masa = g.area * mats[p.matKey].rho * 1000 * p.L;
+      const val = USS.fos_criterio(sol.D, macizo ? 0 : sol.t, args);
+      $('ores').innerHTML = `D = <code>${num(sol.D, 3)} mm</code> · espesor = <code>${macizo ? 'macizo' : num(sol.t, 2) + ' mm'}</code> · masa = <code>${num(masa, 1)} g</code> · FoS = <code>${num(val, 3)}</code>
+        ${!macizo && sol.D / sol.t > 30 ? '<br><span class="note">D/t > 30: comprueba el pandeo local.</span>' : ''}
+        <br><button type="button" id="oapply" style="margin-top:8px">Usar esta geometría</button>`;
+      $('oapply').addEventListener('click', () => {
+        $('D').value = sol.D.toFixed(3);
+        $('macizo').checked = macizo;
+        if (!macizo) $('t').value = sol.t.toFixed(3);
+        actualizar();
+        $('k-static').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }, 20);
+  });
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', actualizar);
+  actualizar();
+})();
+</script>
+</body>
+</html>
