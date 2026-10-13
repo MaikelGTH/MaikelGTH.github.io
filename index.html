@@ -27,17 +27,20 @@
   }
   </script>
   <style>
-    .hero-band { border-bottom: 3px solid var(--accent); }
-    .hero { padding: 2.2em 0 3.2em; }
-    .hero h1 { margin-top: .2em; font-size: clamp(2.3rem, 6.5vw, 4rem); max-width: 14ch; }
-    .hero .lead { max-width: 680px; font-size: 1.12rem; }
-    .status { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.4em; font-size: .9rem; padding: .4em .9em; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); }
-    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #3cc17a; box-shadow: 0 0 0 4px rgba(60,193,122,.18); }
-    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.4em; }
-    .btn { display: inline-block; padding: .6em 1.1em; border: 1px solid var(--line); border-radius: 2px; text-decoration: none; font-size: .92rem; font-weight: 500; background: transparent; }
-    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .hero-band { border-bottom: 1px solid var(--line); }
+    .hero { padding: 3.2em 0 3.6em; text-align: center; }
+    .hero .eyebrow { margin-top: 1.4em; }
+    .monogram { display: inline-grid; place-items: center; width: 74px; height: 74px; border: 1px solid var(--gold); border-radius: 50%; font-family: var(--display); font-size: 1.55rem; font-style: italic; color: var(--gold); position: relative; }
+    .monogram::after { content: ""; position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 50%; }
+    .hero h1 { margin: .25em auto .35em; font-size: clamp(2.6rem, 7vw, 4.6rem); }
+    .hero .lead { margin: 0 auto; max-width: 640px; }
+    .rule { width: 120px; height: 7px; margin: 1.6em auto 0; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); }
+    .status { margin: 1.3em 0 0; font-family: var(--sans); font-size: .78rem; text-transform: uppercase; letter-spacing: .16em; color: var(--accent); }
+    .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 1.8em; }
+    .btn { display: inline-block; padding: .75em 1.4em; border: 1px solid var(--fg); border-radius: 0; text-decoration: none; font-family: var(--sans); font-size: .74rem; font-weight: 500; text-transform: uppercase; letter-spacing: .16em; background: transparent; transition: background .2s, color .2s; }
+    .btn:hover { background: var(--fg); color: var(--bg); }
     .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
-    .btn.primary:hover { color: var(--accent-fg); filter: brightness(1.08); }
+    .btn.primary:hover { background: var(--fg); border-color: var(--fg); color: var(--bg); }
 
     section.block { margin-top: 3em; }
     section.block > h2 { margin-top: 0; }
@@ -45,26 +48,27 @@
     @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
 
     /* Línea de tiempo */
-    .tl { list-style: none; margin: 0; padding: 0; border-left: 2px solid var(--line); }
+    .tl { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--gold); }
     .tl > li { position: relative; padding: 0 0 1.6em 1.3em; }
-    .tl > li::before { content: ""; position: absolute; left: -7px; top: .45em; width: 12px; height: 12px; border-radius: 50%; background: var(--bg); border: 2px solid var(--accent); }
+    .tl > li { padding-left: 1.6em !important; }
+    .tl > li::before { content: ""; position: absolute; left: -5px; top: .55em; width: 9px; height: 9px; transform: rotate(45deg); background: var(--bg); border: 1px solid var(--gold); }
     .tl > li:last-child { padding-bottom: 0; }
-    .tl .when { font-family: var(--mono); font-size: .78rem; color: var(--muted); }
-    .tl h3 { margin: .15em 0 .1em; font-size: 1.05rem; }
-    .tl .org { color: var(--muted); font-size: .92rem; margin: 0 0 .5em; }
+    .tl .when { font-family: var(--sans); font-size: .72rem; text-transform: uppercase; letter-spacing: .16em; color: var(--gold); }
+    .tl h3 { margin: .1em 0 0; font-size: 1.45rem; font-weight: 600; }
+    .tl .org { color: var(--muted); font-style: italic; font-size: 1.05rem; margin: 0 0 .5em; }
     .tl ul { margin: .3em 0 0; padding-left: 1.1em; }
     .tl li li { margin: .2em 0; }
 
-    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 18px; min-width: 0; }
-    .panel h3 { margin: 0 0 .6em; font-size: 1rem; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 2px; padding: 24px; min-width: 0; }
+    .panel h3 { margin: 0 0 .4em; font-size: 1.4rem; }
     .panel ul { margin: 0; padding-left: 1.1em; }
     .panel li { margin: .35em 0; }
-    .panel .note { color: var(--muted); font-size: .85rem; }
+    .panel .note { color: var(--muted); font-size: 1rem; font-style: italic; }
 
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chips span { font-size: .85rem; padding: .25em .65em; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+    .chips span { font-family: var(--sans); font-size: .76rem; letter-spacing: .06em; padding: .35em .8em; border: 1px solid var(--line); border-radius: 0; background: var(--surface); }
 
-    .card .meta { font-family: var(--mono); font-size: .75rem; color: var(--muted); margin-top: .6em; }
+    .card .meta { font-family: var(--sans); font-size: .7rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin-top: .9em; }
   </style>
 </head>
 <body>
@@ -78,12 +82,14 @@
     </div>
   </header>
 
-  <div class="steel blueprint hero-band">
+  <div class="hero-band">
     <div class="wrap">
     <section class="hero">
+      <span class="monogram" aria-hidden="true">MS</span>
       <p class="eyebrow">Ingeniería Mecánica · Universidad Politécnica de Madrid</p>
       <h1>Miguel Ángel Serrano García</h1>
       <p class="lead">Estudiante de Ingeniería Mecánica, especialidad en motores y vibraciones. Trabajo en el desarrollo de motores de combustión, sobre todo en sistemas de admisión: desde el diseño y la simulación CFD y 1D hasta la fabricación y el banco de potencia.</p>
+      <div class="rule" aria-hidden="true"></div>
       <p class="status">Busco prácticas de ingeniería a partir de febrero de 2027 · Madrid</p>
       <div class="links">
         <a class="btn primary" href="https://www.linkedin.com/in/miguelangelserranogarcia" rel="me">LinkedIn</a>
