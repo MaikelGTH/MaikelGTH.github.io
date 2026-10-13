@@ -6,13 +6,13 @@
   <title>MEP, MEC y HCCI · Simulador · Miguel Ángel Serrano García</title>
   <meta name="description" content="Simulador interactivo que compara un motor de gasolina, un diésel y un HCCI con un modelo termodinámico 0D: presión, calor liberado, rendimiento, NOx y control de la autoignición.">
   <link rel="stylesheet" href="../../assets/style.css">
+  <script src="../../assets/theme.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   <script src="modelo.js"></script>
   <style>
     :root { --mep: #2a78d6; --mec: #eb6834; --hcci: #1baf7a; --warn: #b26a00; --warn-bg: #fff3dc; --bad: #c8102e; --bad-bg: #fde7ea; }
-    @media (prefers-color-scheme: dark) {
-      :root { --mep: #3987e5; --mec: #d95926; --hcci: #199e70; --warn: #f0b44c; --warn-bg: #3a2c12; --bad: #ff6b7d; --bad-bg: #3b1a20; }
-    }
+    :root[data-theme="dark"] { --mep: #3987e5; --mec: #d95926; --hcci: #199e70; --warn: #f0b44c; --warn-bg: #3a2c12; --bad: #ff6b7d; --bad-bg: #3b1a20; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mep: #3987e5; --mec: #d95926; --hcci: #199e70; --warn: #f0b44c; --warn-bg: #3a2c12; --bad: #ff6b7d; --bad-bg: #3b1a20; } }
     .sim { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; margin-top: 1.5em; }
     .duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
     @media (max-width: 860px) { .sim, .duo { grid-template-columns: 1fr; } }
@@ -81,10 +81,15 @@
     </div>
   </header>
 
-  <main class="wrap">
-    <p class="breadcrumb"><a href="../">Motores térmicos</a> / MEP, MEC y HCCI</p>
-    <h1>MEP, MEC y HCCI</h1>
-    <p class="lead">Tres motores con la misma cilindrada (2,0 L) y tres formas de quemar el combustible. Cambia la carga y el régimen y compara presión, rendimiento y NOx. En el HCCI no hay chispa ni inyección que marquen el encendido: lo decide la química de la mezcla, y aquí puedes ver lo estrecha que es la ventana para controlarlo.</p>
+    <div class="steel blueprint page-head">
+    <div class="wrap">
+      <p class="breadcrumb"><a href="../">Motores térmicos</a> / MEP, MEC y HCCI</p>
+      <h1>MEP, MEC y HCCI</h1>
+      <p class="lead">Tres motores con la misma cilindrada (2,0 L) y tres formas de quemar el combustible. Cambia la carga y el régimen y compara presión, rendimiento y NOx. En el HCCI no hay chispa ni inyección que marquen el encendido: lo decide la química de la mezcla, y aquí puedes ver lo estrecha que es la ventana para controlarlo.</p>
+    </div>
+  </div>
+
+<main class="wrap">
 
     <section class="sim">
       <div class="panel" aria-label="Parámetros">
@@ -501,7 +506,7 @@
   }));
 
   const redibujar = () => { dibujarCiclo(); dibujarBarrido(); dibujarControl(); };
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redibujar);
+  window.addEventListener('themechange', redibujar);
   new MutationObserver(redibujar).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   actualizar();
 })();

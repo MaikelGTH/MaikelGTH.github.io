@@ -6,15 +6,14 @@
   <title>Cálculo de ejes a fatiga · Ultimate Shaft Solver · Miguel Ángel Serrano García</title>
   <meta name="description" content="Calculadora interactiva de ejes, bulones y tornillos a fatiga (Shigley / Norton): Von Mises, Goodman, ASME, Langer, vida por Basquin, diagrama de Haigh y optimización del diámetro.">
   <link rel="stylesheet" href="../../assets/style.css">
+  <script src="../../assets/theme.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   <script src="modelo.js"></script>
   <style>
-    :root { --ok: #1a8a4a; --warn: #b26a00; --safe: #2e7d5b; --violet: #8a5cc2; }
-    @media (prefers-color-scheme: dark) { :root { --ok: #3cc17a; --warn: #f0a540; --safe: #4fbf8a; --violet: #b48ae6; } }
 
     .sim { display: grid; grid-template-columns: 330px minmax(0, 1fr); gap: 16px; margin-top: 1.5em; align-items: start; }
     @media (max-width: 860px) { .sim { grid-template-columns: 1fr; } }
-    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
     fieldset { border: 0; padding: 0; margin: 0 0 14px; min-width: 0; }
     legend { font-family: var(--mono); font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent); margin-bottom: 6px; padding: 0; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -27,7 +26,7 @@
     .chk input { accent-color: var(--accent); }
     .load { border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 4px; }
     .load b { font-size: .86rem; font-weight: 600; }
-    .err { color: var(--accent); font-size: .78rem; min-height: 0; }
+    .err { color: var(--bad); font-size: .78rem; min-height: 0; }
     .matinfo { font-family: var(--mono); font-size: .75rem; color: var(--muted); margin: -2px 0 6px; }
 
     button { font: inherit; font-size: .85rem; padding: .45em .85em; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
@@ -38,7 +37,7 @@
     .kpi { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
     .kpi span { display: block; font-size: .7rem; color: var(--muted); }
     .kpi b { font-family: var(--mono); font-size: 1.15rem; }
-    .kpi.ok b { color: var(--ok); } .kpi.warn b { color: var(--warn); } .kpi.bad b { color: var(--accent); }
+    .kpi.ok b { color: var(--ok); } .kpi.warn b { color: var(--warn); } .kpi.bad b { color: var(--bad); }
     .kpi small { display: block; font-size: .68rem; color: var(--muted); }
 
     .rep { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 24px; margin-top: 14px; }
@@ -72,10 +71,15 @@
     </div>
   </header>
 
-  <main class="wrap">
-    <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Cálculo de ejes a fatiga</p>
-    <h1>Cálculo de ejes a fatiga</h1>
-    <p class="lead">Ejes, bulones y tornillos sometidos a flexión, axil y torsión combinados. Coeficientes de seguridad estático y a fatiga, vida estimada y optimización del diámetro, según Shigley y Norton. Los resultados se recalculan al cambiar cualquier dato.</p>
+    <div class="steel blueprint page-head">
+    <div class="wrap">
+      <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Cálculo de ejes a fatiga</p>
+      <h1>Cálculo de ejes a fatiga</h1>
+      <p class="lead">Ejes, bulones y tornillos sometidos a flexión, axil y torsión combinados. Coeficientes de seguridad estático y a fatiga, vida estimada y optimización del diámetro, según Shigley y Norton. Los resultados se recalculan al cambiar cualquier dato.</p>
+    </div>
+  </div>
+
+<main class="wrap">
 
     <section class="sim">
       <form class="panel" id="form" aria-label="Datos de entrada" onsubmit="return false">
@@ -328,7 +332,7 @@
   const alpha = (hex, a) => { const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
 
   function graficas(r) {
-    const SAFE = css('--safe'), BLUE = css('--blue'), VIO = css('--violet'), PT = css('--accent'), MUT = css('--muted');
+    const SAFE = css('--safe'), BLUE = css('--blue'), VIO = css('--violet'), PT = css('--hot'), MUT = css('--muted');
     const { S_y: Sy, S_ut: Sut, Se, S_1000: S1k, N_e: Ne } = r, fo = r.fos;
 
     // 1) S-N
@@ -443,7 +447,7 @@
     }, 20);
   });
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', actualizar);
+  window.addEventListener('themechange', actualizar);
   actualizar();
 })();
 </script>

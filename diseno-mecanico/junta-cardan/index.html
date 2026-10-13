@@ -6,6 +6,7 @@
   <title>Doble junta cardan · Simulador · Miguel Ángel Serrano García</title>
   <meta name="description" content="Simulador interactivo de la cinemática de una doble junta cardan: configuraciones Z, W y espaciales, fluctuación de velocidad y condición de homocinetismo.">
   <link rel="stylesheet" href="../../assets/style.css">
+  <script src="../../assets/theme.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   <style>
     .sim { display: grid; grid-template-columns: 300px 1fr; gap: 16px; margin-top: 1.5em; }
@@ -41,10 +42,15 @@
     </div>
   </header>
 
-  <main class="wrap">
-    <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Doble junta cardan</p>
-    <h1>Doble junta cardan</h1>
-    <p class="lead">Una junta cardan no transmite velocidad constante: el eje de salida acelera y frena dos veces por vuelta. Con dos juntas bien montadas, las fluctuaciones se cancelan. Mueve los parámetros y compruébalo.</p>
+    <div class="steel blueprint page-head">
+    <div class="wrap">
+      <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Doble junta cardan</p>
+      <h1>Doble junta cardan</h1>
+      <p class="lead">Una junta cardan no transmite velocidad constante: el eje de salida acelera y frena dos veces por vuelta. Con dos juntas bien montadas, las fluctuaciones se cancelan. Mueve los parámetros y compruébalo.</p>
+    </div>
+  </div>
+
+<main class="wrap">
 
     <section class="sim">
       <div class="panel" aria-label="Parámetros">
@@ -160,7 +166,7 @@
 
   function dibujar3D(p) {
     const g = geometria(p), lb = layoutBase();
-    const ink = css('--fg'), blue = css('--blue'), red = css('--accent');
+    const ink = css('--fg'), blue = css('--blue'), red = css('--hot');
     const forkCol = [ink, blue, blue, red];
     const forkName = ['Horquilla eje 1', 'Horquillas eje 2', '', 'Horquilla eje 3'];
     const traces = [
@@ -183,7 +189,7 @@
   }
 
   function dibujarGrafica(p, c) {
-    const lb = layoutBase(), ink = css('--fg'), blue = css('--blue'), red = css('--accent');
+    const lb = layoutBase(), ink = css('--fg'), blue = css('--blue'), red = css('--hot');
     const traces = [
       { x: c.x, y: c.x.map(() => W1), mode: 'lines', name: 'ω₁ motor', line: { color: ink, dash: 'dash', width: 1.5 } },
       { x: c.x, y: c.w2, mode: 'lines', name: 'ω₂ intermedio', line: { color: blue, width: 2 } },
@@ -250,7 +256,7 @@
     anim = requestAnimationFrame(step);
   });
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', actualizar);
+  window.addEventListener('themechange', actualizar);
   actualizar();
 })();
 </script>

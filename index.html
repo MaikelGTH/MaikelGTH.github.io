@@ -11,6 +11,7 @@
   <meta property="og:url" content="https://miguelangelserranogarcia.com/">
   <meta property="og:type" content="profile">
   <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/theme.js"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -26,15 +27,17 @@
   }
   </script>
   <style>
-    .hero { padding: 1.5em 0 .5em; }
-    .hero h1 { margin-top: .25em; }
-    .hero .lead { max-width: 680px; }
-    .status { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.2em; font-size: .9rem; padding: .35em .8em; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
-    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #1a8a4a; }
-    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.2em; }
-    .btn { display: inline-block; padding: .5em 1em; border: 1px solid var(--line); border-radius: 8px; text-decoration: none; font-size: .92rem; background: var(--surface); }
-    .btn:hover { border-color: var(--fg); }
-    .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    .hero-band { border-bottom: 3px solid var(--accent); }
+    .hero { padding: 2.2em 0 3.2em; }
+    .hero h1 { margin-top: .2em; font-size: clamp(2.3rem, 6.5vw, 4rem); max-width: 14ch; }
+    .hero .lead { max-width: 680px; font-size: 1.12rem; }
+    .status { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.4em; font-size: .9rem; padding: .4em .9em; border: 1px solid var(--line); border-radius: 2px; background: var(--surface); }
+    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #3cc17a; box-shadow: 0 0 0 4px rgba(60,193,122,.18); }
+    .links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 1.4em; }
+    .btn { display: inline-block; padding: .6em 1.1em; border: 1px solid var(--line); border-radius: 2px; text-decoration: none; font-size: .92rem; font-weight: 500; background: transparent; }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+    .btn.primary:hover { color: var(--accent-fg); filter: brightness(1.08); }
 
     section.block { margin-top: 3em; }
     section.block > h2 { margin-top: 0; }
@@ -52,7 +55,7 @@
     .tl ul { margin: .3em 0 0; padding-left: 1.1em; }
     .tl li li { margin: .2em 0; }
 
-    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 18px; min-width: 0; }
     .panel h3 { margin: 0 0 .6em; font-size: 1rem; }
     .panel ul { margin: 0; padding-left: 1.1em; }
     .panel li { margin: .35em 0; }
@@ -75,7 +78,8 @@
     </div>
   </header>
 
-  <main class="wrap">
+  <div class="steel blueprint hero-band">
+    <div class="wrap">
     <section class="hero">
       <p class="eyebrow">Ingeniería Mecánica · Universidad Politécnica de Madrid</p>
       <h1>Miguel Ángel Serrano García</h1>
@@ -88,6 +92,10 @@
         <a class="btn" href="#proyectos">Proyectos y simuladores</a>
       </div>
     </section>
+    </div>
+  </div>
+
+  <main class="wrap">
 
     <section class="block" id="experiencia">
       <h2>Experiencia</h2>
