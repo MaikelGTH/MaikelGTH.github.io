@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>BALANCE Cognitive Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FEFBF4; --ink:#1F2A2A; --grey:#5B6466; --line:#E7E1D3;
+    --orange:#E58E2E; --orangeD:#C96F12; --orangeL:#FCE6CC;
+    --teal:#056564; --tealL:#D7ECE8; --green:#80B34E; --sage:#E0EAD1; --coral:#E9806E;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  body{background:var(--cream);color:var(--ink);font-family:Inter,system-ui,sans-serif;
+    display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+  body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:70px;z-index:-1;
+    background:linear-gradient(90deg,#30822D,#9CC45A 45%,#F4C35A 70%,#FF8E1C);
+    clip-path:path("M0 40 C 300 0, 600 60, 900 25 S 1500 0, 3000 30 L 3000 200 L 0 200 Z");opacity:.85}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;max-width:900px;width:100%;margin:0 auto}
+  .brand{font-family:Poppins;font-weight:700;color:var(--teal);font-size:22px;letter-spacing:.5px}
+  .brand small{color:var(--grey);font-family:Inter;font-weight:400;font-size:13px;margin-left:8px}
+  .hud{font-family:Poppins;font-size:14px;color:var(--grey);display:flex;gap:14px}
+  .hud b{color:var(--ink)}
+  main{flex:1;display:flex;justify-content:center;padding:6px 16px 90px}
+  .card{background:#fff;border-radius:20px;box-shadow:0 4px 18px rgba(0,0,0,.07);width:100%;max-width:720px;padding:26px 24px;align-self:flex-start}
+  h1,h2{font-family:Poppins;margin:0 0 10px}
+  h1{font-size:30px} h2{font-size:23px}
+  p{line-height:1.5;margin:8px 0;color:var(--grey)}
+  .pill{display:inline-block;padding:4px 12px;border-radius:999px;background:var(--sage);color:#5E7A33;font:600 12px Inter;letter-spacing:1px;text-transform:uppercase}
+  .btn{font:600 16px Poppins;border:0;border-radius:14px;padding:14px 26px;cursor:pointer;background:var(--teal);color:#fff;transition:transform .08s}
+  .btn:active{transform:scale(.97)}
+  .btn.orange{background:var(--orange)}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}
+  .levels{display:grid;gap:12px;margin:18px 0}
+  .lv{display:flex;gap:14px;align-items:center;padding:12px 14px;border-radius:14px}
+  .lv .n{font:700 20px Poppins;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#fff;flex:none}
+  .lv b{font-family:Poppins}
+  .lv span{display:block;font-size:14px;color:var(--grey)}
+  .stage{position:relative;height:260px;border-radius:16px;background:var(--cream);display:grid;place-items:center;overflow:hidden;user-select:none}
+  .arrows{position:absolute;font-size:46px;letter-spacing:4px;font-weight:700;color:var(--ink);white-space:nowrap;line-height:1}
+  .fix{font:700 32px Poppins;color:var(--grey)}
+  .resp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .resp button{font:600 17px Poppins;border:2px solid var(--line);background:#fff;border-radius:14px;padding:16px 8px;cursor:pointer;color:var(--ink);touch-action:manipulation}
+  .resp button:active{background:var(--tealL)}
+  .resp button small{display:block;font:400 13px Inter;color:var(--grey);margin-top:4px}
+  .kbd{font:600 12px Inter;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--grey)}
+  .flash-ok{box-shadow:inset 0 0 0 4px var(--green)}
+  .flash-bad{box-shadow:inset 0 0 0 4px var(--coral)}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin:10px 0 14px}
+  .bar i{display:block;height:100%;background:var(--orange);width:0;transition:width .2s}
+  /* switch task */
+  .sw{position:absolute;inset:12px;display:grid;grid-template-rows:1fr 1fr;gap:10px}
+  .sw .half{border-radius:12px;display:grid;place-items:center;position:relative}
+  .sw .half.top{background:var(--orangeL)} .sw .half.bot{background:var(--tealL)}
+  .sw .lab{position:absolute;left:12px;top:8px;font:600 12px Inter;letter-spacing:1px;text-transform:uppercase;color:var(--grey)}
+  /* patterns */
+  .seq{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:6px 0 14px}
+  .tile{aspect-ratio:1;background:var(--cream);border-radius:12px;border:2px solid var(--line);display:grid;place-items:center}
+  .tile.q{border-style:dashed;font:700 30px Poppins;color:var(--orange)}
+  .opts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .opt{aspect-ratio:1;background:#fff;border:2px solid var(--line);border-radius:12px;cursor:pointer;display:grid;place-items:center;padding:0}
+  .opt:hover{border-color:var(--teal)}
+  .opt.ok{border-color:var(--green);background:#EEF6E4} .opt.bad{border-color:var(--coral);background:#FBE8E3}
+  svg{width:88%;height:88%}
+  /* results */
+  .score{font:700 72px Poppins;color:var(--orange);line-height:1;margin:6px 0}
+  .band{font:700 20px Poppins;color:var(--teal)}
+  .gauge{height:14px;border-radius:7px;background:linear-gradient(90deg,#E9806E,#F4C35A 45%,#9CC45A 70%,#30822D);position:relative;margin:18px 0 6px}
+  .gauge i{position:absolute;top:-6px;width:4px;height:26px;background:var(--ink);border-radius:2px}
+  .scale{display:flex;justify-content:space-between;font-size:12px;color:var(--grey)}
+  .res{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  .res div{border-radius:14px;padding:12px}
+  .res b{font:700 22px Poppins;display:block}
+  .res span{font-size:13px;color:var(--grey);display:block;line-height:1.4}
+  @media (max-width:560px){
+    h1{font-size:25px} .arrows{font-size:34px;letter-spacing:2px} .stage{height:220px}
+    .res{grid-template-columns:1fr} .opts{gap:6px} .seq{gap:5px} .hud{font-size:12px;gap:8px}
+    .keys{display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">BALANCE<small>Cognitive Lab</small></div>
+  <div class="hud" id="hud"></div>
+</header>
+<main><div class="card" id="app"></div></main>
+
+<script>
+(() => {
+const $app = document.getElementById('app');
+const $hud = document.getElementById('hud');
+const now = () => performance.now();
+const rnd = (n) => Math.floor(Math.random() * n);
+const pick = (a) => a[rnd(a.length)];
+const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const wait = (ms) => new Promise(r => setTimeout(r, ms));
+const mean = (a) => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+const speedScore = (rt, fast, slow) => clamp((slow - rt) / (slow - fast), 0, 1);
+const beyondChance = (acc, chance) => clamp((acc - chance) / (1 - chance), 0, 1); // random answering scores ~0
+
+const results = {};
+let keyHandler = null;
+document.addEventListener('keydown', e => { if (keyHandler) keyHandler(e); });
+
+function hud(html) { $hud.innerHTML = html || ''; }
+
+// waits for a response (left/right) or timeout; returns {resp, rt}
+function waitResponse(buttons, timeout) {
+  return new Promise(resolve => {
+    const t0 = now(); let done = false;
+    const finish = (resp) => { if (done) return; done = true; keyHandler = null; clearTimeout(to);
+      buttons.forEach(b => b.onclick = null); resolve({ resp, rt: now() - t0 }); };
+    keyHandler = (e) => {
+      if (['ArrowLeft', 'a', 'A'].includes(e.key)) { e.preventDefault(); finish('L'); }
+      if (['ArrowRight', 'l', 'L'].includes(e.key)) { e.preventDefault(); finish('R'); }
+    };
+    buttons[0].onclick = () => finish('L');
+    buttons[1].onclick = () => finish('R');
+    const to = setTimeout(() => finish(null), timeout);
+  });
+}
+async function flash(stage, ok) {
+  stage.classList.add(ok ? 'flash-ok' : 'flash-bad');
+  await wait(220);
+  stage.classList.remove('flash-ok', 'flash-bad');
+}
+
+// ---------------------------------------------------------------- HOME
+function home() {
+  hud('');
+  $app.innerHTML = `
+    <span class="pill">3 levels · about 8 minutes</span>
+    <h1 style="margin-top:12px">How does your brain perform under pressure?</h1>
+    <p>Three short challenges inspired by the cognitive tests used in engineering and motorsport recruitment. Answer as fast and as accurately as you can: at the end you get a single score out of 1000.</p>
+    <div class="levels">
+      <div class="lv" style="background:var(--orangeL)"><div class="n" style="color:var(--orangeD)">1</div><div><b>Arrows</b><span>Focus: follow the middle arrow, ignore the rest.</span></div></div>
+      <div class="lv" style="background:var(--tealL)"><div class="n" style="color:var(--teal)">2</div><div><b>Switch</b><span>Multitasking: even/odd or round/angular, depending on where the card appears.</span></div></div>
+      <div class="lv" style="background:var(--sage)"><div class="n" style="color:#5E7A33">3</div><div><b>Patterns</b><span>Logic: find the tile that comes next in the sequence.</span></div></div>
+    </div>
+    <p style="font-size:13px">Nothing is recorded or sent anywhere: your result is only shown on this screen. Use a quiet place; on a computer you can play with the keyboard.</p>
+    <div class="row"><button class="btn orange" id="go">Start</button></div>`;
+  document.getElementById('go').onclick = () => intro1();
+}
+
+function introScreen(n, color, title, body, keys, onStart) {
+  hud(`Level <b>${n}</b>/3`);
+  $app.innerHTML = `
+    <span class="pill" style="background:${color[0]};color:${color[1]}">Level ${n}</span>
+    <h2 style="margin-top:12px">${title}</h2>${body}
+    <p class="keys" style="font-size:13px">${keys}</p>
+    <div class="row"><button class="btn" id="go">I'm ready</button></div>`;
+  document.getElementById('go').onclick = onStart;
+}
+
+// ---------------------------------------------------------------- LEVEL 1: ARROWS (flanker)
+const A_TRIALS = 40, A_LIMIT = 1100;
+function intro1() {
+  introScreen(1, ['var(--orangeL)', 'var(--orangeD)'], 'Arrows',
+    `<p>A row of five arrows appears. Answer the direction of the <b>middle arrow only</b>, whatever the others do.</p>
+     <p style="font-size:28px;letter-spacing:4px;margin:12px 0;color:var(--ink)">←←<span style="color:var(--orange)">→</span>←← <span style="font-size:15px;letter-spacing:0;color:var(--grey)">= right</span></p>
+     <p>${A_TRIALS} rows, about 1 second each. The row can appear anywhere.</p>`,
+    `Keyboard: <span class="kbd">←</span> / <span class="kbd">→</span> (or <span class="kbd">A</span> / <span class="kbd">L</span>)`, runArrows);
+}
+async function runArrows() {
+  $app.innerHTML = `<div class="bar"><i id="pb"></i></div><div class="stage" id="st"><div class="fix">+</div></div>
+    <div class="resp"><button id="bL">←<small>Left</small></button><button id="bR">→<small>Right</small></button></div>`;
+  const st = document.getElementById('st'), pb = document.getElementById('pb');
+  const btns = [document.getElementById('bL'), document.getElementById('bR')];
+  // balanced design: half congruent, half incongruent
+  const trials = shuffle(Array.from({ length: A_TRIALS }, (_, i) => ({ dir: i % 2 ? 'R' : 'L', cong: i % 4 < 2 })));
+  const log = [];
+  await wait(700);
+  for (let i = 0; i < trials.length; i++) {
+    const t = trials[i];
+    const c = t.dir === 'R' ? '→' : '←', f = t.cong ? c : (t.dir === 'R' ? '←' : '→');
+    st.innerHTML = `<div class="fix">+</div>`;
+    await wait(250 + rnd(350));
+    const el = document.createElement('div'); el.className = 'arrows';
+    el.textContent = f + f + c + f + f;
+    el.style.left = (10 + rnd(45)) + '%'; el.style.top = (15 + rnd(55)) + '%';
+    st.innerHTML = ''; st.appendChild(el);
+    const r = await waitResponse(btns, A_LIMIT);
+    const ok = r.resp === t.dir && r.rt >= 150; // < 150 ms = anticipation
+    log.push({ ok, rt: r.rt, cong: t.cong, miss: r.resp === null });
+    st.innerHTML = '';
+    await flash(st, ok);
+    pb.style.width = ((i + 1) / trials.length * 100) + '%';
+  }
+  const acc = log.filter(x => x.ok).length / log.length;
+  const rtOk = mean(log.filter(x => x.ok).map(x => x.rt));
+  const rtC = mean(log.filter(x => x.ok && x.cong).map(x => x.rt));
+  const rtI = mean(log.filter(x => x.ok && !x.cong).map(x => x.rt));
+  const accI = log.filter(x => !x.cong && x.ok).length / log.filter(x => !x.cong).length;
+  // 333 pts: accuracy 60 %, speed 25 %, accuracy on the hard (incongruent) rows 15 %
+  const q = beyondChance(acc, 0.5), qI = beyondChance(accI, 0.5);
+  const pts = 333 * (0.60 * q + 0.25 * speedScore(rtOk, 380, 950) * q + 0.15 * qI);
+  results.arrows = { pts, acc, rt: rtOk, interf: rtI - rtC };
+  between(1, pts, intro2);
+}
+
+// ---------------------------------------------------------------- LEVEL 2: SWITCH (even/odd vs round/angular)
+const S_TRIALS = 40, S_LIMIT = 2500;
+const ROUND = ['circle', 'oval'], ANGULAR = ['triangle', 'square', 'diamond'];
+function shapeSvg(kind, color) {
+  const s = { circle: `<circle cx="50" cy="50" r="40"/>`, oval: `<ellipse cx="50" cy="50" rx="44" ry="30"/>`,
+    triangle: `<polygon points="50,8 93,88 7,88"/>`, square: `<rect x="12" y="12" width="76" height="76"/>`,
+    diamond: `<polygon points="50,6 94,50 50,94 6,50"/>` }[kind];
+  return `<g fill="${color}">${s}</g>`;
+}
+function intro2() {
+  introScreen(2, ['var(--tealL)', 'var(--teal)'], 'Switch',
+    `<p>A card with a <b>number inside a shape</b> appears in one of two zones. The zone tells you which rule to apply:</p>
+     <div class="levels" style="margin:10px 0">
+      <div class="lv" style="background:var(--orangeL)"><div><b>Top zone → NUMBER</b><span>Left = even · Right = odd</span></div></div>
+      <div class="lv" style="background:var(--tealL)"><div><b>Bottom zone → SHAPE</b><span>Left = round (circle, oval) · Right = angular (triangle, square, diamond)</span></div></div>
+     </div>
+     <p>The rule changes without warning. ${S_TRIALS} cards.</p>`,
+    `Keyboard: <span class="kbd">←</span> / <span class="kbd">→</span> (or <span class="kbd">A</span> / <span class="kbd">L</span>)`, runSwitch);
+}
+async function runSwitch() {
+  $app.innerHTML = `<div class="bar"><i id="pb"></i></div>
+    <div class="stage" id="st" style="height:300px"><div class="sw">
+      <div class="half top" id="top"><span class="lab">Number</span></div>
+      <div class="half bot" id="bot"><span class="lab">Shape</span></div></div></div>
+    <div class="resp"><button id="bL">←<small>Even · Round</small></button><button id="bR">→<small>Odd · Angular</small></button></div>`;
+  const st = document.getElementById('st'), pb = document.getElementById('pb');
+  const zones = { N: document.getElementById('top'), S: document.getElementById('bot') };
+  const btns = [document.getElementById('bL'), document.getElementById('bR')];
+  const label = (z, t) => `<span class="lab">${t}</span>`;
+  // task sequence with ~45 % switches
+  const tasks = []; let cur = pick(['N', 'S']);
+  for (let i = 0; i < S_TRIALS; i++) { if (i > 0 && Math.random() < 0.45) cur = cur === 'N' ? 'S' : 'N'; tasks.push(cur); }
+  const log = [];
+  await wait(700);
+  for (let i = 0; i < S_TRIALS; i++) {
+    const task = tasks[i];
+    const num = pick([1, 2, 3, 4, 6, 7, 8, 9]);
+    const round = Math.random() < 0.5;
+    const kind = round ? pick(ROUND) : pick(ANGULAR);
+    const correct = task === 'N' ? (num % 2 === 0 ? 'L' : 'R') : (round ? 'L' : 'R');
+    zones.N.innerHTML = label('N', 'Number'); zones.S.innerHTML = label('S', 'Shape');
+    await wait(300 + rnd(250));
+    const color = task === 'N' ? '#E58E2E' : '#056564';
+    zones[task].innerHTML += `<svg viewBox="0 0 100 100" style="width:120px;height:110px">${shapeSvg(kind, color)}
+      <text x="50" y="${kind === 'triangle' ? 72 : 63}" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="36" fill="#fff">${num}</text></svg>`;
+    const r = await waitResponse(btns, S_LIMIT);
+    const ok = r.resp === correct && r.rt >= 150;
+    log.push({ ok, rt: r.rt, sw: i > 0 && task !== tasks[i - 1], first: i === 0 });
+    zones.N.innerHTML = label('N', 'Number'); zones.S.innerHTML = label('S', 'Shape');
+    await flash(st, ok);
+    pb.style.width = ((i + 1) / S_TRIALS * 100) + '%';
+  }
+  const valid = log.filter(x => !x.first);
+  const acc = log.filter(x => x.ok).length / log.length;
+  const rtOk = mean(log.filter(x => x.ok).map(x => x.rt));
+  const rtSw = mean(valid.filter(x => x.ok && x.sw).map(x => x.rt));
+  const rtRp = mean(valid.filter(x => x.ok && !x.sw).map(x => x.rt));
+  const cost = (rtSw && rtRp) ? rtSw - rtRp : 0;
+  // 333 pts: accuracy 55 %, speed 25 %, switch cost 20 % (0 ms → full, ≥ 500 ms → none)
+  const q = beyondChance(acc, 0.5);
+  const pts = 333 * (0.55 * q + 0.25 * speedScore(rtOk, 550, 1700) * q + 0.20 * speedScore(cost, 0, 500) * q);
+  results.switch = { pts, acc, rt: rtOk, cost };
+  between(2, pts, intro3);
+}
+
+// ---------------------------------------------------------------- LEVEL 3: PATTERNS (next in sequence)
+const P_ITEMS = 10, P_LIMIT = 30000;
+const P_COLORS = ['#E58E2E', '#056564', '#80B34E', '#E9806E'];
+const KINDS = ['arrow', 'el', 'flag'];
+function glyph(kind) {
+  return { arrow: `<polygon points="50,14 78,46 60,46 60,84 40,84 40,46 22,46"/>`,
+    el: `<polygon points="32,16 50,16 50,66 74,66 74,84 32,84"/>`,
+    flag: `<polygon points="30,14 76,30 46,46 46,86 30,86"/>` }[kind];
+}
+function tileSvg(f) {
+  let dots = '';
+  for (let i = 0; i < f.dots; i++) dots += `<circle cx="${11 + (i % 3) * 12}" cy="${11 + Math.floor(i / 3) * 12}" r="5" fill="#1F2A2A"/>`;
+  return `<svg viewBox="0 0 100 100"><g transform="rotate(${f.rot * 45} 50 52) translate(50 52) scale(0.72) translate(-50 -52)" fill="${P_COLORS[f.col]}">${glyph(KINDS[f.kind])}</g>${dots}</svg>`;
+}
+// each attribute follows a rule over 5 frames; the 5th is the answer
+function makeItem(nRules) {
+  const attrs = shuffle(['rot', 'dots', 'col', 'kind']).slice(0, nRules);
+  const base = { rot: rnd(8), dots: 1 + rnd(2), col: rnd(4), kind: rnd(3) };
+  const rule = {};
+  for (const a of ['rot', 'dots', 'col', 'kind']) {
+    if (!attrs.includes(a)) { rule[a] = () => base[a]; continue; }
+    if (a === 'rot') { const k = pick([1, 2, 3, 7]); rule[a] = i => (base.rot + k * i) % 8; }
+    if (a === 'dots') {
+      const mode = nRules >= 3 ? pick(['step', 'alt']) : 'step';
+      if (mode === 'step') { base.dots = 0 + rnd(2); rule[a] = i => base.dots + i; }
+      else { const b2 = (base.dots + 2 + rnd(2)) % 6; rule[a] = i => i % 2 ? b2 : base.dots; }
+    }
+    if (a === 'col') { const c2 = (base.col + 1 + rnd(3)) % 4; rule[a] = i => i % 2 ? c2 : base.col; }
+    if (a === 'kind') { rule[a] = i => (base.kind + i) % 3; }
+  }
+  const frames = [0, 1, 2, 3, 4].map(i => ({ rot: rule.rot(i), dots: rule.dots(i), col: rule.col(i), kind: rule.kind(i) }));
+  const answer = frames[4];
+  // distractors: each differs from the answer in exactly one attribute (plausible errors)
+  const key = f => `${f.rot}|${f.dots}|${f.col}|${f.kind}`;
+  const seen = new Set([key(answer)]); const opts = [answer];
+  const variants = [
+    f => ({ ...f, rot: (f.rot + 1) % 8 }), f => ({ ...f, rot: (f.rot + 7) % 8 }), f => ({ ...f, rot: (f.rot + 2) % 8 }),
+    f => ({ ...f, dots: f.dots + 1 }), f => ({ ...f, dots: Math.max(0, f.dots - 1) }),
+    f => ({ ...f, col: frames[3].col !== f.col ? frames[3].col : (f.col + 1) % 4 }),
+    f => ({ ...f, kind: (f.kind + 1) % 3 }), f => ({ ...f, kind: (f.kind + 2) % 3 }),
+    f => ({ ...frames[3] }),
+  ];
+  // prefer distractors that touch the attributes that change
+  const pref = shuffle(variants.slice());
+  pref.sort((a, b) => (touches(b) - touches(a)));
+  function touches(v) { const d = v(answer); return attrs.some(at => d[at] !== answer[at]) ? 1 : 0; }
+  for (const v of pref) { if (opts.length >= 4) break; const d = v(answer); if (d.dots > 6) continue; const k = key(d); if (!seen.has(k)) { seen.add(k); opts.push(d); } }
+  return { frames: frames.slice(0, 4), options: shuffle(opts.map((f, i) => ({ f, correct: i === 0 }))), level: nRules };
+}
+function intro3() {
+  introScreen(3, ['var(--sage)', '#5E7A33'], 'Patterns',
+    `<p>Each row shows four tiles that change following hidden rules: <b>rotation, number of dots, colour or shape</b>. Pick the tile that comes <b>next</b>.</p>
+     <p>${P_ITEMS} sequences, from one rule to three rules at once. ${P_LIMIT / 1000} seconds each.</p>`,
+    `Mouse or touch to answer.`, runPatterns);
+}
+async function runPatterns() {
+  const plan = [1, 1, 2, 2, 2, 2, 3, 3, 3, 3];
+  const log = [];
+  for (let i = 0; i < P_ITEMS; i++) {
+    const it = makeItem(plan[i]);
+    hud(`Level <b>3</b>/3 · ${i + 1}/${P_ITEMS}`);
+    $app.innerHTML = `<div class="bar"><i id="tb" style="background:var(--teal);width:100%;transition:width ${P_LIMIT}ms linear"></i></div>
+      <div class="seq">${it.frames.map(f => `<div class="tile">${tileSvg(f)}</div>`).join('')}<div class="tile q">?</div></div>
+      <div class="opts">${it.options.map((o, k) => `<button class="opt" data-k="${k}">${tileSvg(o.f)}</button>`).join('')}</div>
+      <p style="font-size:13px;text-align:center;margin-top:12px">Rules in this sequence: <b>${plan[i]}</b></p>`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { const tb = document.getElementById('tb'); if (tb) tb.style.width = '0%'; }));
+    const t0 = now();
+    const k = await new Promise(res => {
+      const to = setTimeout(() => res(null), P_LIMIT);
+      document.querySelectorAll('.opt').forEach(b => b.onclick = () => { clearTimeout(to); res(+b.dataset.k); });
+    });
+    const rt = now() - t0;
+    const ok = k !== null && it.options[k].correct;
+    document.querySelectorAll('.opt').forEach((b, j) => { b.onclick = null; if (it.options[j].correct) b.classList.add('ok'); else if (j === k) b.classList.add('bad'); });
+    log.push({ ok, rt, w: it.level });
+    await wait(700);
+  }
+  const wTot = log.reduce((s, x) => s + x.w, 0);
+  const wOk = log.filter(x => x.ok).reduce((s, x) => s + x.w, 0);
+  const acc = log.filter(x => x.ok).length / log.length;
+  const rtOk = mean(log.filter(x => x.ok).map(x => x.rt));
+  // 333 pts: difficulty-weighted accuracy 80 %, speed on correct answers 20 %
+  const q = beyondChance(wOk / wTot, 0.25);
+  const pts = 333 * (0.80 * q + 0.20 * speedScore(rtOk, 4000, 22000) * q);
+  results.patterns = { pts, acc, rt: rtOk };
+  between(3, pts, final);
+}
+
+// ---------------------------------------------------------------- between levels & final
+function between(n, pts, next) {
+  hud(`Level <b>${n}</b>/3 done`);
+  $app.innerHTML = `<span class="pill">Level ${n} complete</span>
+    <h2 style="margin-top:12px">${Math.round(pts)} <span style="font-size:16px;color:var(--grey)">/ 333 points</span></h2>
+    <p>${n < 3 ? 'Take a breath. The next level starts when you are ready.' : 'Last one done. Let\'s see your result.'}</p>
+    <div class="row"><button class="btn ${n < 3 ? '' : 'orange'}" id="go">${n < 3 ? 'Next level' : 'See my score'}</button></div>`;
+  document.getElementById('go').onclick = next;
+}
+function band(s) {
+  if (s >= 820) return ['Podium', 'Elite focus, fast switching and sharp logic.'];
+  if (s >= 680) return ['Points finish', 'Strong all-round performance under time pressure.'];
+  if (s >= 520) return ['Midfield', 'Solid base. Speed or switching is where you can gain the most.'];
+  if (s >= 350) return ['Back of the grid', 'Accuracy dropped under pressure. Try again rested and focused.'];
+  return ['Formation lap', 'Warm-up done. A second run usually improves a lot.'];
+}
+function final() {
+  const a = results.arrows, s = results.switch, p = results.patterns;
+  const total = Math.round(a.pts + s.pts + p.pts);
+  const [b, desc] = band(total);
+  hud('Finished');
+  const pct = (x) => Math.round(x * 100) + '%';
+  const ms = (x) => x ? Math.round(x) + ' ms' : '–';
+  $app.innerHTML = `<span class="pill">Your result</span>
+    <div class="score">${total}</div>
+    <div class="band">${b}</div><p>${desc}</p>
+    <div class="gauge"><i style="left:calc(${total / 10}% - 2px)"></i></div>
+    <div class="scale"><span>0</span><span>350</span><span>520</span><span>680</span><span>820</span><span>1000</span></div>
+    <div class="res">
+      <div style="background:var(--orangeL)"><span>Arrows · focus</span><b>${Math.round(a.pts)}</b>
+        <span>Accuracy ${pct(a.acc)}<br>Reaction ${ms(a.rt)}<br>Distraction cost ${ms(a.interf)}</span></div>
+      <div style="background:var(--tealL)"><span>Switch · multitasking</span><b>${Math.round(s.pts)}</b>
+        <span>Accuracy ${pct(s.acc)}<br>Reaction ${ms(s.rt)}<br>Switch cost ${ms(s.cost)}</span></div>
+      <div style="background:var(--sage)"><span>Patterns · logic</span><b>${Math.round(p.pts)}</b>
+        <span>Correct ${pct(p.acc)}<br>Avg. time ${p.rt ? (p.rt / 1000).toFixed(1) + ' s' : '–'}</span></div>
+    </div>
+    <p style="font-size:13px;margin-top:16px"><b>Switch cost</b> is how much slower you are when the rule changes. <b>Distraction cost</b> is how much the surrounding arrows slow you down. Lower is better for both.</p>
+    <div class="row"><button class="btn" id="again">Play again</button></div>`;
+  document.getElementById('again').onclick = () => { for (const k in results) delete results[k]; home(); };
+}
+
+home();
+})();
+</script>
+</body>
+</html>
