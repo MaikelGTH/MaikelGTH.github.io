@@ -18,8 +18,8 @@
   document.documentElement.setAttribute('data-theme', actual());
   mq.addEventListener('change', function () { if (!guardado()) aplicar(actual()); });
   document.addEventListener('DOMContentLoaded', function () {
-    var nav = document.querySelector('header.site nav');
-    if (!nav) return;
+    var bar = document.querySelector('header.site .wrap');
+    if (!bar) return;
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'theme-btn';
     b.addEventListener('click', function () {
@@ -27,7 +27,7 @@
       try { localStorage.setItem(KEY, t); } catch (e) {}
       aplicar(t);
     });
-    nav.appendChild(b);
+    bar.appendChild(b);
     aplicar(actual());
   });
 })();

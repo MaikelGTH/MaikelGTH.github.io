@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Cálculo de ejes a fatiga · Ultimate Shaft Solver · Miguel Ángel Serrano García</title>
   <meta name="description" content="Calculadora interactiva de ejes, bulones y tornillos a fatiga (Shigley / Norton): Von Mises, Goodman, ASME, Langer, vida por Basquin, diagrama de Haigh y optimización del diámetro.">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../assets/style.css">
   <script src="../../assets/theme.js"></script>
+  <script src="../../assets/motion.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   <script src="modelo.js"></script>
   <style>
@@ -64,6 +66,7 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Saltar al contenido</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="../../">Miguel Ángel Serrano García</a>
@@ -74,12 +77,12 @@
     <div class="page-head">
     <div class="wrap">
       <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Cálculo de ejes a fatiga</p>
-      <h1>Cálculo de ejes a fatiga</h1>
+      <h1 class="vt-ejes">Cálculo de ejes a fatiga</h1>
       <p class="lead">Ejes, bulones y tornillos sometidos a flexión, axil y torsión combinados. Coeficientes de seguridad estático y a fatiga, vida estimada y optimización del diámetro, según Shigley y Norton. Los resultados se recalculan al cambiar cualquier dato.</p>
     </div>
   </div>
 
-<main class="wrap">
+<main class="wrap" id="main">
 
     <section class="sim">
       <form class="panel" id="form" aria-label="Datos de entrada" onsubmit="return false">

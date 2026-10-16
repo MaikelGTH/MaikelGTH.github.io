@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MEP, MEC y HCCI · Simulador · Miguel Ángel Serrano García</title>
   <meta name="description" content="Simulador interactivo que compara un motor de gasolina, un diésel y un HCCI con un modelo termodinámico 0D: presión, calor liberado, rendimiento, NOx y control de la autoignición.">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../assets/style.css">
   <script src="../../assets/theme.js"></script>
+  <script src="../../assets/motion.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   <script src="modelo.js"></script>
   <style>
@@ -71,6 +73,7 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Saltar al contenido</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="../../">Miguel Ángel Serrano García</a>
@@ -84,12 +87,12 @@
     <div class="page-head">
     <div class="wrap">
       <p class="breadcrumb"><a href="../">Motores térmicos</a> / MEP, MEC y HCCI</p>
-      <h1>MEP, MEC y HCCI</h1>
+      <h1 class="vt-hcci">MEP, MEC y HCCI</h1>
       <p class="lead">Tres motores con la misma cilindrada (2,0 L) y tres formas de quemar el combustible. Cambia la carga y el régimen y compara presión, rendimiento y NOx. En el HCCI no hay chispa ni inyección que marquen el encendido: lo decide la química de la mezcla, y aquí puedes ver lo estrecha que es la ventana para controlarlo.</p>
     </div>
   </div>
 
-<main class="wrap">
+<main class="wrap" id="main">
 
     <section class="sim">
       <div class="panel" aria-label="Parámetros">

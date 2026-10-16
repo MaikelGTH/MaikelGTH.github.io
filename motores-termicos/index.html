@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Motores térmicos · Miguel Ángel Serrano García</title>
   <meta name="description" content="Simuladores interactivos de motores de combustión interna: ciclos termodinámicos, combustión y control.">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../assets/style.css">
   <script src="../assets/theme.js"></script>
+  <script src="../assets/motion.js"></script>
 </head>
 <body>
+  <a class="skip" href="#main">Saltar al contenido</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="../">Miguel Ángel Serrano García</a>
@@ -27,13 +30,16 @@
     </div>
   </div>
 
-<main class="wrap">
+<main class="wrap" id="main">
 
-    <div class="grid">
-      <a class="card" href="comparativa-mep-mec-hcci/">
-        <span class="tag">Termodinámica · 0D</span>
-        <h3>MEP, MEC y HCCI</h3>
-        <p>Gasolina, diésel y autoignición homogénea con la misma cilindrada: rendimiento, NOx y la ventana de control del HCCI.</p>
+    <div class="projects">
+      <a class="card proj feature" href="comparativa-mep-mec-hcci/" data-reveal>
+        <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Presión en cámara frente a ángulo de cigüeñal para MEP, MEC y HCCI" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c2" pathLength="1" d="M18.4,154.7 L21.6,154.3 L24.7,153.8 L27.9,153.3 L31.0,152.7 L34.2,152.1 L37.3,151.4 L40.5,150.7 L43.6,149.9 L46.8,149.0 L50.0,148.1 L53.1,147.0 L56.3,145.9 L59.4,144.6 L62.6,143.3 L65.7,141.8 L68.9,140.2 L72.0,138.5 L75.2,136.7 L78.3,134.8 L81.5,132.9 L84.7,130.8 L87.8,128.7 L91.0,126.5 L94.1,124.1 L97.3,121.5 L100.4,118.7 L103.6,115.8 L106.8,112.7 L109.9,109.5 L113.1,106.4 L116.2,103.4 L119.4,100.7 L122.5,98.4 L125.7,96.7 L128.8,95.7 L132.0,95.4 L135.1,95.9 L138.3,97.1 L141.5,98.9 L144.6,101.2 L147.8,103.9 L150.9,106.9 L154.1,110.1 L157.2,113.3 L160.4,116.5 L163.5,119.5 L166.7,122.5 L169.9,125.2 L173.0,127.8 L176.2,130.1 L179.3,132.3 L182.5,134.3 L185.6,136.2 L188.8,137.8 L192.0,139.4 L195.1,140.8 L198.3,142.0 L201.4,143.2 L204.6,144.3 L207.7,145.3 L210.9,146.2 L214.0,147.0 L217.2,147.7 L220.3,148.4 L223.5,149.1 L226.7,149.7 L229.8,150.2 L233.0,150.8 L236.1,151.2 L239.3,151.7 L242.4,152.1 L245.6,152.4 L248.8,152.8 L251.9,153.1 L255.1,153.4 L258.2,153.7 L261.4,154.0 L264.5,154.2 L267.7,154.4 L270.8,154.7 L274.0,154.9 L277.1,155.0 L280.3,155.2 L283.5,155.4 L286.6,155.5 L289.8,155.7 L292.9,155.8 L296.1,156.0 L299.2,156.1"/><path class="t-curve c3" pathLength="1" d="M18.4,153.9 L21.6,153.3 L24.7,152.7 L27.9,152.0 L31.0,151.3 L34.2,150.5 L37.3,149.6 L40.5,148.5 L43.6,147.4 L46.8,146.1 L50.0,144.6 L53.1,143.0 L56.3,141.1 L59.4,139.0 L62.6,136.7 L65.7,134.0 L68.9,131.1 L72.0,127.7 L75.2,124.0 L78.3,119.9 L81.5,115.3 L84.7,110.4 L87.8,105.1 L91.0,99.6 L94.1,94.1 L97.3,88.6 L100.4,83.6 L103.6,79.3 L106.8,75.5 L109.9,72.2 L113.1,69.6 L116.2,67.9 L119.4,67.1 L122.5,67.4 L125.7,68.7 L128.8,70.8 L132.0,73.7 L135.1,77.2 L138.3,81.0 L141.5,85.1 L144.6,89.4 L147.8,93.6 L150.9,97.8 L154.1,101.9 L157.2,105.9 L160.4,109.6 L163.5,113.2 L166.7,116.6 L169.9,119.7 L173.0,122.6 L176.2,125.4 L179.3,127.9 L182.5,130.2 L185.6,132.4 L188.8,134.4 L192.0,136.2 L195.1,137.9 L198.3,139.4 L201.4,140.8 L204.6,142.1 L207.7,143.3 L210.9,144.4 L214.0,145.4 L217.2,146.3 L220.3,147.2 L223.5,147.9 L226.7,148.6 L229.8,149.3 L233.0,149.9 L236.1,150.4 L239.3,150.9 L242.4,151.4 L245.6,151.9 L248.8,152.3 L251.9,152.6 L255.1,153.0 L258.2,153.3 L261.4,153.6 L264.5,153.9 L267.7,154.1 L270.8,154.4 L274.0,154.6 L277.1,154.8 L280.3,155.0 L283.5,155.2 L286.6,155.3 L289.8,155.5 L292.9,155.6 L296.1,155.8 L299.2,155.9"/><path class="t-curve c1" pathLength="1" d="M18.4,154.1 L21.6,153.6 L24.7,153.1 L27.9,152.5 L31.0,151.8 L34.2,151.0 L37.3,150.2 L40.5,149.3 L43.6,148.2 L46.8,147.1 L50.0,145.8 L53.1,144.4 L56.3,142.8 L59.4,141.0 L62.6,139.1 L65.7,136.9 L68.9,134.5 L72.0,131.8 L75.2,128.9 L78.3,125.7 L81.5,122.3 L84.7,118.7 L87.8,114.9 L91.0,111.1 L94.1,107.2 L97.3,103.6 L100.4,100.3 L103.6,97.5 L106.8,93.8 L109.9,83.8 L113.1,65.2 L116.2,43.9 L119.4,29.5 L122.5,26.2 L125.7,30.2 L128.8,37.2 L132.0,45.3 L135.1,53.6 L138.3,62.0 L141.5,70.1 L144.6,77.9 L147.8,85.2 L150.9,91.9 L154.1,98.1 L157.2,103.8 L160.4,108.9 L163.5,113.5 L166.7,117.6 L169.9,121.4 L173.0,124.7 L176.2,127.7 L179.3,130.4 L182.5,132.8 L185.6,135.0 L188.8,137.0 L192.0,138.7 L195.1,140.3 L198.3,141.7 L201.4,143.0 L204.6,144.2 L207.7,145.3 L210.9,146.3 L214.0,147.2 L217.2,148.0 L220.3,148.7 L223.5,149.4 L226.7,150.0 L229.8,150.6 L233.0,151.1 L236.1,151.6 L239.3,152.0 L242.4,152.5 L245.6,152.8 L248.8,153.2 L251.9,153.5 L255.1,153.8 L258.2,154.1 L261.4,154.4 L264.5,154.6 L267.7,154.8 L270.8,155.1 L274.0,155.3 L277.1,155.4 L280.3,155.6 L283.5,155.8 L286.6,155.9 L289.8,156.1 L292.9,156.2 L296.1,156.3 L299.2,156.4"/></svg></figure>
+        <div class="proj-body">
+          <span class="tag">Termodinámica · 0D</span>
+          <h3 class="vt-hcci">MEP, MEC y HCCI</h3>
+          <p>Gasolina, diésel y autoignición homogénea con la misma cilindrada: rendimiento, NOx y la ventana de control del HCCI.</p>
+        </div>
       </a>
     </div>
   </main>

@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Doble junta cardan · Simulador · Miguel Ángel Serrano García</title>
   <meta name="description" content="Simulador interactivo de la cinemática de una doble junta cardan: configuraciones Z, W y espaciales, fluctuación de velocidad y condición de homocinetismo.">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../../assets/style.css">
   <script src="../../assets/theme.js"></script>
+  <script src="../../assets/motion.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
   <style>
     .sim { display: grid; grid-template-columns: 300px 1fr; gap: 16px; margin-top: 1.5em; }
@@ -35,6 +37,7 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Saltar al contenido</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="../../">Miguel Ángel Serrano García</a>
@@ -45,12 +48,12 @@
     <div class="page-head">
     <div class="wrap">
       <p class="breadcrumb"><a href="../">Diseño mecánico</a> / Doble junta cardan</p>
-      <h1>Doble junta cardan</h1>
+      <h1 class="vt-cardan">Doble junta cardan</h1>
       <p class="lead">Una junta cardan no transmite velocidad constante: el eje de salida acelera y frena dos veces por vuelta. Con dos juntas bien montadas, las fluctuaciones se cancelan. Mueve los parámetros y compruébalo.</p>
     </div>
   </div>
 
-<main class="wrap">
+<main class="wrap" id="main">
 
     <section class="sim">
       <div class="panel" aria-label="Parámetros">
