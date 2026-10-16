@@ -5,10 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Diseño mecánico · Miguel Ángel Serrano García</title>
   <meta name="description" content="Simuladores y calculadoras interactivas de diseño mecánico: cinemática de transmisiones y cálculo de ejes a fatiga.">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../assets/style.css">
   <script src="../assets/theme.js"></script>
+  <script src="../assets/motion.js"></script>
 </head>
 <body>
+  <a class="skip" href="#main">Saltar al contenido</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="../">Miguel Ángel Serrano García</a>
@@ -27,18 +30,24 @@
     </div>
   </div>
 
-<main class="wrap">
+<main class="wrap" id="main">
 
-    <div class="grid">
-      <a class="card" href="junta-cardan/">
-        <span class="tag">Cinemática · 3D</span>
-        <h3>Doble junta cardan</h3>
-        <p>Fluctuación de velocidad en montajes Z, W y espaciales, y cómo eliminarla con el desfase de las horquillas.</p>
+    <div class="projects">
+      <a class="card proj" href="junta-cardan/" data-reveal>
+        <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Relación de velocidades de una junta cardan simple frente a una doble homocinética" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c1" pathLength="1" d="M18.0,138.2 L19.4,138.2 L20.8,137.9 L22.3,137.5 L23.7,137.0 L25.1,136.3 L26.5,135.5 L27.9,134.5 L29.4,133.3 L30.8,132.0 L32.2,130.6 L33.6,129.0 L35.0,127.3 L36.5,125.4 L37.9,123.4 L39.3,121.3 L40.7,119.0 L42.1,116.6 L43.6,114.1 L45.0,111.5 L46.4,108.8 L47.8,105.9 L49.2,103.0 L50.7,100.0 L52.1,96.9 L53.5,93.7 L54.9,90.5 L56.3,87.2 L57.8,83.9 L59.2,80.6 L60.6,77.2 L62.0,73.9 L63.4,70.6 L64.9,67.4 L66.3,64.2 L67.7,61.0 L69.1,58.0 L70.5,55.1 L72.0,52.3 L73.4,49.6 L74.8,47.1 L76.2,44.8 L77.6,42.7 L79.1,40.8 L80.5,39.1 L81.9,37.7 L83.3,36.5 L84.7,35.5 L86.2,34.9 L87.6,34.4 L89.0,34.3 L90.4,34.4 L91.8,34.9 L93.3,35.5 L94.7,36.5 L96.1,37.7 L97.5,39.1 L98.9,40.8 L100.4,42.7 L101.8,44.8 L103.2,47.1 L104.6,49.6 L106.0,52.3 L107.5,55.1 L108.9,58.0 L110.3,61.0 L111.7,64.2 L113.1,67.4 L114.6,70.6 L116.0,73.9 L117.4,77.2 L118.8,80.6 L120.2,83.9 L121.7,87.2 L123.1,90.5 L124.5,93.7 L125.9,96.9 L127.3,100.0 L128.8,103.0 L130.2,105.9 L131.6,108.8 L133.0,111.5 L134.4,114.1 L135.9,116.6 L137.3,119.0 L138.7,121.3 L140.1,123.4 L141.5,125.4 L143.0,127.3 L144.4,129.0 L145.8,130.6 L147.2,132.0 L148.6,133.3 L150.1,134.5 L151.5,135.5 L152.9,136.3 L154.3,137.0 L155.7,137.5 L157.2,137.9 L158.6,138.2 L160.0,138.2 L161.4,138.2 L162.8,137.9 L164.3,137.5 L165.7,137.0 L167.1,136.3 L168.5,135.5 L169.9,134.5 L171.4,133.3 L172.8,132.0 L174.2,130.6 L175.6,129.0 L177.0,127.3 L178.5,125.4 L179.9,123.4 L181.3,121.3 L182.7,119.0 L184.1,116.6 L185.6,114.1 L187.0,111.5 L188.4,108.8 L189.8,105.9 L191.2,103.0 L192.7,100.0 L194.1,96.9 L195.5,93.7 L196.9,90.5 L198.3,87.2 L199.8,83.9 L201.2,80.6 L202.6,77.2 L204.0,73.9 L205.4,70.6 L206.9,67.4 L208.3,64.2 L209.7,61.0 L211.1,58.0 L212.5,55.1 L214.0,52.3 L215.4,49.6 L216.8,47.1 L218.2,44.8 L219.6,42.7 L221.1,40.8 L222.5,39.1 L223.9,37.7 L225.3,36.5 L226.7,35.5 L228.2,34.9 L229.6,34.4 L231.0,34.3 L232.4,34.4 L233.8,34.9 L235.3,35.5 L236.7,36.5 L238.1,37.7 L239.5,39.1 L240.9,40.8 L242.4,42.7 L243.8,44.8 L245.2,47.1 L246.6,49.6 L248.0,52.3 L249.5,55.1 L250.9,58.0 L252.3,61.0 L253.7,64.2 L255.1,67.4 L256.6,70.6 L258.0,73.9 L259.4,77.2 L260.8,80.6 L262.2,83.9 L263.7,87.2 L265.1,90.5 L266.5,93.7 L267.9,96.9 L269.3,100.0 L270.8,103.0 L272.2,105.9 L273.6,108.8 L275.0,111.5 L276.4,114.1 L277.9,116.6 L279.3,119.0 L280.7,121.3 L282.1,123.4 L283.5,125.4 L285.0,127.3 L286.4,129.0 L287.8,130.6 L289.2,132.0 L290.6,133.3 L292.1,134.5 L293.5,135.5 L294.9,136.3 L296.3,137.0 L297.7,137.5 L299.2,137.9 L300.6,138.2 L302.0,138.2"/><path class="t-curve c2 dash" pathLength="1" d="M18.0,90.0 L19.4,90.0 L20.8,90.0 L22.3,90.0 L23.7,90.0 L25.1,90.0 L26.5,90.0 L27.9,90.0 L29.4,90.0 L30.8,90.0 L32.2,90.0 L33.6,90.0 L35.0,90.0 L36.5,90.0 L37.9,90.0 L39.3,90.0 L40.7,90.0 L42.1,90.0 L43.6,90.0 L45.0,90.0 L46.4,90.0 L47.8,90.0 L49.2,90.0 L50.7,90.0 L52.1,90.0 L53.5,90.0 L54.9,90.0 L56.3,90.0 L57.8,90.0 L59.2,90.0 L60.6,90.0 L62.0,90.0 L63.4,90.0 L64.9,90.0 L66.3,90.0 L67.7,90.0 L69.1,90.0 L70.5,90.0 L72.0,90.0 L73.4,90.0 L74.8,90.0 L76.2,90.0 L77.6,90.0 L79.1,90.0 L80.5,90.0 L81.9,90.0 L83.3,90.0 L84.7,90.0 L86.2,90.0 L87.6,90.0 L89.0,90.0 L90.4,90.0 L91.8,90.0 L93.3,90.0 L94.7,90.0 L96.1,90.0 L97.5,90.0 L98.9,90.0 L100.4,90.0 L101.8,90.0 L103.2,90.0 L104.6,90.0 L106.0,90.0 L107.5,90.0 L108.9,90.0 L110.3,90.0 L111.7,90.0 L113.1,90.0 L114.6,90.0 L116.0,90.0 L117.4,90.0 L118.8,90.0 L120.2,90.0 L121.7,90.0 L123.1,90.0 L124.5,90.0 L125.9,90.0 L127.3,90.0 L128.8,90.0 L130.2,90.0 L131.6,90.0 L133.0,90.0 L134.4,90.0 L135.9,90.0 L137.3,90.0 L138.7,90.0 L140.1,90.0 L141.5,90.0 L143.0,90.0 L144.4,90.0 L145.8,90.0 L147.2,90.0 L148.6,90.0 L150.1,90.0 L151.5,90.0 L152.9,90.0 L154.3,90.0 L155.7,90.0 L157.2,90.0 L158.6,90.0 L160.0,90.0 L161.4,90.0 L162.8,90.0 L164.3,90.0 L165.7,90.0 L167.1,90.0 L168.5,90.0 L169.9,90.0 L171.4,90.0 L172.8,90.0 L174.2,90.0 L175.6,90.0 L177.0,90.0 L178.5,90.0 L179.9,90.0 L181.3,90.0 L182.7,90.0 L184.1,90.0 L185.6,90.0 L187.0,90.0 L188.4,90.0 L189.8,90.0 L191.2,90.0 L192.7,90.0 L194.1,90.0 L195.5,90.0 L196.9,90.0 L198.3,90.0 L199.8,90.0 L201.2,90.0 L202.6,90.0 L204.0,90.0 L205.4,90.0 L206.9,90.0 L208.3,90.0 L209.7,90.0 L211.1,90.0 L212.5,90.0 L214.0,90.0 L215.4,90.0 L216.8,90.0 L218.2,90.0 L219.6,90.0 L221.1,90.0 L222.5,90.0 L223.9,90.0 L225.3,90.0 L226.7,90.0 L228.2,90.0 L229.6,90.0 L231.0,90.0 L232.4,90.0 L233.8,90.0 L235.3,90.0 L236.7,90.0 L238.1,90.0 L239.5,90.0 L240.9,90.0 L242.4,90.0 L243.8,90.0 L245.2,90.0 L246.6,90.0 L248.0,90.0 L249.5,90.0 L250.9,90.0 L252.3,90.0 L253.7,90.0 L255.1,90.0 L256.6,90.0 L258.0,90.0 L259.4,90.0 L260.8,90.0 L262.2,90.0 L263.7,90.0 L265.1,90.0 L266.5,90.0 L267.9,90.0 L269.3,90.0 L270.8,90.0 L272.2,90.0 L273.6,90.0 L275.0,90.0 L276.4,90.0 L277.9,90.0 L279.3,90.0 L280.7,90.0 L282.1,90.0 L283.5,90.0 L285.0,90.0 L286.4,90.0 L287.8,90.0 L289.2,90.0 L290.6,90.0 L292.1,90.0 L293.5,90.0 L294.9,90.0 L296.3,90.0 L297.7,90.0 L299.2,90.0 L300.6,90.0 L302.0,90.0"/></svg></figure>
+        <div class="proj-body">
+          <span class="tag">Cinemática · 3D</span>
+          <h3 class="vt-cardan">Doble junta cardan</h3>
+          <p>Fluctuación de velocidad en montajes Z, W y espaciales, y cómo eliminarla con el desfase de las horquillas.</p>
+        </div>
       </a>
-      <a class="card" href="calculo-ejes/">
-        <span class="tag">Fatiga · Calculadora</span>
-        <h3>Cálculo de ejes a fatiga</h3>
-        <p>Ejes, bulones y tornillos con flexión, axil y torsión: FoS estático, Goodman, ASME y Langer, vida, diagrama de Haigh y optimización del diámetro.</p>
+      <a class="card proj" href="calculo-ejes/" data-reveal>
+        <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Diagrama de Goodman con la recta de carga" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c2 dash" pathLength="1" d="M18.0,28.3 L212.3,162.0"/><path class="t-curve c1" pathLength="1" d="M18.0,90.0 L279.6,162.0"/><path class="t-curve c3 thin" pathLength="1" d="M18.0,162.0 L130.1,131.1"/><circle class="t-dot" cx="90.3" cy="142.1" r="3.5"/></svg></figure>
+        <div class="proj-body">
+          <span class="tag">Fatiga · calculadora</span>
+          <h3 class="vt-ejes">Cálculo de ejes a fatiga</h3>
+          <p>Ejes, bulones y tornillos con flexión, axil y torsión: FoS estático, Goodman, ASME y Langer, vida, diagrama de Haigh y optimización del diámetro.</p>
+        </div>
       </a>
     </div>
   </main>

@@ -10,8 +10,12 @@
   <meta property="og:description" content="Desarrollo de motores de combustión: sistemas de admisión, CFD, simulación 1D y fabricación.">
   <meta property="og:url" content="https://miguelangelserranogarcia.com/">
   <meta property="og:type" content="profile">
+  <meta property="og:image" content="https://miguelangelserranogarcia.com/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/style.css">
   <script src="assets/theme.js"></script>
+  <script src="assets/motion.js"></script>
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -33,7 +37,8 @@
     .monogram { display: inline-grid; place-items: center; width: 74px; height: 74px; border: 1px solid var(--gold); border-radius: 50%; font-family: var(--display); font-size: 1.55rem; font-style: italic; color: var(--gold); position: relative; }
     .monogram::after { content: ""; position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-radius: 50%; }
     .hero h1 { margin: .25em auto .35em; font-size: clamp(2.6rem, 7vw, 4.6rem); }
-    .hero .lead { margin: 0 auto; max-width: 640px; }
+    .hero .lead { margin: 0 auto; max-width: 640px; text-wrap: pretty; }
+    .hero h1 { text-wrap: balance; }
     .rule { width: 120px; height: 7px; margin: 1.6em auto 0; border-top: 1px solid var(--gold); border-bottom: 1px solid var(--gold); }
     .status { margin: 1.3em 0 0; font-family: var(--sans); font-size: .78rem; text-transform: uppercase; letter-spacing: .16em; color: var(--accent); }
     .links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 1.8em; }
@@ -49,11 +54,10 @@
 
     /* Línea de tiempo */
     .tl { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--gold); }
-    .tl > li { position: relative; padding: 0 0 1.6em 1.3em; }
-    .tl > li { padding-left: 1.6em !important; }
+    .tl > li { position: relative; padding: 0 0 1.6em 1.6em; }
     .tl > li::before { content: ""; position: absolute; left: -5px; top: .55em; width: 9px; height: 9px; transform: rotate(45deg); background: var(--bg); border: 1px solid var(--gold); }
     .tl > li:last-child { padding-bottom: 0; }
-    .tl .when { font-family: var(--sans); font-size: .72rem; text-transform: uppercase; letter-spacing: .16em; color: var(--gold); }
+    .tl .when { font-family: var(--mono); font-size: .76rem; letter-spacing: .02em; color: var(--gold); font-variant-numeric: tabular-nums; }
     .tl h3 { margin: .1em 0 0; font-size: 1.45rem; font-weight: 600; }
     .tl .org { color: var(--muted); font-style: italic; font-size: 1.05rem; margin: 0 0 .5em; }
     .tl ul { margin: .3em 0 0; padding-left: 1.1em; }
@@ -68,10 +72,10 @@
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chips span { font-family: var(--sans); font-size: .76rem; letter-spacing: .06em; padding: .35em .8em; border: 1px solid var(--line); border-radius: 0; background: var(--surface); }
 
-    .card .meta { font-family: var(--sans); font-size: .7rem; text-transform: uppercase; letter-spacing: .14em; color: var(--muted); margin-top: .9em; }
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Saltar al contenido</a>
   <header class="site">
     <div class="wrap">
       <a class="brand" href="./">Miguel Ángel Serrano García</a>
@@ -85,28 +89,77 @@
   <div class="hero-band">
     <div class="wrap">
     <section class="hero">
-      <span class="monogram" aria-hidden="true">MS</span>
-      <p class="eyebrow">Ingeniería Mecánica · Universidad Politécnica de Madrid</p>
-      <h1>Miguel Ángel Serrano García</h1>
-      <p class="lead">Estudiante de Ingeniería Mecánica, especialidad en motores y vibraciones. Trabajo en el desarrollo de motores de combustión, sobre todo en sistemas de admisión: desde el diseño y la simulación CFD y 1D hasta la fabricación y el banco de potencia.</p>
-      <div class="rule" aria-hidden="true"></div>
-      <p class="status">Busco prácticas de ingeniería a partir de febrero de 2027 · Madrid</p>
-      <div class="links">
-        <a class="btn primary" href="https://www.linkedin.com/in/miguelangelserranogarcia" rel="me">LinkedIn</a>
+      <span class="monogram" aria-hidden="true" data-reveal>MS</span>
+      <p class="eyebrow" data-reveal style="--d:80ms">Ingeniería Mecánica · Universidad Politécnica de Madrid</p>
+      <h1 data-reveal style="--d:160ms">Miguel Ángel Serrano García</h1>
+      <p class="lead" data-reveal style="--d:240ms">Estudiante de Ingeniería Mecánica, especialidad en motores y vibraciones. Trabajo en el desarrollo de motores de combustión, sobre todo en sistemas de admisión: desde el diseño y la simulación CFD y 1D hasta la fabricación y el banco de potencia.</p>
+      <div class="rule" aria-hidden="true" data-reveal style="--d:320ms"></div>
+      <p class="status" data-reveal style="--d:360ms">Busco prácticas de ingeniería a partir de febrero de 2027 · Madrid · <a href="#contacto">escríbeme</a></p>
+      <div class="links" data-reveal style="--d:420ms">
+        <a class="btn primary" href="#proyectos">Ver proyectos</a>
+        <a class="btn" href="https://www.linkedin.com/in/miguelangelserranogarcia" rel="me">LinkedIn</a>
         <a class="btn" href="https://github.com/MaikelGTH" rel="me">GitHub</a>
-        <a class="btn" href="#contacto">Contacto</a>
-        <a class="btn" href="#proyectos">Proyectos y simuladores</a>
       </div>
     </section>
     </div>
   </div>
 
-  <main class="wrap">
+  <main class="wrap" id="main">
+
+    <section class="block" id="proyectos">
+      <h2 data-reveal>Proyectos</h2>
+      <div class="projects">
+        <a class="card proj feature" href="motores-termicos/comparativa-mep-mec-hcci/" data-reveal>
+          <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Presión en cámara frente a ángulo de cigüeñal para MEP, MEC y HCCI" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c2" pathLength="1" d="M18.4,154.7 L21.6,154.3 L24.7,153.8 L27.9,153.3 L31.0,152.7 L34.2,152.1 L37.3,151.4 L40.5,150.7 L43.6,149.9 L46.8,149.0 L50.0,148.1 L53.1,147.0 L56.3,145.9 L59.4,144.6 L62.6,143.3 L65.7,141.8 L68.9,140.2 L72.0,138.5 L75.2,136.7 L78.3,134.8 L81.5,132.9 L84.7,130.8 L87.8,128.7 L91.0,126.5 L94.1,124.1 L97.3,121.5 L100.4,118.7 L103.6,115.8 L106.8,112.7 L109.9,109.5 L113.1,106.4 L116.2,103.4 L119.4,100.7 L122.5,98.4 L125.7,96.7 L128.8,95.7 L132.0,95.4 L135.1,95.9 L138.3,97.1 L141.5,98.9 L144.6,101.2 L147.8,103.9 L150.9,106.9 L154.1,110.1 L157.2,113.3 L160.4,116.5 L163.5,119.5 L166.7,122.5 L169.9,125.2 L173.0,127.8 L176.2,130.1 L179.3,132.3 L182.5,134.3 L185.6,136.2 L188.8,137.8 L192.0,139.4 L195.1,140.8 L198.3,142.0 L201.4,143.2 L204.6,144.3 L207.7,145.3 L210.9,146.2 L214.0,147.0 L217.2,147.7 L220.3,148.4 L223.5,149.1 L226.7,149.7 L229.8,150.2 L233.0,150.8 L236.1,151.2 L239.3,151.7 L242.4,152.1 L245.6,152.4 L248.8,152.8 L251.9,153.1 L255.1,153.4 L258.2,153.7 L261.4,154.0 L264.5,154.2 L267.7,154.4 L270.8,154.7 L274.0,154.9 L277.1,155.0 L280.3,155.2 L283.5,155.4 L286.6,155.5 L289.8,155.7 L292.9,155.8 L296.1,156.0 L299.2,156.1"/><path class="t-curve c3" pathLength="1" d="M18.4,153.9 L21.6,153.3 L24.7,152.7 L27.9,152.0 L31.0,151.3 L34.2,150.5 L37.3,149.6 L40.5,148.5 L43.6,147.4 L46.8,146.1 L50.0,144.6 L53.1,143.0 L56.3,141.1 L59.4,139.0 L62.6,136.7 L65.7,134.0 L68.9,131.1 L72.0,127.7 L75.2,124.0 L78.3,119.9 L81.5,115.3 L84.7,110.4 L87.8,105.1 L91.0,99.6 L94.1,94.1 L97.3,88.6 L100.4,83.6 L103.6,79.3 L106.8,75.5 L109.9,72.2 L113.1,69.6 L116.2,67.9 L119.4,67.1 L122.5,67.4 L125.7,68.7 L128.8,70.8 L132.0,73.7 L135.1,77.2 L138.3,81.0 L141.5,85.1 L144.6,89.4 L147.8,93.6 L150.9,97.8 L154.1,101.9 L157.2,105.9 L160.4,109.6 L163.5,113.2 L166.7,116.6 L169.9,119.7 L173.0,122.6 L176.2,125.4 L179.3,127.9 L182.5,130.2 L185.6,132.4 L188.8,134.4 L192.0,136.2 L195.1,137.9 L198.3,139.4 L201.4,140.8 L204.6,142.1 L207.7,143.3 L210.9,144.4 L214.0,145.4 L217.2,146.3 L220.3,147.2 L223.5,147.9 L226.7,148.6 L229.8,149.3 L233.0,149.9 L236.1,150.4 L239.3,150.9 L242.4,151.4 L245.6,151.9 L248.8,152.3 L251.9,152.6 L255.1,153.0 L258.2,153.3 L261.4,153.6 L264.5,153.9 L267.7,154.1 L270.8,154.4 L274.0,154.6 L277.1,154.8 L280.3,155.0 L283.5,155.2 L286.6,155.3 L289.8,155.5 L292.9,155.6 L296.1,155.8 L299.2,155.9"/><path class="t-curve c1" pathLength="1" d="M18.4,154.1 L21.6,153.6 L24.7,153.1 L27.9,152.5 L31.0,151.8 L34.2,151.0 L37.3,150.2 L40.5,149.3 L43.6,148.2 L46.8,147.1 L50.0,145.8 L53.1,144.4 L56.3,142.8 L59.4,141.0 L62.6,139.1 L65.7,136.9 L68.9,134.5 L72.0,131.8 L75.2,128.9 L78.3,125.7 L81.5,122.3 L84.7,118.7 L87.8,114.9 L91.0,111.1 L94.1,107.2 L97.3,103.6 L100.4,100.3 L103.6,97.5 L106.8,93.8 L109.9,83.8 L113.1,65.2 L116.2,43.9 L119.4,29.5 L122.5,26.2 L125.7,30.2 L128.8,37.2 L132.0,45.3 L135.1,53.6 L138.3,62.0 L141.5,70.1 L144.6,77.9 L147.8,85.2 L150.9,91.9 L154.1,98.1 L157.2,103.8 L160.4,108.9 L163.5,113.5 L166.7,117.6 L169.9,121.4 L173.0,124.7 L176.2,127.7 L179.3,130.4 L182.5,132.8 L185.6,135.0 L188.8,137.0 L192.0,138.7 L195.1,140.3 L198.3,141.7 L201.4,143.0 L204.6,144.2 L207.7,145.3 L210.9,146.3 L214.0,147.2 L217.2,148.0 L220.3,148.7 L223.5,149.4 L226.7,150.0 L229.8,150.6 L233.0,151.1 L236.1,151.6 L239.3,152.0 L242.4,152.5 L245.6,152.8 L248.8,153.2 L251.9,153.5 L255.1,153.8 L258.2,154.1 L261.4,154.4 L264.5,154.6 L267.7,154.8 L270.8,155.1 L274.0,155.3 L277.1,155.4 L280.3,155.6 L283.5,155.8 L286.6,155.9 L289.8,156.1 L292.9,156.2 L296.1,156.3 L299.2,156.4"/></svg></figure>
+          <div class="proj-body">
+            <span class="tag">Simulador · termodinámica</span>
+            <h3 class="vt-hcci">MEP, MEC y HCCI</h3>
+            <p>Modelo 0D de ciclo cerrado que compara gasolina, diésel y autoignición homogénea, con encendido por Livengood-Wu y control de CA50 en lazo cerrado.</p>
+            <p class="meta">JavaScript · Python · MATLAB</p>
+          </div>
+        </a>
+        <a class="card proj" href="diseno-mecanico/calculo-ejes/" data-reveal>
+          <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Diagrama de Goodman con la recta de carga" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c2 dash" pathLength="1" d="M18.0,28.3 L212.3,162.0"/><path class="t-curve c1" pathLength="1" d="M18.0,90.0 L279.6,162.0"/><path class="t-curve c3 thin" pathLength="1" d="M18.0,162.0 L130.1,131.1"/><circle class="t-dot" cx="90.3" cy="142.1" r="3.5"/></svg></figure>
+          <div class="proj-body">
+            <span class="tag">Calculadora · fatiga</span>
+            <h3 class="vt-ejes">Ultimate Shaft Solver</h3>
+            <p>Cálculo a fatiga de ejes y tornillos según Norton y Shigley: coeficientes de seguridad estático, Goodman y ASME, vida estimada y optimización de geometría. Usado para validar estribos en el equipo.</p>
+            <p class="meta">JavaScript · Python</p>
+          </div>
+        </a>
+        <a class="card proj" href="diseno-mecanico/junta-cardan/" data-reveal>
+          <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Relación de velocidades de una junta cardan simple frente a una doble homocinética" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c1" pathLength="1" d="M18.0,138.2 L19.4,138.2 L20.8,137.9 L22.3,137.5 L23.7,137.0 L25.1,136.3 L26.5,135.5 L27.9,134.5 L29.4,133.3 L30.8,132.0 L32.2,130.6 L33.6,129.0 L35.0,127.3 L36.5,125.4 L37.9,123.4 L39.3,121.3 L40.7,119.0 L42.1,116.6 L43.6,114.1 L45.0,111.5 L46.4,108.8 L47.8,105.9 L49.2,103.0 L50.7,100.0 L52.1,96.9 L53.5,93.7 L54.9,90.5 L56.3,87.2 L57.8,83.9 L59.2,80.6 L60.6,77.2 L62.0,73.9 L63.4,70.6 L64.9,67.4 L66.3,64.2 L67.7,61.0 L69.1,58.0 L70.5,55.1 L72.0,52.3 L73.4,49.6 L74.8,47.1 L76.2,44.8 L77.6,42.7 L79.1,40.8 L80.5,39.1 L81.9,37.7 L83.3,36.5 L84.7,35.5 L86.2,34.9 L87.6,34.4 L89.0,34.3 L90.4,34.4 L91.8,34.9 L93.3,35.5 L94.7,36.5 L96.1,37.7 L97.5,39.1 L98.9,40.8 L100.4,42.7 L101.8,44.8 L103.2,47.1 L104.6,49.6 L106.0,52.3 L107.5,55.1 L108.9,58.0 L110.3,61.0 L111.7,64.2 L113.1,67.4 L114.6,70.6 L116.0,73.9 L117.4,77.2 L118.8,80.6 L120.2,83.9 L121.7,87.2 L123.1,90.5 L124.5,93.7 L125.9,96.9 L127.3,100.0 L128.8,103.0 L130.2,105.9 L131.6,108.8 L133.0,111.5 L134.4,114.1 L135.9,116.6 L137.3,119.0 L138.7,121.3 L140.1,123.4 L141.5,125.4 L143.0,127.3 L144.4,129.0 L145.8,130.6 L147.2,132.0 L148.6,133.3 L150.1,134.5 L151.5,135.5 L152.9,136.3 L154.3,137.0 L155.7,137.5 L157.2,137.9 L158.6,138.2 L160.0,138.2 L161.4,138.2 L162.8,137.9 L164.3,137.5 L165.7,137.0 L167.1,136.3 L168.5,135.5 L169.9,134.5 L171.4,133.3 L172.8,132.0 L174.2,130.6 L175.6,129.0 L177.0,127.3 L178.5,125.4 L179.9,123.4 L181.3,121.3 L182.7,119.0 L184.1,116.6 L185.6,114.1 L187.0,111.5 L188.4,108.8 L189.8,105.9 L191.2,103.0 L192.7,100.0 L194.1,96.9 L195.5,93.7 L196.9,90.5 L198.3,87.2 L199.8,83.9 L201.2,80.6 L202.6,77.2 L204.0,73.9 L205.4,70.6 L206.9,67.4 L208.3,64.2 L209.7,61.0 L211.1,58.0 L212.5,55.1 L214.0,52.3 L215.4,49.6 L216.8,47.1 L218.2,44.8 L219.6,42.7 L221.1,40.8 L222.5,39.1 L223.9,37.7 L225.3,36.5 L226.7,35.5 L228.2,34.9 L229.6,34.4 L231.0,34.3 L232.4,34.4 L233.8,34.9 L235.3,35.5 L236.7,36.5 L238.1,37.7 L239.5,39.1 L240.9,40.8 L242.4,42.7 L243.8,44.8 L245.2,47.1 L246.6,49.6 L248.0,52.3 L249.5,55.1 L250.9,58.0 L252.3,61.0 L253.7,64.2 L255.1,67.4 L256.6,70.6 L258.0,73.9 L259.4,77.2 L260.8,80.6 L262.2,83.9 L263.7,87.2 L265.1,90.5 L266.5,93.7 L267.9,96.9 L269.3,100.0 L270.8,103.0 L272.2,105.9 L273.6,108.8 L275.0,111.5 L276.4,114.1 L277.9,116.6 L279.3,119.0 L280.7,121.3 L282.1,123.4 L283.5,125.4 L285.0,127.3 L286.4,129.0 L287.8,130.6 L289.2,132.0 L290.6,133.3 L292.1,134.5 L293.5,135.5 L294.9,136.3 L296.3,137.0 L297.7,137.5 L299.2,137.9 L300.6,138.2 L302.0,138.2"/><path class="t-curve c2 dash" pathLength="1" d="M18.0,90.0 L19.4,90.0 L20.8,90.0 L22.3,90.0 L23.7,90.0 L25.1,90.0 L26.5,90.0 L27.9,90.0 L29.4,90.0 L30.8,90.0 L32.2,90.0 L33.6,90.0 L35.0,90.0 L36.5,90.0 L37.9,90.0 L39.3,90.0 L40.7,90.0 L42.1,90.0 L43.6,90.0 L45.0,90.0 L46.4,90.0 L47.8,90.0 L49.2,90.0 L50.7,90.0 L52.1,90.0 L53.5,90.0 L54.9,90.0 L56.3,90.0 L57.8,90.0 L59.2,90.0 L60.6,90.0 L62.0,90.0 L63.4,90.0 L64.9,90.0 L66.3,90.0 L67.7,90.0 L69.1,90.0 L70.5,90.0 L72.0,90.0 L73.4,90.0 L74.8,90.0 L76.2,90.0 L77.6,90.0 L79.1,90.0 L80.5,90.0 L81.9,90.0 L83.3,90.0 L84.7,90.0 L86.2,90.0 L87.6,90.0 L89.0,90.0 L90.4,90.0 L91.8,90.0 L93.3,90.0 L94.7,90.0 L96.1,90.0 L97.5,90.0 L98.9,90.0 L100.4,90.0 L101.8,90.0 L103.2,90.0 L104.6,90.0 L106.0,90.0 L107.5,90.0 L108.9,90.0 L110.3,90.0 L111.7,90.0 L113.1,90.0 L114.6,90.0 L116.0,90.0 L117.4,90.0 L118.8,90.0 L120.2,90.0 L121.7,90.0 L123.1,90.0 L124.5,90.0 L125.9,90.0 L127.3,90.0 L128.8,90.0 L130.2,90.0 L131.6,90.0 L133.0,90.0 L134.4,90.0 L135.9,90.0 L137.3,90.0 L138.7,90.0 L140.1,90.0 L141.5,90.0 L143.0,90.0 L144.4,90.0 L145.8,90.0 L147.2,90.0 L148.6,90.0 L150.1,90.0 L151.5,90.0 L152.9,90.0 L154.3,90.0 L155.7,90.0 L157.2,90.0 L158.6,90.0 L160.0,90.0 L161.4,90.0 L162.8,90.0 L164.3,90.0 L165.7,90.0 L167.1,90.0 L168.5,90.0 L169.9,90.0 L171.4,90.0 L172.8,90.0 L174.2,90.0 L175.6,90.0 L177.0,90.0 L178.5,90.0 L179.9,90.0 L181.3,90.0 L182.7,90.0 L184.1,90.0 L185.6,90.0 L187.0,90.0 L188.4,90.0 L189.8,90.0 L191.2,90.0 L192.7,90.0 L194.1,90.0 L195.5,90.0 L196.9,90.0 L198.3,90.0 L199.8,90.0 L201.2,90.0 L202.6,90.0 L204.0,90.0 L205.4,90.0 L206.9,90.0 L208.3,90.0 L209.7,90.0 L211.1,90.0 L212.5,90.0 L214.0,90.0 L215.4,90.0 L216.8,90.0 L218.2,90.0 L219.6,90.0 L221.1,90.0 L222.5,90.0 L223.9,90.0 L225.3,90.0 L226.7,90.0 L228.2,90.0 L229.6,90.0 L231.0,90.0 L232.4,90.0 L233.8,90.0 L235.3,90.0 L236.7,90.0 L238.1,90.0 L239.5,90.0 L240.9,90.0 L242.4,90.0 L243.8,90.0 L245.2,90.0 L246.6,90.0 L248.0,90.0 L249.5,90.0 L250.9,90.0 L252.3,90.0 L253.7,90.0 L255.1,90.0 L256.6,90.0 L258.0,90.0 L259.4,90.0 L260.8,90.0 L262.2,90.0 L263.7,90.0 L265.1,90.0 L266.5,90.0 L267.9,90.0 L269.3,90.0 L270.8,90.0 L272.2,90.0 L273.6,90.0 L275.0,90.0 L276.4,90.0 L277.9,90.0 L279.3,90.0 L280.7,90.0 L282.1,90.0 L283.5,90.0 L285.0,90.0 L286.4,90.0 L287.8,90.0 L289.2,90.0 L290.6,90.0 L292.1,90.0 L293.5,90.0 L294.9,90.0 L296.3,90.0 L297.7,90.0 L299.2,90.0 L300.6,90.0 L302.0,90.0"/></svg></figure>
+          <div class="proj-body">
+            <span class="tag">Simulador · cinemática 3D</span>
+            <h3 class="vt-cardan">Doble junta cardan</h3>
+            <p>Fluctuación de velocidad en montajes Z, W y espaciales, y condición de homocinetismo.</p>
+            <p class="meta">JavaScript · MATLAB</p>
+          </div>
+        </a>
+        <a class="card proj feature flip" href="https://github.com/MaikelGTH/motor0d" data-reveal>
+          <figure class="thumb-wrap"><svg class="thumb" viewBox="0 0 320 180" role="img" aria-label="Ley de Wiebe: fracción de masa quemada y tasa de liberación de calor" preserveAspectRatio="xMidYMid meet"><line class="t-axis" x1="18" y1="162" x2="302" y2="162"/><line class="t-axis" x1="18" y1="18" x2="18" y2="162"/><path class="t-curve c2" pathLength="1" d="M18.0,162.0 L19.4,162.0 L20.8,162.0 L22.3,162.0 L23.7,162.0 L25.1,162.0 L26.5,162.0 L27.9,162.0 L29.4,162.0 L30.8,162.0 L32.2,162.0 L33.6,162.0 L35.0,162.0 L36.5,162.0 L37.9,162.0 L39.3,162.0 L40.7,162.0 L42.1,162.0 L43.6,162.0 L45.0,162.0 L46.4,162.0 L47.8,162.0 L49.2,162.0 L50.7,162.0 L52.1,162.0 L53.5,162.0 L54.9,162.0 L56.3,162.0 L57.8,162.0 L59.2,162.0 L60.6,162.0 L62.0,162.0 L63.4,162.0 L64.9,162.0 L66.3,162.0 L67.7,162.0 L69.1,162.0 L70.5,162.0 L72.0,162.0 L73.4,162.0 L74.8,162.0 L76.2,162.0 L77.6,162.0 L79.1,162.0 L80.5,162.0 L81.9,162.0 L83.3,162.0 L84.7,162.0 L86.2,162.0 L87.6,162.0 L89.0,162.0 L90.4,162.0 L91.8,162.0 L93.3,162.0 L94.7,162.0 L96.1,162.0 L97.5,162.0 L98.9,162.0 L100.4,162.0 L101.8,162.0 L103.2,162.0 L104.6,162.0 L106.0,162.0 L107.5,162.0 L108.9,162.0 L110.3,161.9 L111.7,161.9 L113.1,161.8 L114.6,161.7 L116.0,161.5 L117.4,161.3 L118.8,161.1 L120.2,160.9 L121.7,160.5 L123.1,160.2 L124.5,159.8 L125.9,159.3 L127.3,158.8 L128.8,158.2 L130.2,157.5 L131.6,156.8 L133.0,156.0 L134.4,155.1 L135.9,154.1 L137.3,153.1 L138.7,152.0 L140.1,150.8 L141.5,149.5 L143.0,148.1 L144.4,146.7 L145.8,145.2 L147.2,143.5 L148.6,141.9 L150.1,140.1 L151.5,138.2 L152.9,136.3 L154.3,134.3 L155.7,132.2 L157.2,130.0 L158.6,127.8 L160.0,125.5 L161.4,123.1 L162.8,120.7 L164.3,118.3 L165.7,115.8 L167.1,113.2 L168.5,110.6 L169.9,108.0 L171.4,105.4 L172.8,102.7 L174.2,100.0 L175.6,97.4 L177.0,94.7 L178.5,92.0 L179.9,89.3 L181.3,86.7 L182.7,84.1 L184.1,81.5 L185.6,78.9 L187.0,76.4 L188.4,73.9 L189.8,71.5 L191.2,69.2 L192.7,66.9 L194.1,64.6 L195.5,62.4 L196.9,60.3 L198.3,58.3 L199.8,56.3 L201.2,54.5 L202.6,52.7 L204.0,50.9 L205.4,49.3 L206.9,47.7 L208.3,46.2 L209.7,44.8 L211.1,43.5 L212.5,42.3 L214.0,41.1 L215.4,40.0 L216.8,39.0 L218.2,38.0 L219.6,37.1 L221.1,36.3 L222.5,35.6 L223.9,34.9 L225.3,34.2 L226.7,33.6 L228.2,33.1 L229.6,32.6 L231.0,32.1 L232.4,31.7 L233.8,31.4 L235.3,31.1 L236.7,30.8 L238.1,30.5 L239.5,30.3 L240.9,30.1 L242.4,29.9 L243.8,29.7 L245.2,29.6 L246.6,29.4 L248.0,29.3 L249.5,29.2 L250.9,29.1 L252.3,29.1 L253.7,29.0 L255.1,29.0 L256.6,28.9 L258.0,28.9 L259.4,28.8 L260.8,28.8 L262.2,28.8 L263.7,28.8 L265.1,28.7 L266.5,28.7 L267.9,28.7 L269.3,28.7 L270.8,28.7 L272.2,28.7 L273.6,28.7 L275.0,28.7 L276.4,28.7 L277.9,28.7 L279.3,28.7 L280.7,28.7 L282.1,28.7 L283.5,28.7 L285.0,28.7 L286.4,28.7 L287.8,28.7 L289.2,28.7 L290.6,28.7 L292.1,28.7 L293.5,28.7 L294.9,28.7 L296.3,28.7 L297.7,28.7 L299.2,28.7 L300.6,28.7 L302.0,28.7"/><path class="t-curve c1" pathLength="1" d="M18.0,162.0 L19.4,162.0 L20.8,162.0 L22.3,162.0 L23.7,162.0 L25.1,162.0 L26.5,162.0 L27.9,162.0 L29.4,162.0 L30.8,162.0 L32.2,162.0 L33.6,162.0 L35.0,162.0 L36.5,162.0 L37.9,162.0 L39.3,162.0 L40.7,162.0 L42.1,162.0 L43.6,162.0 L45.0,162.0 L46.4,162.0 L47.8,162.0 L49.2,162.0 L50.7,162.0 L52.1,162.0 L53.5,162.0 L54.9,162.0 L56.3,162.0 L57.8,162.0 L59.2,162.0 L60.6,162.0 L62.0,162.0 L63.4,162.0 L64.9,162.0 L66.3,162.0 L67.7,162.0 L69.1,162.0 L70.5,162.0 L72.0,162.0 L73.4,162.0 L74.8,162.0 L76.2,162.0 L77.6,162.0 L79.1,162.0 L80.5,162.0 L81.9,162.0 L83.3,162.0 L84.7,162.0 L86.2,162.0 L87.6,162.0 L89.0,162.0 L90.4,162.0 L91.8,162.0 L93.3,162.0 L94.7,162.0 L96.1,162.0 L97.5,162.0 L98.9,162.0 L100.4,162.0 L101.8,162.0 L103.2,162.0 L104.6,161.9 L106.0,161.6 L107.5,161.2 L108.9,160.6 L110.3,159.8 L111.7,158.8 L113.1,157.6 L114.6,156.3 L116.0,154.8 L117.4,153.1 L118.8,151.2 L120.2,149.2 L121.7,147.0 L123.1,144.7 L124.5,142.2 L125.9,139.5 L127.3,136.7 L128.8,133.8 L130.2,130.8 L131.6,127.6 L133.0,124.3 L134.4,120.9 L135.9,117.4 L137.3,113.9 L138.7,110.2 L140.1,106.6 L141.5,102.8 L143.0,99.1 L144.4,95.3 L145.8,91.6 L147.2,87.8 L148.6,84.2 L150.1,80.5 L151.5,76.9 L152.9,73.5 L154.3,70.1 L155.7,66.8 L157.2,63.7 L158.6,60.7 L160.0,58.0 L161.4,55.3 L162.8,52.9 L164.3,50.7 L165.7,48.8 L167.1,47.0 L168.5,45.5 L169.9,44.3 L171.4,43.3 L172.8,42.6 L174.2,42.2 L175.6,42.0 L177.0,42.1 L178.5,42.5 L179.9,43.2 L181.3,44.1 L182.7,45.3 L184.1,46.7 L185.6,48.4 L187.0,50.4 L188.4,52.5 L189.8,54.9 L191.2,57.4 L192.7,60.2 L194.1,63.1 L195.5,66.2 L196.9,69.3 L198.3,72.6 L199.8,76.0 L201.2,79.5 L202.6,83.0 L204.0,86.6 L205.4,90.2 L206.9,93.8 L208.3,97.3 L209.7,100.9 L211.1,104.4 L212.5,107.8 L214.0,111.2 L215.4,114.5 L216.8,117.7 L218.2,120.8 L219.6,123.8 L221.1,126.6 L222.5,129.4 L223.9,132.0 L225.3,134.5 L226.7,136.8 L228.2,139.0 L229.6,141.1 L231.0,143.1 L232.4,144.9 L233.8,146.6 L235.3,148.1 L236.7,149.6 L238.1,150.9 L239.5,152.1 L240.9,153.2 L242.4,154.2 L243.8,155.1 L245.2,156.0 L246.6,156.7 L248.0,157.4 L249.5,158.0 L250.9,158.5 L252.3,159.0 L253.7,159.4 L255.1,159.8 L256.6,160.1 L258.0,160.4 L259.4,160.6 L260.8,160.8 L262.2,161.0 L263.7,161.2 L265.1,161.3 L266.5,161.4 L267.9,161.5 L269.3,161.6 L270.8,161.7 L272.2,161.7 L273.6,161.8 L275.0,161.8 L276.4,161.8 L277.9,161.9 L279.3,161.9 L280.7,161.9 L282.1,161.9 L283.5,161.9 L285.0,162.0 L286.4,162.0 L287.8,162.0 L289.2,162.0 L290.6,162.0 L292.1,162.0 L293.5,162.0 L294.9,162.0 L296.3,162.0 L297.7,162.0 L299.2,162.0 L300.6,162.0 L302.0,162.0"/></svg></figure>
+          <div class="proj-body">
+            <span class="tag">Código abierto</span>
+            <h3>motor0d</h3>
+            <p>Repositorio del modelo de motores: código en Python y MATLAB, tests e informe técnico.</p>
+            <p class="meta">GitHub ↗</p>
+          </div>
+        </a>
+        <div class="card proj plain" data-reveal>
+          <div class="proj-body">
+            <span class="tag">Taller · desde 2023</span>
+            <h3>Restauración de un kart de competición</h3>
+            <p>Kart de los años 2000: piezas fabricadas y adaptadas a medida, soldadura, ajuste de tolerancias y puesta a punto.</p>
+            <p class="meta">Sin página todavía</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="block" id="experiencia">
-      <h2>Experiencia</h2>
+      <h2 data-reveal>Experiencia</h2>
       <ul class="tl">
-        <li>
+        <li data-reveal>
           <span class="when">oct 2025 – actualidad</span>
           <h3>Desarrollo de powertrain · Sistemas de admisión</h3>
           <p class="org">UPM MotoStudent Petrol</p>
@@ -119,7 +172,7 @@
             <li>Coordinación de interfaces entre áreas para que cada componente encaje y funcione en banco y en pista.</li>
           </ul>
         </li>
-        <li>
+        <li data-reveal>
           <span class="when">feb 2025 – actualidad</span>
           <h3>Comisario de pista con licencia FIA</h3>
           <p class="org">Circuito de Madrid Jarama – RACE</p>
@@ -129,7 +182,7 @@
             <li>Comisario en el Gran Premio de Fórmula 1 en el MADRING (F1, F2 y F3).</li>
           </ul>
         </li>
-        <li>
+        <li data-reveal>
           <span class="when">oct 2024 – ago 2025</span>
           <h3>Formula Student Academy</h3>
           <p class="org">UPM Racing</p>
@@ -143,50 +196,15 @@
       </ul>
     </section>
 
-    <section class="block" id="proyectos">
-      <h2>Proyectos</h2>
-      <div class="grid">
-        <a class="card" href="motores-termicos/comparativa-mep-mec-hcci/">
-          <span class="tag">Simulador · Termodinámica</span>
-          <h3>MEP, MEC y HCCI</h3>
-          <p>Modelo 0D de ciclo cerrado que compara gasolina, diésel y autoignición homogénea, con encendido por Livengood-Wu y control de CA50 en lazo cerrado.</p>
-          <p class="meta">JavaScript · Python · MATLAB</p>
-        </a>
-        <a class="card" href="diseno-mecanico/junta-cardan/">
-          <span class="tag">Simulador · Cinemática 3D</span>
-          <h3>Doble junta cardan</h3>
-          <p>Fluctuación de velocidad en montajes Z, W y espaciales, y condición de homocinetismo.</p>
-          <p class="meta">JavaScript · MATLAB</p>
-        </a>
-        <a class="card" href="https://github.com/MaikelGTH/motor0d">
-          <span class="tag">Código abierto</span>
-          <h3>motor0d</h3>
-          <p>Repositorio del modelo de motores: código en Python y MATLAB, tests e informe técnico.</p>
-          <p class="meta">GitHub</p>
-        </a>
-        <a class="card" href="diseno-mecanico/calculo-ejes/">
-          <span class="tag">Calculadora · Fatiga</span>
-          <h3>Ultimate Shaft Solver</h3>
-          <p>Cálculo a fatiga de ejes y tornillos según Norton y Shigley: coeficientes de seguridad estático, Goodman y ASME, vida estimada y optimización de geometría. Usado para validar estribos en el equipo.</p>
-          <p class="meta">JavaScript · Python</p>
-        </a>
-        <div class="card">
-          <span class="tag">Taller · desde 2023</span>
-          <h3>Restauración de un kart de competición</h3>
-          <p>Kart de los años 2000: piezas fabricadas y adaptadas a medida, soldadura, ajuste de tolerancias y puesta a punto.</p>
-        </div>
-      </div>
-    </section>
-
     <section class="block" id="formacion">
-      <h2>Formación</h2>
+      <h2 data-reveal>Formación</h2>
       <div class="two">
-        <div class="panel">
+        <div class="panel" data-reveal>
           <h3>Grado en Ingeniería Mecánica</h3>
           <p>Universidad Politécnica de Madrid · 2023 – 2027</p>
           <p class="note">Especialidad en motores y vibraciones: diseño mecánico, análisis estructural, termodinámica, mecánica de fluidos y dinámica de máquinas.</p>
         </div>
-        <div class="panel">
+        <div class="panel" data-reveal>
           <h3>Flow Phenomena in Turbomachinery Blade Channels</h3>
           <p>Technische Universität Wien · Programa ATHENS · calificación A</p>
           <p class="note">Simulación CFD y modelos de turbulencia aplicados a álabes de turbina.</p>
@@ -195,20 +213,20 @@
     </section>
 
     <section class="block" id="representacion">
-      <h2>Representación universitaria</h2>
+      <h2 data-reveal>Representación universitaria</h2>
       <ul class="tl">
-        <li>
+        <li data-reveal>
           <span class="when">2023 – actualidad</span>
           <h3>Delegado de clase y de titulación</h3>
           <p class="org">Grado en Ingeniería Mecánica · UPM</p>
           <p>Delegado de curso desde primero y representante de toda la titulación ante la Escuela.</p>
         </li>
-        <li>
+        <li data-reveal>
           <span class="when">2025 – 2026</span>
           <h3>Miembro del Consejo de Departamento</h3>
           <p class="org">Departamento de Ingeniería Mecánica, Química y Diseño Industrial · UPM</p>
         </li>
-        <li>
+        <li data-reveal>
           <span class="when">marzo 2026</span>
           <h3>Representante de la UPM en la feria AULA</h3>
           <p class="org">IFEMA, Madrid · seleccionado por el Rectorado</p>
@@ -217,15 +235,15 @@
     </section>
 
     <section class="block" id="competencias">
-      <h2>Competencias</h2>
+      <h2 data-reveal>Competencias</h2>
       <div class="two">
-        <div class="panel">
+        <div class="panel" data-reveal>
           <h3>Herramientas</h3>
           <div class="chips">
             <span>3DEXPERIENCE</span><span>STAR-CCM+</span><span>Ansys</span><span>Simulación 1D de motores</span><span>Python</span><span>MATLAB</span><span>AutoCAD</span><span>Impresión 3D</span>
           </div>
         </div>
-        <div class="panel">
+        <div class="panel" data-reveal>
           <h3>Idiomas</h3>
           <ul>
             <li>Español: nativo</li>
@@ -233,7 +251,7 @@
           </ul>
         </div>
       </div>
-      <div class="panel" style="margin-top:16px">
+      <div class="panel" style="margin-top:16px" data-reveal>
         <h3>Certificaciones y cursos</h3>
         <ul>
           <li>Licencia FIA de comisario de ruta · Real Federación Española de Automovilismo</li>
@@ -245,9 +263,9 @@
     </section>
 
     <section class="block" id="contacto">
-      <h2>Contacto</h2>
-      <p>Escríbeme a <a href="mailto:contacto@miguelangelserranogarcia.com">contacto@miguelangelserranogarcia.com</a> o por LinkedIn.</p>
-      <div class="links">
+      <h2 data-reveal>Contacto</h2>
+      <p data-reveal>Escríbeme a <a href="mailto:contacto@miguelangelserranogarcia.com">contacto@miguelangelserranogarcia.com</a> o por LinkedIn.</p>
+      <div class="links" data-reveal>
         <a class="btn primary" href="mailto:contacto@miguelangelserranogarcia.com">Correo</a>
         <a class="btn" href="https://www.linkedin.com/in/miguelangelserranogarcia">LinkedIn</a>
         <a class="btn" href="https://github.com/MaikelGTH">GitHub</a>
