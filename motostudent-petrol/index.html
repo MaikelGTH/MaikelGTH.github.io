@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,300&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: team-livery look. Lilac duotone photo hero with the Instagram "crossword" wordmark → sticky dark 3D stage where scroll drives a product presentation of the real EME25-P CAD (8 chapters) → En pista (lilac) → team → sponsors → violet join band. */
+/* Layout: team-livery look. Lilac duotone photo hero with the Instagram "crossword" wordmark → sticky dark 3D stage where scroll drives a product presentation of the real EME25-P CAD (11 chapters) → logo dive (A1, scroll-scrubbed) → second stage without bodywork (7 close-ups, Hossack kinematics) → En pista → trayectoria → competición → team → patrocinadores → join. */
 :root{
   --violet:#4b2a92;       /* librea: carenado morado */
   --violet-deep:#2a1757;
@@ -148,47 +148,140 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
 
 
 
-/* SHOWCASE: sticky 3D stage, scroll drives the camera through 8 chapters */
-.show{position:relative;height:calc(8 * 100vh);height:calc(8 * 100svh);background:var(--stage-0)}
-.show-stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;color:var(--white)}
-.show-bg{position:absolute;inset:0;background:
+
+/* INTRO (logo A0, once per session) */
+.intro{position:fixed;inset:0;z-index:100;background:#000;display:grid;place-items:center;transition:opacity .8s ease, visibility .8s}
+.intro video{width:min(100%,1280px);height:auto;max-height:100%}
+.intro.gone{opacity:0;visibility:hidden;pointer-events:none}
+.intro-skip{position:absolute;right:calc(20px + env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));background:none;border:1px solid #ffffff55;color:#ffffffcc;
+  font:700 11px/1 var(--f-display);letter-spacing:.3em;text-transform:uppercase;padding:12px 18px;border-radius:999px;cursor:pointer}
+.intro-skip:hover{color:#fff;border-color:#fff}
+
+/* STAGES: sticky 3D, scroll drives the camera */
+.stage{position:relative;background:var(--stage-0)}
+.stage.show{height:calc(11 * 100vh);height:calc(11 * 100svh)}
+.stage.naked{height:calc(7 * 110vh);height:calc(7 * 110svh)}
+.stage-sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;color:var(--white)}
+.stage-bg{position:absolute;inset:0;background:
   radial-gradient(60% 55% at 62% 62%, color-mix(in srgb,var(--violet) 38%,transparent) 0%, transparent 70%),
   radial-gradient(120% 90% at 50% 100%, var(--stage-1) 0%, var(--stage-0) 70%)}
-.show-title{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;opacity:0}
-.show-title span{white-space:nowrap;font-weight:900;font-size:clamp(64px,15vw,260px);letter-spacing:.04em;line-height:1;
+.naked .stage-bg{background:
+  radial-gradient(55% 50% at 64% 55%, color-mix(in srgb,var(--lavender) 22%,transparent) 0%, transparent 70%),
+  radial-gradient(120% 90% at 50% 100%, #17102c 0%, #08070c 70%)}
+.stage-logo{position:absolute;left:50%;top:44%;width:min(1100px,110vw);max-width:none;transform:translate(-40%,-50%);opacity:0;mix-blend-mode:screen;pointer-events:none}
+.stage-title{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;opacity:0}
+.stage-title span{white-space:nowrap;font-weight:900;font-size:clamp(64px,15vw,260px);letter-spacing:.04em;line-height:1;
   color:transparent;-webkit-text-stroke:1.5px color-mix(in srgb,var(--lavender) 55%,transparent);transform:translateY(-12%)}
-.show-canvas{position:absolute;inset:0}
-.show-canvas canvas{display:block;width:100%;height:100%}
-.show-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
-.show-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;gap:12px;justify-items:center;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-d);transition:opacity .5s}
-.show-load i{display:block;width:180px;height:2px;background:#ffffff1a;overflow:hidden}
-.show-load b{display:block;height:100%;width:0;background:var(--lavender);transition:width .2s}
-.show-load.done{opacity:0;pointer-events:none}
+.stage-canvas{position:absolute;inset:0}
+.stage-canvas canvas{display:block;width:100%;height:100%}
+.stage-fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.stage-load{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;gap:12px;justify-items:center;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-d);transition:opacity .5s}
+.stage-load i{display:block;width:180px;height:2px;background:#ffffff1a;overflow:hidden}
+.stage-load b{display:block;height:100%;width:0;background:var(--lavender);transition:width .2s}
+.stage-load.done{opacity:0;pointer-events:none}
 
-.show-copy{position:absolute;inset:0;pointer-events:none}
+.stage-copy{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,color-mix(in srgb,var(--stage-0) 82%,transparent) 0%,color-mix(in srgb,var(--stage-0) 45%,transparent) 30%,transparent 52%)}
+@media (max-width:820px){.stage-copy{background:linear-gradient(0deg,color-mix(in srgb,var(--stage-0) 88%,transparent) 0%,color-mix(in srgb,var(--stage-0) 50%,transparent) 34%,transparent 55%)}}
 .chap{position:absolute;left:max(16px, env(safe-area-inset-left,0px), calc((100vw - 1240px)/2 + 16px));top:50%;
-  width:min(400px, calc(100vw - 32px));display:grid;gap:14px;opacity:0;transform:translateY(-50%);will-change:opacity,transform}
+  width:min(420px, calc(100vw - 32px));display:grid;gap:14px;opacity:0;transform:translateY(-50%);will-change:opacity,transform}
 .chap:first-child{opacity:1}
 .chap .tag{color:var(--lavender)}
 .chap h2{font-weight:800;font-size:clamp(30px,3.6vw,52px);line-height:1.02;letter-spacing:.06em;text-transform:uppercase}
 .chap p{color:#d9d3ea;font-weight:300;font-size:clamp(16px,1.3vw,18px)}
+.chap .note{font-size:13px;color:var(--muted-d);border-left:2px solid var(--pink);padding-left:12px}
 .chap .num{font-variant-numeric:tabular-nums;color:var(--lavender)}
+.chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.chips li{font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;border:1px solid #ffffff33;border-radius:999px;padding:7px 12px}
+.hoss-ui{display:flex;align-items:center;gap:16px;flex-wrap:wrap;pointer-events:auto}
+.hoss-ui .btn{color:var(--white);cursor:pointer;background:transparent}
+.meter{--c:0;display:grid;gap:6px;font-size:10px;font-weight:700;letter-spacing:.24em;text-transform:uppercase;color:var(--muted-d)}
+.meter i{display:block;width:120px;height:3px;background:#ffffff1f;position:relative;overflow:hidden}
+.meter i::after{content:"";position:absolute;inset:0;background:var(--pink);transform-origin:left;transform:scaleX(var(--c))}
+.inset{margin:6px 0 0;width:150px;border-radius:6px;overflow:hidden;border:1px solid #ffffff22;background:#000}
+.inset video{width:100%;aspect-ratio:1600/2560;object-fit:cover;opacity:.9}
+.inset figcaption{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-d);padding:6px 8px}
 
-.show-rail{position:absolute;left:max(16px, env(safe-area-inset-left,0px), calc((100vw - 1240px)/2 + 16px));bottom:calc(30px + env(safe-area-inset-bottom,0px));list-style:none;margin:0;padding:0;
-  display:flex;gap:4px;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#ffffff59}
-.show-rail li{display:grid;gap:8px;min-width:64px;padding-right:14px;white-space:nowrap;transition:color .3s}
-.show-rail li::before{content:"";height:2px;background:currentColor;opacity:.6;transition:background .3s,opacity .3s}
-.show-rail li.on{color:var(--white)}
-.show-rail li.on::before{background:var(--pink);opacity:1}
+.stage-rail{position:absolute;left:max(16px, env(safe-area-inset-left,0px), calc((100vw - 1240px)/2 + 16px));bottom:calc(30px + env(safe-area-inset-bottom,0px));list-style:none;margin:0;padding:0;
+  display:flex;gap:2px;font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#ffffff59}
+.stage-rail li{display:grid;gap:8px;padding-right:12px;white-space:nowrap;transition:color .3s;cursor:pointer}
+.stage-rail li:hover{color:#ffffffb3}
+.stage-rail li::before{content:"";height:2px;background:currentColor;opacity:.6;transition:background .3s,opacity .3s}
+.stage-rail li.on{color:var(--white)}
+.stage-rail li.on::before{background:var(--pink);opacity:1}
 
+@media (max-width:1100px){ .stage-rail li{font-size:0;gap:0;width:34px;padding:8px 0} }
 @media (max-width:820px){
   .chap{top:auto;bottom:calc(28px + env(safe-area-inset-bottom,0px));transform:none;width:auto;right:calc(80px + env(safe-area-inset-right,0px));gap:10px}
   .chap h2{font-size:clamp(26px,7vw,36px)}
-  .show-rail{top:calc(78px + env(safe-area-inset-top,0px));bottom:auto;right:max(16px, env(safe-area-inset-right,0px));gap:5px}
-  .show-rail li{font-size:0;gap:0;width:auto;flex:1}
+  .chap p{font-size:15px}
+  .stage-rail{top:calc(70px + env(safe-area-inset-top,0px));bottom:auto;right:max(16px, env(safe-area-inset-right,0px))}
+  .stage-rail li{flex:1;width:auto}
+  .inset{display:none}
+  .chap .chips{display:none}
 }
 
+/* DIVE: logo zoom A1, scrubbed by scroll */
+.dive{position:relative;height:260vh;height:260svh;background:#000}
+.dive-sticky{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:grid;place-items:center;color:var(--white)}
+.dive video{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover}
+.dive-copy{position:relative;z-index:1;display:grid;gap:12px;justify-items:center;text-align:center;opacity:0;padding-inline:var(--gl) var(--gr)}
+.dive-copy .tag{color:var(--lavender)}
+.dive-copy .tag::before{display:none}
+.dive-copy h2{font-weight:800;font-size:clamp(44px,9vw,130px);letter-spacing:.1em;text-transform:uppercase;line-height:1}
+.dive-copy p{color:#d9d3ea;font-weight:300}
+
+/* EME facts: four columns */
+.eme-facts.four{grid-template-columns:repeat(4,1fr)}
+@media (max-width:980px){.eme-facts.four{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.eme-facts.four{grid-template-columns:1fr}}
+
+/* TRAYECTORIA */
+.history{padding-block:130px 110px;color:var(--ink);background:var(--white)}
+.sec-head{display:grid;gap:18px;max-width:760px}
+.timeline{list-style:none;margin:56px 0 0;padding:0 var(--gr) 24px var(--gl);display:grid;grid-auto-flow:column;grid-auto-columns:minmax(260px,300px);gap:16px;
+  overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gl)}
+@media (min-width:1272px){.timeline{padding-left:calc((100vw - 1240px)/2 + 16px)}}
+.timeline li{scroll-snap-align:start;display:grid;align-content:start;gap:10px;padding:26px 24px 28px;border-top:2px solid var(--lilac-2);background:var(--lilac);min-width:0}
+.timeline li.now{background:var(--violet);color:var(--white);border-top-color:var(--pink)}
+.timeline .yr{font-family:var(--f-mono);font-size:12px;color:var(--muted-l)}
+.timeline li.now .yr{color:#ffffffb3}
+.timeline h3{font-weight:900;font-size:30px;letter-spacing:.02em}
+.timeline p{font-size:15px;color:var(--muted-l)}
+.timeline li.now p{color:#e6e0f5}
+.timeline b{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--violet)}
+.timeline li.now b{color:var(--white)}
+.aside{margin-top:28px;color:var(--muted-l);font-size:15px}
+
+/* COMPETICIÓN */
+.comp{padding-block:130px;background:var(--stage-0);color:var(--white)}
+.comp-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:64px;align-items:center}
+.comp-grid > *{min-width:0}
+.comp-copy{display:grid;gap:22px}
+.comp-copy .lead{color:#d9d3ea}
+.phases{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#ffffff1f;border:1px solid #ffffff1f;margin-top:12px}
+.phases div{background:var(--stage-0);padding:22px;display:grid;gap:8px;align-content:start;min-width:0}
+.phases span{color:var(--pink);font-size:12px}
+.phases h3{font-weight:800;font-size:16px;letter-spacing:.2em;text-transform:uppercase}
+.phases p{font-size:14px;color:var(--muted-d)}
+.comp .note{font-size:13px;color:var(--muted-d);border-left:2px solid var(--pink);padding-left:12px}
+.comp-fig{margin:0;border-radius:6px;overflow:hidden;background:#fff}
+.comp-fig img{width:100%;aspect-ratio:1125/2000;max-height:640px;object-fit:cover;object-position:50% 40%}
+.comp-fig figcaption{background:var(--stage-0);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted-d);padding:12px 0 0}
+@media (max-width:900px){.comp-grid{grid-template-columns:1fr}.phases{grid-template-columns:1fr}.comp-fig img{max-height:420px}}
+
+/* PATROCINADORES */
+.spons{padding-block:120px;background:var(--lilac);color:var(--ink);border-top:1px solid var(--lilac-2)}
+.tiers{display:grid;grid-template-columns:repeat(5,1fr);gap:28px;margin-top:48px}
+.tier{display:grid;gap:12px;align-content:start;border-top:1.5px solid var(--violet);padding-top:16px;min-width:0}
+.tier h3{font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--violet)}
+.tier ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:15px}
+.tier.main ul{font-weight:800;font-size:18px}
+.spons .note{margin-top:36px;font-size:13px;color:var(--muted-l)}
+@media (max-width:980px){.tiers{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.tiers{grid-template-columns:1fr}}
+
 </style>
+
 
 </head>
 <body>
@@ -213,9 +306,10 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     </a>
     <ul>
       <li><a href="#showcase">La moto</a></li>
-      <li><a href="#eme25">En pista</a></li>
+      <li><a href="#naked">Sin carenado</a></li>
+      <li><a href="#trayectoria">Trayectoria</a></li>
+      <li><a href="#competicion">Competición</a></li>
       <li><a href="#equipo">Equipo</a></li>
-      <li><a href="#empresas">Empresas</a></li>
       <li><a href="#unete">Únete</a></li>
     </ul>
   </div>
@@ -237,80 +331,147 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     </div>
   </div>
 </header>
-<section class="show" id="showcase" aria-label="La EME25-P en 3D">
-  <div class="show-stage" id="showStage">
-    <div class="show-bg" aria-hidden="true"></div>
-    <div class="show-title" id="showTitle" aria-hidden="true"><span>EME25-P</span></div>
-    <div class="show-canvas" id="showCanvas"></div>
-    <img class="show-fallback" id="showFallback" src="assets/eme-perfil.jpg" alt="EME25-P de perfil en el pit lane de MotorLand" hidden>
-    <div class="show-load" id="showLoad"><span class="mono" id="showLoadTxt">Cargando modelo 3D</span><i><b id="showLoadBar"></b></i></div>
+<div class="intro" id="intro" aria-hidden="true">
+  <video id="introVid" src="assets/logo-a0.mp4" muted playsinline preload="auto"></video>
+  <button class="intro-skip" id="introSkip" type="button">Saltar intro</button>
+</div>
 
-    <div class="show-copy">
-      <article class="chap" data-k="0">
-        <p class="tag">Presentamos</p>
-        <h2>EME25-P</h2>
-        <p>El prototipo de UPM MotoStudent Petrol para la VIII Edición de MotoStudent. Diseñado desde cero, pieza a pieza, en el CAD del equipo.</p>
-      </article>
-      <article class="chap" data-k="1">
-        <p class="tag">Carenado</p>
-        <h2>Forma que corta el aire</h2>
-        <p>Carenado superior, quilla y guardabarros diseñados como un solo conjunto, con la librea blanca y morada del equipo.</p>
-      </article>
-      <article class="chap" data-k="2">
-        <p class="tag">Tren delantero</p>
-        <h2>Suspensión Hossack</h2>
-        <p>Dos brazos anclados al chasis y una mangueta independiente sustituyen a la horquilla telescópica. Con ella logramos el 4.º puesto en Innovación, mejor equipo español de la categoría.</p>
-      </article>
-      <article class="chap" data-k="3">
-        <p class="tag">Estructura</p>
-        <h2>Bajo la piel</h2>
-        <p>Chasis, subchasis y basculante: el esqueleto que une el tren delantero, el grupo motopropulsor y la rueda trasera.</p>
-      </article>
-      <article class="chap" data-k="4">
-        <p class="tag">Despiece</p>
-        <h2><span class="num" id="partCount">273</span> sólidos, un conjunto</h2>
-        <p>Cada sólido de este modelo sale del ensamblaje real de la moto: carenados, chasis, ruedas, mandos y tornillería.</p>
-      </article>
-      <article class="chap" data-k="5">
-        <p class="tag">Parte trasera</p>
-        <h2>Colín en carbono</h2>
-        <p>Colín de fibra de carbono sobre el subchasis, con la luz de freno integrada en la cola.</p>
-      </article>
-      <article class="chap" data-k="6">
-        <p class="tag">Tren trasero</p>
-        <h2>Basculante y suspensión</h2>
-        <p>El basculante y el conjunto de suspensión trasera transmiten la tracción al asfalto.</p>
-      </article>
-      <article class="chap" data-k="7">
-        <p class="tag">UPM MotoStudent Petrol</p>
-        <h2>Lista para pista</h2>
-        <p>Del CAD al box de MotorLand.</p>
-      </article>
+<section class="stage show" id="showcase" aria-label="La EME25-P en 3D">
+  <div class="stage-sticky">
+    <div class="stage-bg" aria-hidden="true"></div>
+    <video class="stage-logo" id="showLogoVid" src="assets/logo-a0.mp4" muted playsinline preload="auto" aria-hidden="true"></video>
+    <div class="stage-title" aria-hidden="true"><span>EME25-P</span></div>
+    <div class="stage-canvas"></div>
+    <img class="stage-fallback" src="assets/eme-perfil.jpg" alt="EME25-P de perfil en el pit lane de MotorLand" hidden>
+    <div class="stage-load"><span class="mono">Cargando modelo 3D</span><i><b></b></i></div>
+    <div class="stage-copy">
+      <article class="chap"><p class="tag">Presentamos</p><h2>EME25-P</h2>
+        <p>El prototipo de combustión de UPM MotoStudent Petrol para la VIII Edición de MotoStudent. Diseñado desde cero, pieza a pieza, por más de cien estudiantes de la Universidad Politécnica de Madrid.</p>
+        <ul class="chips"><li>VIII MotoStudent</li><li>MotorLand Aragón</li><li>Dorsal 13</li></ul></article>
+      <article class="chap"><p class="tag">Carenado</p><h2>Forma que corta el aire</h2>
+        <p>Carenado superior, quilla y guardabarros trabajan como un solo conjunto. La cúpula protege al piloto agachado y conduce el aire hacia las tomas de admisión del frontal.</p>
+        <p class="note">Librea blanca y morada del equipo, con el panel de la Universidad en el costado.</p></article>
+      <article class="chap"><p class="tag">Sección frontal</p><h2>Estrecha de frente</h2>
+        <p>Vista de frente, la moto es poco más ancha que los hombros del piloto. Cada milímetro de sección frontal que se ahorra es velocidad punta en la recta de MotorLand.</p></article>
+      <article class="chap"><p class="tag">Tren delantero</p><h2>Suspensión Hossack</h2>
+        <p>Fuera carenado, toberas y depósito: así se ve el mecanismo. Dos brazos anclados al chasis y una mangueta independiente sustituyen a la horquilla telescópica y separan dirección y suspensión.</p>
+        <p class="note">4.º puesto en Innovación en la VIII MotoStudent, mejor equipo español de la categoría.</p></article>
+      <article class="chap"><p class="tag">Estructura</p><h2>Bajo la piel</h2>
+        <p>Chasis de material híbrido, subchasis y basculante. Reducir peso y mejorar el reparto de masas fue uno de los objetivos de esta generación.</p></article>
+      <article class="chap"><p class="tag">Powertrain</p><h2>El corazón</h2>
+        <p>Toberas, caja de aire, depósito, motor, escape y radiador. Todo lo que convierte gasolina en empuje, aislado del resto de la moto.</p></article>
+      <article class="chap"><p class="tag">Powertrain · despiece</p><h2>Pieza a pieza</h2>
+        <p>La admisión toma aire del frontal y lo lleva hasta la caja de aire sobre el motor. El depósito va encima, el radiador delante y el escape sale por debajo hacia el lateral.</p></article>
+      <article class="chap"><p class="tag">Despiece</p><h2><span class="num" id="partCount">1085</span> piezas, un conjunto</h2>
+        <p>Cada pieza de este modelo sale del ensamblaje real de la moto: carenados, chasis, ruedas, mandos, cadena y tornillería.</p></article>
+      <article class="chap"><p class="tag">Parte trasera</p><h2>Colín en carbono</h2>
+        <p>Colín de fibra de carbono sobre el subchasis, con la luz de freno integrada en la cola y el asiento del piloto.</p></article>
+      <article class="chap"><p class="tag">Tren trasero</p><h2>Basculante y suspensión</h2>
+        <p>Basculante, amortiguador trasero y transmisión por cadena llevan la tracción al asfalto.</p></article>
+      <article class="chap"><p class="tag">UPM MotoStudent Petrol</p><h2>Lista para pista</h2>
+        <p>Del CAD al box de MotorLand. Sigue bajando para verla sin carenado.</p></article>
     </div>
-
-    <ol class="show-rail" id="showRail" aria-hidden="true">
-      <li>Presentación</li><li>Carenado</li><li>Hossack</li><li>Estructura</li><li>Despiece</li><li>Colín</li><li>Basculante</li><li>En pista</li>
+    <ol class="stage-rail" aria-label="Capítulos">
+      <li>Presentación</li><li>Carenado</li><li>Frontal</li><li>Hossack</li><li>Estructura</li><li>Powertrain</li><li>Despiece PT</li><li>Despiece</li><li>Colín</li><li>Basculante</li><li>En pista</li>
     </ol>
   </div>
 </section>
 
+<section class="dive" id="dive" aria-label="Transición">
+  <div class="dive-sticky">
+    <video id="diveVid" src="assets/logo-a1-scrub.mp4" muted playsinline preload="auto" aria-hidden="true"></video>
+    <div class="dive-copy" id="diveCopy"><p class="tag">Al desnudo</p><h2>Sin carenado</h2><p>Quitamos la carrocería para enseñar lo que no se ve.</p></div>
+  </div>
+</section>
 
-
+<section class="stage naked" id="naked" aria-label="La EME25-P sin carenado">
+  <div class="stage-sticky">
+    <div class="stage-bg" aria-hidden="true"></div>
+    <div class="stage-canvas"></div>
+    <img class="stage-fallback" src="assets/hossack-detalle.jpg" alt="Detalle del tren delantero Hossack" hidden>
+    <div class="stage-load"><span class="mono">Cargando modelo 3D</span><i><b></b></i></div>
+    <div class="stage-copy">
+      <article class="chap"><p class="tag">Sin carenado</p><h2>Así es por dentro</h2>
+        <p>La misma EME25-P, sin carenado. Baja para recorrerla de cerca: tren delantero, admisión, motor, tren trasero y frenos.</p></article>
+      <article class="chap chap-hoss"><p class="tag">Hossack en acción</p><h2>Comprime</h2>
+        <p>Al comprimir, los dos brazos giran sobre el chasis y la mangueta sube casi en paralelo. El amortiguador, montado entre el brazo inferior y el chasis, absorbe el recorrido.</p>
+        <div class="hoss-ui">
+          <button class="btn" id="compressBtn" type="button">Comprimir suspensión</button>
+          <div class="meter" id="compressMeter" aria-hidden="true"><i></i><span>Compresión</span></div>
+        </div>
+        <figure class="inset"><video src="assets/hossack-render.mp4" autoplay muted loop playsinline aria-label="Render del equipo: Hossack amortiguando"></video><figcaption>Render del equipo</figcaption></figure>
+      </article>
+      <article class="chap"><p class="tag">Admisión</p><h2>Aire desde el frontal</h2>
+        <p>Las toberas recogen aire en la parte delantera y lo conducen por encima del chasis hasta la caja de aire, sobre las trompetas de admisión del motor.</p></article>
+      <article class="chap"><p class="tag">Motor y escape</p><h2>Monocilíndrico de combustión</h2>
+        <p>Motor de combustión con radiador delantero y escape bajo hacia el lateral. Diseño, simulación y fabricación de admisión y escape se hacen en el equipo.</p>
+        <p class="note">Texto provisional: pendiente de datos de cilindrada y potencia.</p></article>
+      <article class="chap"><p class="tag">Tren trasero</p><h2>Basculante</h2>
+        <p>El basculante une la rueda trasera al chasis y trabaja contra el amortiguador trasero. La cadena transmite el par del motor a la rueda.</p></article>
+      <article class="chap"><p class="tag">Frenada</p><h2>Disco y pinza</h2>
+        <p>Freno delantero de disco con pinza radial, montado sobre la mangueta de la Hossack, que acompaña a la rueda en todo su recorrido.</p></article>
+      <article class="chap"><p class="tag">Planta</p><h2>Vista cenital</h2>
+        <p>Desde arriba se ve el reparto de la moto: tren delantero, powertrain en el centro y colín sobre el subchasis.</p></article>
+    </div>
+    <ol class="stage-rail" aria-label="Pasos">
+      <li>Sin carenado</li><li>Hossack</li><li>Admisión</li><li>Motor</li><li>Tren trasero</li><li>Frenada</li><li>Cenital</li>
+    </ol>
+  </div>
+</section>
 
 <section class="eme" id="eme25">
   <div class="wrap">
     <div class="eme-head">
       <h2 class="eme-name"><span>En pista</span>EME25-P</h2>
       <div style="display:grid;gap:20px">
-        <p class="lead">Presentada en la VIII Edición de MotoStudent. Su gran novedad frente a la EME23-P es la suspensión delantera alternativa tipo Hossack, que da a la rueda delantera un comportamiento más fiel a la realidad.</p>
+        <p class="lead">Presentada en la VIII Edición de MotoStudent, en MotorLand Aragón. Frente a la EME23-P estrena suspensión delantera Hossack y un chasis de material híbrido que reduce peso y mejora el reparto de masas.</p>
       </div>
     </div>
     <figure class="eme-photo" style="margin-inline:0;margin-bottom:0"><img id="emeImg" src="assets/eme-piloto.jpg" alt="Piloto a los mandos de la EME25-P saliendo del box en MotorLand"></figure>
-    <div class="eme-facts">
-      <div><strong>4.º</strong><h3>Innovación</h3><p>en la VIII MotoStudent. Mejor equipo español de la categoría.</p></div>
-      <div><strong>Hossack</strong><h3>Suspensión delantera</h3><p>Doble brazo articulado al chasis en lugar de horquilla telescópica.</p></div>
-      <div><strong id="nBike">13</strong><h3>Dorsal</h3><p>Con él corremos MotoStudent y el CNV, el campeonato nacional portugués.</p></div>
+    <div class="eme-facts four">
+      <div><strong>13.º</strong><h3>General</h3><p>de 32 equipos en la VIII MotoStudent.</p></div>
+      <div><strong>3.º</strong><h3>De España</h3><p>Tercer equipo español de la clasificación general.</p></div>
+      <div><strong>4.º</strong><h3>Innovación</h3><p>Mejor equipo español de la categoría, gracias a la Hossack.</p></div>
+      <div><strong>5.º</strong><h3>Presentación</h3><p>En la presentación del proyecto ante el jurado.</p></div>
     </div>
+  </div>
+</section>
+
+<section class="history" id="trayectoria">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="tag" style="color:var(--violet)">Trayectoria</p>
+      <h2 class="h-wide">Desde 2010</h2>
+      <p class="lead">El equipo nace con la primera edición de MotoStudent, bajo la dirección del profesor Manuel Merino. Desde entonces, un prototipo nuevo en cada edición.</p>
+    </div>
+  </div>
+  <ol class="timeline" aria-label="Prototipos">
+    <li><span class="yr">2010</span><h3>EME10</h3><p>Primer prototipo. Motor Gasgas de dos tiempos y 125 cc, elemento estructural de fibra de carbono y sistema de recuperación de energía.</p><b>1.º en cálculos técnicos</b></li>
+    <li><span class="yr">2012</span><h3>EME12</h3><p>Salto a cuatro tiempos con un motor Yamaha WR 250.</p><b>Premio a la mejor innovación tecnológica · 4.º en MS1</b></li>
+    <li><span class="yr">2014</span><h3>EME14</h3><p>Mejor dinámica para el piloto, offset regulable y la primera caja de aire impresa en 3D. Da origen a la spin-off EME Technologies.</p><b>Motos para el CEV desde 2017</b></li>
+    <li><span class="yr">2016</span><h3>EME16-P</h3><p>Nueva geometría y revisión de los grandes componentes estructurales, con el equipo completamente renovado.</p><b>6.º en carrera · 3.º mejor proyecto industrial</b></li>
+    <li><span class="yr">2018</span><h3>EME18-P</h3><p>Desarrollada a partir del feedback del piloto de pruebas. Peso estructural reducido un 20 %.</p><b>3.º en Best MotoStudent</b></li>
+    <li><span class="yr">2020</span><h3>EME20-P</h3><p>Desarrollo marcado por la pandemia.</p><b>4.º mejor diseño · 3.º diseño conceptual · 10.º en carrera</b></li>
+    <li><span class="yr">2023</span><h3>EME23-P</h3><p>Primera moto tras el relevo generacional. 40 CV y más de 210 km/h; la más ligera de la competición.</p><b>7.º en la general · 5.º en frenada</b></li>
+    <li class="now"><span class="yr">2025</span><h3>EME25-P</h3><p>Suspensión Hossack y chasis de material híbrido.</p><b>13.º de 32 · 3.º de España · 4.º en Innovación</b></li>
+  </ol>
+  <div class="wrap"><p class="aside">UPM MotoStudent es una asociación con dos equipos: Petrol, de combustión, y Electric, que en 2025 ganó la fase MS2 y la carrera final de la categoría eléctrica con la EME25-E.</p></div>
+</section>
+
+<section class="comp" id="competicion">
+  <div class="wrap comp-grid">
+    <div class="comp-copy">
+      <p class="tag" style="color:var(--lavender)">La competición</p>
+      <h2 class="h-wide">MotoStudent</h2>
+      <p class="lead">Competición internacional entre universidades, organizada por la Moto Engineering Foundation (MEF) en MotorLand Aragón. Cada dos años, equipos de todo el mundo diseñan, fabrican y corren un prototipo de moto de competición.</p>
+      <div class="phases">
+        <div><span class="mono">MS1</span><h3>Proyecto</h3><p>Diseño, cálculo, innovación y plan de negocio, defendidos ante un jurado de la industria.</p></div>
+        <div><span class="mono">MS2</span><h3>Pista</h3><p>Verificaciones técnicas, pruebas dinámicas de frenada, aceleración y maniobrabilidad, y la carrera final.</p></div>
+        <div><span class="mono">CNV</span><h3>Entre ediciones</h3><p>El prototipo sigue evolucionando y compite cada año en el campeonato nacional de velocidad de Portugal.</p></div>
+      </div>
+      <p class="note">Descripción de las fases redactada como borrador: revisar con el reglamento vigente.</p>
+    </div>
+    <figure class="comp-fig"><img src="assets/hossack-detalle.jpg" alt="Render del tren delantero Hossack de la EME25-P" loading="lazy"><figcaption>Tren delantero Hossack · 4.º en Innovación</figcaption></figure>
   </div>
 </section>
 
@@ -336,6 +497,22 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     </div>
   </div>
 </section>
+<section class="spons" id="patrocinadores">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="tag" style="color:var(--violet)">Patrocinadores</p>
+      <h2 class="h-wide">Quién nos impulsa</h2>
+    </div>
+    <div class="tiers">
+      <div class="tier main"><h3>Principal</h3><ul><li>Universidad Politécnica de Madrid</li></ul></div>
+      <div class="tier"><h3>Oro</h3><ul><li>Principia</li><li>Siemens</li><li>Valmoldes</li><li>Dassault Systèmes</li><li>ATS Global</li><li>IDR UPM</li></ul></div>
+      <div class="tier"><h3>Plata</h3><ul><li>ETSIDI</li><li>Lasertek</li><li>Galfer</li><li>CPAN</li><li>Consejo Social UPM</li><li>Motorbike Academy</li><li>Makera</li></ul></div>
+      <div class="tier"><h3>Bronce</h3><ul><li>Accu</li><li>Polymaker</li><li>Ryobi</li><li>Böllhoff</li><li>SITTA</li><li>Pferd</li><li>Pro-Bolt</li><li>RapidHarness</li><li>Centro Láser UPM</li><li>Crea</li><li>JBC</li><li>3Dconnexion</li><li>ETSIAE</li><li>LANEMA</li><li>Sika</li></ul></div>
+      <div class="tier"><h3>Colaboradores</h3><ul><li>GV Racing</li><li>By City</li><li>Aeroempleo</li><li>LAB FAB Aditiva</li><li>NZI</li><li>Twin Air</li><li>ETSIDI Design</li><li>CLYT UPM</li><li>Motora</li><li>Jacomoto</li><li>XTR Pepo</li></ul></div>
+    </div>
+    <p class="note">Lista tomada de la web actual del equipo; pendiente de sustituir por los logotipos oficiales.</p>
+  </div>
+</section>
 
 <section class="biz" id="empresas">
   <div class="wrap">
@@ -349,7 +526,6 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     <p style="margin-top:44px"><a class="btn dark" href="https://blogs.upm.es/upm-motostudent/contacto/" target="_blank" rel="noopener" style="color:var(--violet)">Hablemos de patrocinio →</a></p>
   </div>
 </section>
-
 <section class="join" id="unete">
   <svg class="swoosh" viewBox="0 0 120 80" aria-hidden="true"><use href="#swoosh"/></svg>
   <div class="wrap">
@@ -366,7 +542,6 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     </div>
   </div>
 </section>
-
 <footer><div class="wrap"><span>© 2026 UPM MotoStudent Petrol</span><span>Propuesta de diseño · borrador</span></div></footer>
 
 <div class="rev" aria-hidden="true">
@@ -380,7 +555,6 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
   </svg>
 </div>
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -390,308 +564,411 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
 <script src="https://cdn.jsdelivr.net/npm/meshoptimizer@0.21.0/meshopt_decoder.js"></script>
 <script>
 (function(){
-  const sec=document.getElementById('showcase'), host=document.getElementById('showCanvas');
-  const loadEl=document.getElementById('showLoad'), loadTxt=document.getElementById('showLoadTxt'), loadBar=document.getElementById('showLoadBar');
-  const chaps=[...document.querySelectorAll('.chap')], rail=[...document.querySelectorAll('#showRail li')], titleEl=document.getElementById('showTitle');
+  /* One WebGL renderer + one model shared by two sticky stages:
+     #showcase (full bike, 11 chapters) and #naked (no bodywork, 7 close-ups incl. Hossack compression).
+     The canvas is moved into whichever stage is on screen. */
   const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
   const narrowMQ=matchMedia('(max-width: 820px)');
+  const L=h=>new THREE.Color(h).convertSRGBToLinear();
+  const sm=x=>x*x*(3-2*x), clamp=(x,a,b)=>Math.min(b,Math.max(a,x)), lerp=(a,b,f)=>a+(b-a)*f;
 
-  function fallback(msg){
-    document.getElementById('showFallback').hidden=false;
-    loadTxt.textContent=msg||'Vista 3D no disponible en este navegador';
-    loadBar.parentNode.style.display='none';
+  // ---------- Stages: DOM + copy ----------
+  function makeStage(id){
+    const sec=document.getElementById(id); if(!sec) return null;
+    const st={id,sec,host:sec.querySelector('.stage-canvas'),chaps:[...sec.querySelectorAll('.chap')],rail:[...sec.querySelectorAll('.stage-rail li')],
+      title:sec.querySelector('.stage-title'),c:0,cs:0};
+    st.K=st.chaps.length;
+    st.rail.forEach((li,k)=>{ li.tabIndex=0; li.setAttribute('role','button');
+      const go=()=>{ const top=sec.getBoundingClientRect().top+scrollY, span=sec.offsetHeight-innerHeight; scrollTo({top:top+span*(k/(st.K-1)),behavior:reduce?'auto':'smooth'}); };
+      li.addEventListener('click',go); li.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+    return st;
   }
-  // ---- Copy & rail run even without WebGL ----
-  const K=chaps.length;
-  function progress(){
-    const r=sec.getBoundingClientRect(), span=sec.offsetHeight-innerHeight;
-    return span>0?Math.min(1,Math.max(0,-r.top/span)):0;
-  }
-  function updateCopy(c){
+  const STAGES=[makeStage('showcase'),makeStage('naked')].filter(Boolean);
+  function progress(st){ const r=st.sec.getBoundingClientRect(), span=st.sec.offsetHeight-innerHeight; return span>0?clamp(-r.top/span,0,1):0; }
+  function updateCopy(st,c){
     const narrow=narrowMQ.matches;
-    chaps.forEach((el,k)=>{
-      const d=c-k, a=Math.max(0,1-Math.abs(d)/0.32), o=a*a*(3-2*a);
+    st.chaps.forEach((el,k)=>{
+      const d=c-k, a=Math.max(0,1-Math.abs(d)/0.34), o=sm(a);
       el.style.opacity=o.toFixed(3);
       const y=(-d*40).toFixed(1);
       el.style.transform=narrow?`translateY(${y}px)`:`translateY(calc(-50% + ${y}px))`;
       el.style.visibility=o<0.01?'hidden':'visible';
     });
-    const on=Math.min(K-1,Math.round(c));
-    rail.forEach((li,k)=>li.classList.toggle('on',k===on));
-    const t=Math.max(0,1-Math.abs(c-0)/0.55)*0.9+Math.max(0,1-Math.abs(c-(K-1))/0.55);
-    titleEl.style.opacity=Math.min(1,t).toFixed(3);
+    const on=Math.min(st.K-1,Math.round(c));
+    st.rail.forEach((li,k)=>li.classList.toggle('on',k===on));
+    if(st.title){ const t=Math.max(0,1-Math.abs(c-(st.K-1))/0.55); st.title.style.opacity=t.toFixed(3); }
   }
-  updateCopy(0);
-  addEventListener('scroll',()=>{ if(!window.__showGL) updateCopy(progress()*(K-1)); },{passive:true});
+  STAGES.forEach(st=>updateCopy(st,0));
 
+  // logo video behind chapter 0 of the showcase
+  const bgVid=document.getElementById('showLogoVid');
+  let bgPlayed=false;
+  function bgVideo(c){
+    if(!bgVid) return;
+    const o=Math.max(0,1-Math.abs(c)/0.6);
+    bgVid.style.opacity=(o*0.55).toFixed(3);
+    if(o>0.2&&!bgPlayed){ bgPlayed=true; try{ bgVid.currentTime=0; const p=bgVid.play(); p&&p.catch(()=>{}); }catch(e){} }
+    if(o<0.02) bgPlayed=false;
+  }
+
+  function fallback(msg){
+    STAGES.forEach(st=>{ const f=st.sec.querySelector('.stage-fallback'); if(f) f.hidden=false; const l=st.sec.querySelector('.stage-load'); if(l){ l.querySelector('span').textContent=msg||'Vista 3D no disponible en este navegador'; const i=l.querySelector('i'); if(i) i.style.display='none'; } });
+  }
+  addEventListener('scroll',()=>{ if(!window.__stageGL) STAGES.forEach(st=>updateCopy(st,progress(st)*(st.K-1))); },{passive:true});
   if(!window.THREE||!THREE.GLTFLoader){ fallback(); return; }
   let renderer;
-  try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'}); }
-  catch(e){ fallback(); return; }
-  window.__showGL=true;
+  try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'}); }catch(e){ fallback(); return; }
+  window.__stageGL=true;
   renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.75));
-  renderer.outputEncoding=THREE.sRGBEncoding;
-  renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.0;
-  host.appendChild(renderer.domElement);
+  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  const canvas=renderer.domElement; canvas.setAttribute('aria-hidden','true');
+  let activeStage=STAGES[0]; activeStage.host.appendChild(canvas);
 
-  const L=h=>new THREE.Color(h).convertSRGBToLinear();
   const scene=new THREE.Scene();
   const cam=new THREE.PerspectiveCamera(30,1,0.05,60);
-  if(THREE.RoomEnvironment){
-    const pm=new THREE.PMREMGenerator(renderer);
-    scene.environment=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture;
-  }
+  if(THREE.RoomEnvironment){ const pm=new THREE.PMREMGenerator(renderer); scene.environment=pm.fromScene(new THREE.RoomEnvironment(),0.04).texture; }
   const hemi=new THREE.HemisphereLight(0xffffff,L(0x2a1757),0.35); scene.add(hemi);
   const key=new THREE.DirectionalLight(0xffffff,2.4); key.position.set(2.5,4.2,3.2); scene.add(key);
   const rim=new THREE.DirectionalLight(L(0xb9a6ea),2.6); rim.position.set(-3.5,2.2,-3); scene.add(rim);
   const kick=new THREE.DirectionalLight(L(0xff3d8b),0.0); kick.position.set(-2,0.6,3); scene.add(kick);
+  const sweepL=new THREE.SpotLight(0xffffff,0,8,0.35,0.6,1); scene.add(sweepL); scene.add(sweepL.target);
 
-  // Stage floor: soft lilac pool + contact shadow
-  function radialTex(stops){
-    const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d');
-    const gr=g.createRadialGradient(128,128,0,128,128,128); stops.forEach(s=>gr.addColorStop(s[0],s[1]));
-    g.fillStyle=gr; g.fillRect(0,0,256,256); const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t;
-  }
+  function radialTex(stops){ const c=document.createElement('canvas'); c.width=c.height=256; const g=c.getContext('2d'); const gr=g.createRadialGradient(128,128,0,128,128,128); stops.forEach(s=>gr.addColorStop(s[0],s[1])); g.fillStyle=gr; g.fillRect(0,0,256,256); const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t; }
   const pool=new THREE.Mesh(new THREE.PlaneGeometry(4.2,2.4),new THREE.MeshBasicMaterial({map:radialTex([[0,'rgba(155,132,214,.42)'],[.5,'rgba(75,42,146,.18)'],[1,'rgba(0,0,0,0)']]),transparent:true,depthWrite:false}));
   pool.rotation.x=-Math.PI/2; pool.position.set(0.82,0.001,0); scene.add(pool);
   const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2.1,0.62),new THREE.MeshBasicMaterial({map:radialTex([[0,'rgba(5,3,10,.85)'],[.55,'rgba(5,3,10,.4)'],[1,'rgba(0,0,0,0)']]),transparent:true,depthWrite:false}));
   shadow.rotation.x=-Math.PI/2; shadow.position.set(0.82,0.002,0); scene.add(shadow);
 
-  // ---- Materials (no colours in the STEP: livery applied here) ----
-  const P=(o)=>new THREE.MeshPhysicalMaterial(Object.assign({envMapIntensity:1},o));
-  const S=(o)=>new THREE.MeshStandardMaterial(Object.assign({envMapIntensity:1},o));
-  const mats={
-    paintWhite:P({color:L(0xf2f1f6),roughness:.3,metalness:0,clearcoat:1,clearcoatRoughness:.08}),
+  // ---------- Materials (the STL has no colour: livery applied here) ----------
+  const P=o=>new THREE.MeshPhysicalMaterial(Object.assign({envMapIntensity:1},o));
+  const S=o=>new THREE.MeshStandardMaterial(Object.assign({envMapIntensity:1},o));
+  const M={
+    paintWhite:P({color:L(0xf2f1f6),roughness:.3,clearcoat:1,clearcoatRoughness:.08}),
     paintViolet:P({color:L(0x4b2a92),roughness:.32,metalness:.05,clearcoat:1,clearcoatRoughness:.1}),
     carbon:P({color:L(0x15131a),roughness:.38,metalness:.35,clearcoat:.9,clearcoatRoughness:.12}),
     carbonViolet:P({color:L(0x2b1847),roughness:.3,metalness:.35,clearcoat:1,clearcoatRoughness:.1}),
     alu:S({color:L(0xd4d6dc),roughness:.28,metalness:.92}),
+    aluDark:S({color:L(0x8b8f98),roughness:.35,metalness:.85}),
     darkMetal:S({color:L(0x55555e),roughness:.45,metalness:.75}),
-    black:S({color:L(0x111114),roughness:.78,metalness:0}),
-    blackGloss:S({color:L(0x111114),roughness:.35,metalness:.4}),
+    titanium:S({color:L(0xb9b3a6),roughness:.32,metalness:.9}),
+    black:S({color:L(0x111114),roughness:.78}),
+    blackGloss:S({color:L(0x16151a),roughness:.35,metalness:.4}),
     gold:S({color:L(0xc9a44a),roughness:.3,metalness:.95}),
     disc:S({color:L(0xb7b9bf),roughness:.35,metalness:.9})
   };
-  const groupMat={fairing_upper:'paintWhite',fairing_lower:'paintViolet',fender:'paintViolet',tank:'carbonViolet',tail:'carbon',hugger:'carbon',
-    cockpit:'blackGloss',wheel_front:'black',wheel_rear:'black',disc_front:'disc',engine:'darkMetal',hossack:'alu',steering:'blackGloss',
-    chassis:'alu',swingarm:'alu',subframe:'alu',suspension:'gold',rearsets:'darkMetal'};
-  const BODY=['fairing_upper','fairing_lower','fender','tank','tail','hugger','cockpit'];
-
-  // Livery on the upper fairing: white nose, violet stripe, white line, black side panel, smoked screen
-  const liv=mats.paintWhite.clone();
-  liv.onBeforeCompile=sh=>{
-    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vBike;')
-      .replace('#include <begin_vertex>','#include <begin_vertex>\nvBike=position;');
-    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vBike;')
-      .replace('vec4 diffuseColor = vec4( diffuse, opacity );',`
-        vec3 col=diffuse; float band=0.585+0.10*(vBike.x-0.8);
-        if(vBike.y<band) col=vec3(0.010,0.009,0.014);
-        else if(vBike.y<band+0.012) col=diffuse;
-        else if(vBike.y<band+0.048) col=vec3(0.070,0.024,0.290);
-        if(vBike.y>0.955 && vBike.x>1.17) col=vec3(0.035,0.045,0.075);
-        vec4 diffuseColor = vec4( col, opacity );`);
+  const GM={fairing_upper:'paintWhite',fairing_lower:'paintViolet',fender:'paintViolet',tank_cover:'carbonViolet',tail:'carbon',hugger:'carbon',cockpit:'blackGloss',
+    wheel_front:'black',wheel_rear:'black',disc_front:'disc',caliper_front:'blackGloss',engine:'darkMetal',exhaust:'titanium',radiator:'aluDark',fuel_tank:'aluDark',
+    airbox:'carbon',toberas:'carbon',hoss_upright:'alu',hoss_upper:'alu',hoss_lower:'alu',shock_front:'gold',shock_rear:'gold',steering:'blackGloss',
+    chassis:'alu',swingarm:'alu',subframe:'alu',rearsets:'darkMetal'};
+  const liveryCompile=sh=>{
+    sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vBike;').replace('#include <begin_vertex>','#include <begin_vertex>\nvBike=position;');
+    sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vBike;').replace('vec4 diffuseColor = vec4( diffuse, opacity );',`
+      vec3 col=diffuse; float band=0.585+0.10*(vBike.x-0.8);
+      if(vBike.y<band) col=vec3(0.010,0.009,0.014);
+      else if(vBike.y<band+0.012) col=diffuse;
+      else if(vBike.y<band+0.048) col=vec3(0.070,0.024,0.290);
+      if(vBike.y>0.955 && vBike.x>1.17) col=vec3(0.035,0.045,0.075);
+      vec4 diffuseColor = vec4( col, opacity );`);
   };
-  mats.livery=liv;
 
-  // ---- Model ----
+  // ---------- Sets ----------
+  const BODY=['fairing_upper','fairing_lower','fender','tank_cover','tail','hugger','cockpit'];
+  const PT=['toberas','airbox','fuel_tank','tank_cover','engine','exhaust','radiator'];
+  const SETS={
+    front:['hoss_upright','hoss_upper','hoss_lower','shock_front','caliper_front'],
+    frame:['chassis','subframe','swingarm'], tail:['tail','subframe'], rear:['swingarm','shock_rear'],
+    pt:PT, intake:['toberas','airbox'], engine:['engine','exhaust','radiator'], brake:['disc_front','caliper_front'],
+    clearFront:BODY.concat(['toberas','cockpit','fuel_tank'])
+  };
+  const EXPLODE={fairing_upper:[0.30,0.34,0],fairing_lower:[0.10,-0.06,0.42],fender:[0.34,0.02,0],tank_cover:[0,0.42,0],tail:[-0.34,0.32,0],hugger:[-0.2,0.06,-0.3],
+    cockpit:[0.18,0.30,0],steering:[0.12,0.22,0],hoss_upright:[0.22,0,0],hoss_upper:[0.16,0.04,0],hoss_lower:[0.16,-0.04,0],shock_front:[0.08,0.1,0.18],caliper_front:[0.3,0,0.16],
+    wheel_front:[0.45,0,0],disc_front:[0.45,0,0],wheel_rear:[-0.45,0,0],swingarm:[-0.18,-0.04,0],subframe:[-0.12,0.16,0],engine:[0,-0.08,-0.42],exhaust:[-0.05,-0.1,0.35],
+    radiator:[0.2,-0.05,-0.25],fuel_tank:[0,0.26,0.0],airbox:[0,0.18,0.3],toberas:[0.2,0.22,0],shock_rear:[0,0.02,0.32],rearsets:[0,0,0],chassis:[0,0,0]};
+  const EXPLODE_PT={tank_cover:[0,0.48,0],fuel_tank:[-0.05,0.30,0],toberas:[0.28,0.30,0],airbox:[0.02,0.14,0],engine:[0,-0.06,0],exhaust:[-0.12,-0.16,0.22],radiator:[0.26,-0.06,0]};
+
+  // ---------- Keyframes ----------
+  // t: look-at (bike metres, +X nose, +Y up), az: 0 = right side, +π/2 = front; el, d, then effect levels
+  const D0={ghost:0,ex:0,exPT:0,iso:0,clear:0,hl:null,light:1,lift:0,sweep:0,comp:0,body:1,spin:0};
+  const KF={
+    showcase:[
+      {t:[0.86,0.50,0],az:0.62,el:0.10,d:4.3,light:0.55},
+      {t:[1.12,0.64,0],az:0.95,el:0.20,d:2.25},
+      {t:[0.92,0.55,0],az:1.5708,el:0.05,d:3.5,sweep:1},
+      {t:[1.22,0.52,0],az:1.0,el:0.10,d:2.75,clear:1,hl:'front'},
+      {t:[0.80,0.52,0],az:0.02,el:0.06,d:3.1,ghost:1,hl:'frame'},
+      {t:[0.82,0.58,0],az:0.48,el:0.24,d:3.0,iso:1},
+      {t:[0.84,0.70,0],az:0.62,el:0.30,d:3.6,iso:1,exPT:1,lift:0.08},
+      {t:[0.82,0.66,0],az:-0.72,el:0.36,d:4.9,ex:1,lift:0.12},
+      {t:[0.40,0.70,0],az:-1.0,el:0.38,d:2.5,hl:'tail'},
+      {t:[0.44,0.40,0],az:-0.36,el:0.08,d:2.95,ghost:0.35,hl:'rear'},
+      {t:[0.84,0.50,0],az:0.0,el:0.05,d:3.7,light:1.1}
+    ],
+    naked:[
+      {t:[0.86,0.50,0],az:0.70,el:0.16,d:3.9,body:0,spin:1},
+      {t:[1.28,0.50,0.04],az:0.62,el:0.08,d:2.0,body:0,hl:'front',comp:1},
+      {t:[1.02,0.72,0],az:0.55,el:0.45,d:2.4,body:0,hl:'intake'},
+      {t:[0.80,0.44,0],az:0.24,el:0.12,d:2.55,body:0,hl:'engine'},
+      {t:[0.44,0.36,0],az:-0.55,el:0.16,d:2.3,body:0,hl:'rear'},
+      {t:[1.42,0.30,0.05],az:0.32,el:0.08,d:1.85,body:0,hl:'brake'},
+      {t:[0.82,0.45,0],az:0.0,el:1.42,d:3.9,body:0}
+    ]
+  };
+  for(const k in KF) KF[k]=KF[k].map(f=>Object.assign({},D0,f));
+  function poseAt(list,c){
+    const i=Math.min(list.length-2,Math.max(0,Math.floor(c))), f=clamp(c-i,0,1);
+    const e=sm(clamp((f-0.22)/0.56,0,1)), A=list[i], B=list[i+1];
+    const o={t:A.t.map((v,k)=>lerp(v,B.t[k],e)),hl:{a:A.hl,b:B.hl,e},local:f,i};
+    ['az','el','d','ghost','ex','exPT','iso','clear','light','lift','sweep','body','spin'].forEach(k=>o[k]=lerp(A[k],B[k],e));
+    // Hossack compression is a bell over the dwell of its chapter (0 -> 1 -> 0 while scrolling through)
+    const ci=list.findIndex(k=>k.comp>0);
+    o.comp=ci<0?0:Math.max(0,Math.sin(clamp((c-(ci-0.45))/0.9,0,1)*Math.PI));
+    return o;
+  }
+
+  // ---------- Model ----------
   const bike=new THREE.Group(); scene.add(bike);
-  const parts={};      // name -> wrapper group
-  const meshesOf={};   // name -> [mesh]
-  const edges=[];      // ghost outlines
-  const decals=[];
-  let ready=false, partsCount=0;
-
-  function dequant(attr){ // r128 doesn't denormalise int attributes in getters
-    const n=attr.count, isz=attr.itemSize, out=new Float32Array(n*isz), a=attr.array;
-    let s=1; if(attr.normalized){ s= a instanceof Int16Array?32767: a instanceof Uint16Array?65535: a instanceof Int8Array?127: a instanceof Uint8Array?255:1; }
+  const parts={}, meshesOf={}, edges=[], decals=[];
+  const rigs={};   // kinematic parents for the Hossack
+  let ready=false;
+  function dequant(attr){
+    const n=attr.count, isz=attr.itemSize, out=new Float32Array(n*isz), a=attr.array; let s=1;
+    if(attr.normalized){ s= a instanceof Int16Array?32767: a instanceof Uint16Array?65535: a instanceof Int8Array?127: a instanceof Uint8Array?255:1; }
     if(attr.isInterleavedBufferAttribute){ for(let i=0;i<n;i++){ out[i*isz]=attr.getX(i)/s; if(isz>1)out[i*isz+1]=attr.getY(i)/s; if(isz>2)out[i*isz+2]=attr.getZ(i)/s; } }
-    else { for(let i=0;i<n;i++) for(let j=0;j<isz;j++) out[i*isz+j]=a[i*isz+j]/s; }
+    else for(let i=0;i<n*isz;i++) out[i]=a[i]/s;
     return new THREE.BufferAttribute(out,isz);
   }
-  function bake(mesh,M){
+  function bake(mesh,Mx){
     const g=mesh.geometry, ng=new THREE.BufferGeometry();
     ng.setAttribute('position',dequant(g.attributes.position));
     if(g.attributes.normal) ng.setAttribute('normal',dequant(g.attributes.normal));
     if(g.index) ng.setIndex(g.index);
-    ng.applyMatrix4(M);
+    ng.applyMatrix4(Mx);
     if(!g.attributes.normal) ng.computeVertexNormals();
     else { const nn=ng.attributes.normal; for(let i=0;i<nn.count;i++){ const x=nn.getX(i),y=nn.getY(i),z=nn.getZ(i),l=Math.hypot(x,y,z)||1; nn.setXYZ(i,x/l,y/l,z/l);} }
-    ng.computeBoundingBox(); ng.computeBoundingSphere();
-    return ng;
+    ng.computeBoundingBox(); ng.computeBoundingSphere(); return ng;
   }
-
-  const AXLE={};
   const loader=new THREE.GLTFLoader();
-  // The model ships as base64 text (artifact hosting serves .txt, not .glb): fetch with progress, decode, parse.
+  const loadEls=STAGES.map(st=>st.sec.querySelector('.stage-load'));
+  function setLoad(p){ loadEls.forEach(l=>{ if(!l) return; l.querySelector('b').style.width=(p*100).toFixed(0)+'%'; l.querySelector('span').textContent='Cargando modelo 3D · '+Math.round(p*100)+'%'; }); }
   async function fetchModel(url){
     const r=await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status);
     const total=+r.headers.get('content-length')||0; let txt='';
-    if(r.body&&r.body.getReader){
-      const rd=r.body.getReader(), dec=new TextDecoder(); let got=0;
-      for(;;){ const {done,value}=await rd.read(); if(done) break; got+=value.length; txt+=dec.decode(value,{stream:true});
-        if(total){ const p=got/total; loadBar.style.width=(p*100).toFixed(0)+'%'; loadTxt.textContent='Cargando modelo 3D · '+Math.round(p*100)+'%'; } }
-      txt+=dec.decode();
-    } else txt=await r.text();
-    const bin=atob(txt.trim()), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
-    return u.buffer;
+    if(r.body&&r.body.getReader){ const rd=r.body.getReader(), dec=new TextDecoder(); let got=0;
+      for(;;){ const {done,value}=await rd.read(); if(done) break; got+=value.length; txt+=dec.decode(value,{stream:true}); if(total) setLoad(got/total); }
+      txt+=dec.decode(); } else txt=await r.text();
+    const bin=atob(txt.trim()), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u.buffer;
   }
-  const parse=buf=>new Promise((res,rej)=>loader.parse(buf,'',res,rej));
   (async()=>{
-    let meshopt=false;
-    try{ if(window.MeshoptDecoder&&MeshoptDecoder.supported!==false){ await MeshoptDecoder.ready; loader.setMeshoptDecoder(MeshoptDecoder); meshopt=true; } }catch(e){ meshopt=false; }
-    try{ onLoad(await parse(await fetchModel(meshopt?'assets/eme25p-glb.txt':'assets/eme25p-q-glb.txt'))); }
-    catch(e){
-      if(meshopt){ try{ onLoad(await parse(await fetchModel('assets/eme25p-q-glb.txt'))); return; }catch(e2){} }
-      console.error(e); fallback('No se pudo cargar el modelo 3D');
-    }
+    try{
+      await MeshoptDecoder.ready; loader.setMeshoptDecoder(MeshoptDecoder);
+      const buf=await fetchModel('assets/minimoto-glb.txt');
+      loader.parse(buf,'',onLoad,e=>{ console.error(e); fallback('No se pudo cargar el modelo 3D'); });
+    }catch(e){ console.error(e); fallback('No se pudo cargar el modelo 3D'); }
   })();
+
+  // Hossack geometry (bike metres, three frame) measured on the CAD
+  const HK={A:new THREE.Vector2(1.072,0.705), C:new THREE.Vector2(1.235,0.690), B:new THREE.Vector2(1.090,0.590), D:new THREE.Vector2(1.275,0.583),
+    St:new THREE.Vector2(1.045,0.815), Sb:new THREE.Vector2(1.190,0.556), maxDeg:22, sign:1};
+  function rot2(p,o,t){ const c=Math.cos(t),s=Math.sin(t),x=p.x-o.x,y=p.y-o.y; return new THREE.Vector2(o.x+c*x-s*y,o.y+s*x+c*y); }
+  function solveHossack(theta){
+    const {A,B,C,D}=HK, rc=C.distanceTo(A), cd=C.distanceTo(D);
+    const D2=rot2(D,B,theta), dv=D2.clone().sub(A), d=dv.length();
+    const a=(rc*rc-cd*cd+d*d)/(2*d), h=Math.sqrt(Math.max(rc*rc-a*a,0));
+    const m=A.clone().add(dv.clone().multiplyScalar(a/d)), perp=new THREE.Vector2(-dv.y,dv.x).multiplyScalar(1/d);
+    const c1=m.clone().add(perp.clone().multiplyScalar(h)), c2=m.clone().sub(perp.clone().multiplyScalar(h));
+    const C2=c1.distanceTo(C)<c2.distanceTo(C)?c1:c2;
+    const angU=Math.atan2(C2.y-D2.y,C2.x-D2.x)-Math.atan2(C.y-D.y,C.x-D.x);   // upright rotation
+    const angUp=Math.atan2(C2.y-A.y,C2.x-A.x)-Math.atan2(C.y-A.y,C.x-A.x);  // upper arm rotation
+    return {D2,C2,angU,angUp,theta,Sb2:rot2(HK.Sb,B,theta)};
+  }
+  function setPivotRot(g,pivot,ang){ g.rotation.z=ang; const c=Math.cos(ang),s=Math.sin(ang); g.position.set(pivot.x-(c*pivot.x-s*pivot.y),pivot.y-(s*pivot.x+c*pivot.y),0); }
+  const _m=new THREE.Matrix4(), _u=new THREE.Vector3(), _n=new THREE.Vector3();
+  function applyHossack(s){
+    if(!rigs.upright) return;
+    const k=solveHossack(HK.sign*s*HK.maxDeg*Math.PI/180);
+    setPivotRot(rigs.lower,HK.B,k.theta);
+    setPivotRot(rigs.upper,HK.A,k.angUp);
+    // upright: rotate by angU about D then translate D -> D2
+    const c=Math.cos(k.angU),sn=Math.sin(k.angU);
+    rigs.upright.rotation.z=k.angU; rigs.upright.position.set(k.D2.x-(c*HK.D.x-sn*HK.D.y),k.D2.y-(sn*HK.D.x+c*HK.D.y),0);
+    // shock: pivot at top, re-aim at the moved lower mount and shorten along its axis
+    const v0=HK.Sb.clone().sub(HK.St), v1=k.Sb2.clone().sub(HK.St);
+    const ang=Math.atan2(v1.y,v1.x)-Math.atan2(v0.y,v0.x), sc=v1.length()/v0.length();
+    const u=v0.clone().normalize();
+    const T1=new THREE.Matrix4().makeTranslation(HK.St.x,HK.St.y,0), R=new THREE.Matrix4().makeRotationZ(ang);
+    const Sx=new THREE.Matrix4().set(1+(sc-1)*u.x*u.x,(sc-1)*u.x*u.y,0,0, (sc-1)*u.x*u.y,1+(sc-1)*u.y*u.y,0,0, 0,0,1,0, 0,0,0,1);
+    const T0=new THREE.Matrix4().makeTranslation(-HK.St.x,-HK.St.y,0);
+    rigs.shock.matrix.copy(T1).multiply(R).multiply(Sx).multiply(T0); rigs.shock.matrixWorldNeedsUpdate=true;
+  }
 
   function onLoad(gltf){
     const root=gltf.scene; root.updateMatrixWorld(true);
     const inv=new THREE.Matrix4().copy(root.matrixWorld).invert();
+    // kinematic rigs
+    ['upright','upper','lower','shock'].forEach(n=>{ rigs[n]=new THREE.Group(); bike.add(rigs[n]); });
+    rigs.shock.matrixAutoUpdate=false;
+    const RIG={hoss_upright:'upright',caliper_front:'upright',fender:'upright',wheel_front:'upright',disc_front:'upright',hoss_upper:'upper',hoss_lower:'lower',shock_front:'shock'};
     root.traverse(o=>{
       if(!o.isMesh) return;
-      let n=o.parent&&o.parent.name&&groupMat[o.parent.name]?o.parent.name:o.name;
-      if(!groupMat[n]) n=Object.keys(groupMat).find(k=>(o.name+'|'+(o.parent?o.parent.name:'')).includes(k))||'chassis';
-      const M=new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld);
-      const geo=bake(o,M);
-      const mat=(n==='fairing_upper'?mats.livery:mats[groupMat[n]]).clone();
-      if(n==='fairing_upper') mat.onBeforeCompile=mats.livery.onBeforeCompile;
+      let n=o.parent&&GM[o.parent.name]?o.parent.name:(GM[o.name]?o.name:null);
+      if(!n) n=Object.keys(GM).find(k=>(o.name+'|'+(o.parent?o.parent.name:'')).includes(k))||'chassis';
+      const geo=bake(o,new THREE.Matrix4().multiplyMatrices(inv,o.matrixWorld));
+      const mat=M[GM[n]].clone(); if(n==='fairing_upper') mat.onBeforeCompile=liveryCompile;
       const mesh=new THREE.Mesh(geo,mat);
-      if(!parts[n]){ parts[n]=new THREE.Group(); parts[n].name=n; bike.add(parts[n]); meshesOf[n]=[]; }
+      if(!parts[n]){ parts[n]=new THREE.Group(); parts[n].name=n; (RIG[n]?rigs[RIG[n]]:bike).add(parts[n]); meshesOf[n]=[]; }
       parts[n].add(mesh); meshesOf[n].push(mesh);
     });
-    // wheel pivots on their axles (front disc shares the front axle)
+    // wheels spin on their axles; the front disc spins with the front wheel
     [['wheel_front',['wheel_front','disc_front']],['wheel_rear',['wheel_rear']]].forEach(([w,list])=>{
       if(!meshesOf[w]) return;
       const b=new THREE.Box3(); meshesOf[w].forEach(m=>b.union(m.geometry.boundingBox));
-      const c=b.getCenter(new THREE.Vector3()); c.z=0; AXLE[w]=c;
+      const c=b.getCenter(new THREE.Vector3()); c.z=0;
       const spin=new THREE.Group(); spin.position.copy(c); parts[w].add(spin); parts[w].userData.spin=spin;
       list.forEach(nm=>(meshesOf[nm]||[]).forEach(m=>{ m.geometry.translate(-c.x,-c.y,0); spin.add(m); }));
-      // pink rim stripes, like the real wheels
-      const r=0.222, zs=w==='wheel_front'?0.03:0.042;
-      [-1,1].forEach(sd=>{ const t=new THREE.Mesh(new THREE.TorusGeometry(r,0.0035,8,96),new THREE.MeshStandardMaterial({color:L(0xff3d8b),roughness:.4,emissive:L(0x3a0018)})); t.position.z=sd*zs; spin.add(t); });
+      [-1,1].forEach(sd=>{ const t=new THREE.Mesh(new THREE.TorusGeometry(0.222,0.0035,8,96),new THREE.MeshStandardMaterial({color:L(0xff3d8b),roughness:.4,emissive:L(0x3a0018),transparent:true})); t.position.z=sd*(w==='wheel_front'?0.03:0.042); spin.add(t); meshesOf[w].push(t); });
     });
-    if(parts.disc_front) parts.disc_front.visible=true;
+    // Which way does the lower arm turn to lift the axle?
+    { const W=new THREE.Vector2(1.438,0.288); const k=solveHossack(-0.2); const c=Math.cos(k.angU),s=Math.sin(k.angU);
+      const Wx=k.D2.x+c*(W.x-HK.D.x)-s*(W.y-HK.D.y), Wy=k.D2.y+s*(W.x-HK.D.x)+c*(W.y-HK.D.y); HK.sign=(Wy>W.y)?-1:1; }
     // X-ray outlines for bodywork
-    BODY.forEach(n=>(meshesOf[n]||[]).forEach(m=>{
-      const e=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry,32),new THREE.LineBasicMaterial({color:L(0xb9a6ea),transparent:true,opacity:0,depthWrite:false}));
-      e.visible=false; m.parent.add(e); edges.push(e);
-    }));
-    // number boards (white rounded plate + 13) on the lower fairing sides
+    BODY.forEach(n=>(meshesOf[n]||[]).forEach(m=>{ const e=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry,32),new THREE.LineBasicMaterial({color:L(0xb9a6ea),transparent:true,opacity:0,depthWrite:false})); e.visible=false; m.parent.add(e); edges.push(e); }));
+    // number boards on the belly pan
     if(THREE.DecalGeometry&&meshesOf.fairing_lower){
       const cv=document.createElement('canvas'); cv.width=512; cv.height=320; const g=cv.getContext('2d');
       g.fillStyle='#fff'; const r=60; g.beginPath(); g.moveTo(r,8); g.arcTo(504,8,504,312,r); g.arcTo(504,312,8,312,r); g.arcTo(8,312,8,8,r); g.arcTo(8,8,504,8,r); g.fill();
       g.fillStyle='#16121f'; g.font='900 250px Raleway, Arial, sans-serif'; g.textAlign='center'; g.textBaseline='middle'; g.fillText('13',256,176);
       const tex=new THREE.CanvasTexture(cv); tex.encoding=THREE.sRGBEncoding; tex.anisotropy=4;
-      const dm=()=>new THREE.MeshStandardMaterial({map:tex,transparent:true,polygonOffset:true,polygonOffsetFactor:-4,roughness:.35,depthWrite:false});
+      const texM=tex.clone(); texM.wrapS=THREE.RepeatWrapping; texM.repeat.x=-1; texM.needsUpdate=true;
       const target=meshesOf.fairing_lower.reduce((a,b)=>a.geometry.attributes.position.count>b.geometry.attributes.position.count?a:b);
       target.updateMatrixWorld(true);
-      const texM=tex.clone(); texM.wrapS=THREE.RepeatWrapping; texM.repeat.x=-1; texM.needsUpdate=true;
-      [1,-1].forEach(sd=>{
-        const m=dm(); if(sd<0) m.map=texM;
+      [1,-1].forEach(sd=>{ const m=new THREE.MeshStandardMaterial({map:sd<0?texM:tex,transparent:true,polygonOffset:true,polygonOffsetFactor:-4,roughness:.35,depthWrite:false});
         const d=new THREE.Mesh(new THREE.DecalGeometry(target,new THREE.Vector3(0.93,0.27,sd*0.19),new THREE.Euler(0,0,0),new THREE.Vector3(0.17,0.105,0.3)),m);
-        parts.fairing_lower.add(d); decals.push(d);
-      });
+        parts.fairing_lower.add(d); decals.push(d); });
     }
-    partsCount=Object.values(meshesOf).reduce((a,b)=>a+b.length,0);
-    ready=true; loadEl.classList.add('done');
-    resize(); renderOnce();
+    ready=true; loadEls.forEach(l=>l&&l.classList.add('done'));
+    resize();
   }
 
-  // ---- Choreography: one keyframe per chapter ----
-  // target(x,y,z), az (rad, 0 = right side view, + towards the nose), el, dist, and effect levels
-  const KF=[
-    {t:[0.86,0.50,0], az:0.62, el:0.10, d:4.3, ghost:0, ex:0, hl:null, light:0.55, lift:0},
-    {t:[1.12,0.64,0], az:0.95, el:0.20, d:2.25, ghost:0, ex:0, hl:null, light:1, lift:0},
-    {t:[1.30,0.50,0], az:1.12, el:0.06, d:2.35, ghost:0.88, ex:0, hl:'front', light:1, lift:0},
-    {t:[0.80,0.52,0], az:0.02, el:0.06, d:3.1, ghost:1, ex:0, hl:'frame', light:1, lift:0},
-    {t:[0.82,0.66,0], az:-0.72, el:0.36, d:4.9, ghost:0, ex:1, hl:null, light:1, lift:0.12},
-    {t:[0.40,0.70,0], az:-1.0, el:0.38, d:2.5, ghost:0, ex:0, hl:'tail', light:1, lift:0},
-    {t:[0.42,0.38,0], az:-0.34, el:0.06, d:2.5, ghost:0.35, ex:0, hl:'rear', light:1, lift:0},
-    {t:[0.84,0.50,0], az:0.0, el:0.05, d:3.7, ghost:0, ex:0, hl:null, light:1.1, lift:0}
-  ];
-  const HL={front:['hossack','steering','disc_front'],frame:['chassis','subframe','swingarm'],tail:['tail','subframe'],rear:['swingarm','suspension']};
-  const EXPLODE={fairing_upper:[0.30,0.34,0],fairing_lower:[0.10,-0.06,0.42],fender:[0.34,0.02,0],tank:[0,0.42,0],tail:[-0.34,0.32,0],hugger:[-0.2,0.06,-0.3],
-    cockpit:[0.18,0.30,0],steering:[0.12,0.22,0],hossack:[0.22,0,0],wheel_front:[0.45,0,0],disc_front:[0.45,0,0],wheel_rear:[-0.45,0,0],swingarm:[-0.18,-0.04,0],
-    subframe:[-0.12,0.16,0],engine:[0,-0.08,-0.42],suspension:[0,0.02,0.32],rearsets:[0,0.0,0],chassis:[0,0,0]};
-  const sm=x=>x*x*(3-2*x);
-  const lerp=(a,b,f)=>a+(b-a)*f;
-  function poseAt(c){
-    const i=Math.min(KF.length-2,Math.max(0,Math.floor(c))), f=Math.min(1,Math.max(0,c-i));
-    const e=sm(Math.min(1,Math.max(0,(f-0.22)/0.56)));
-    const A=KF[i],B=KF[i+1];
-    const hlA=A.hl,hlB=B.hl;
-    return {t:A.t.map((v,k)=>lerp(v,B.t[k],e)), az:lerp(A.az,B.az,e), el:lerp(A.el,B.el,e), d:lerp(A.d,B.d,e),
-      ghost:lerp(A.ghost,B.ghost,e), ex:lerp(A.ex,B.ex,e), light:lerp(A.light,B.light,e), lift:lerp(A.lift,B.lift,e),
-      hl:{a:hlA,b:hlB,e}};
-  }
-  // smoothed state
-  let cur=null, cScroll=0, cSmooth=0, visible=true, last=performance.now();
-
-  function resize(){
-    const w=host.clientWidth,h=host.clientHeight; if(!w||!h) return;
-    renderer.setSize(w,h,false); cam.aspect=w/h;
-    const narrow=narrowMQ.matches;
-    // push the bike right on desktop (copy on the left), up on phones (copy at the bottom)
-    if(narrow) cam.setViewOffset(w,h,0,h*0.12,w,h); else cam.setViewOffset(w,h,-w*0.12,0,w,h);
-    cam.updateProjectionMatrix();
-  }
-  addEventListener('resize',()=>{resize();});
-
-  const tmpV=new THREE.Vector3();
-  function apply(p,time){
-    const aspect=cam.aspect, narrow=narrowMQ.matches;
-    const fit=Math.max(1,Math.pow(1.55/Math.max(aspect,0.3),0.82))*(narrow?1:1);
-    const dist=p.d*fit;
-    const tx=p.t[0], ty=p.t[1], tz=p.t[2];
-    cam.position.set(tx+Math.sin(p.az)*Math.cos(p.el)*dist, ty+Math.sin(p.el)*dist, tz+Math.cos(p.az)*Math.cos(p.el)*dist);
-    cam.lookAt(tx,ty,tz);
-    // lights
+  // ---------- Per-frame application ----------
+  let compBtn=0, compBtnT=-1;
+  const btn=document.getElementById('compressBtn');
+  if(btn) btn.addEventListener('click',()=>{ compBtnT=performance.now(); });
+  function applyPose(p,stage,time){
+    const narrow=narrowMQ.matches, aspect=cam.aspect;
+    const fit=Math.max(1,Math.pow(1.55/Math.max(aspect,0.3),0.82));
+    let az=p.az; if(p.spin>0) az+=p.spin*0.35*Math.sin(time*0.25);
+    const dist=p.d*fit, [tx,ty,tz]=p.t;
+    const el=p.el, uf=sm(clamp((el-0.9)/0.52,0,1)), up=new THREE.Vector3(0,1-uf,-uf).normalize();
+    cam.up.copy(up);
+    cam.position.set(tx+Math.sin(az)*Math.cos(el)*dist, ty+Math.sin(el)*dist, tz+Math.cos(az)*Math.cos(el)*dist); cam.lookAt(tx,ty,tz);
     key.intensity=2.4*p.light; rim.intensity=2.6*p.light; hemi.intensity=0.35*p.light;
-    kick.intensity=Math.max(0,1-Math.abs(cSmooth-4)/0.8)*1.6;
+    kick.intensity=stage.id==='showcase'?Math.max(0,1-Math.abs(stage.cs-7)/0.8)*1.6:0;
     renderer.toneMappingExposure=0.75+0.3*p.light;
-    // explode + lift
+    // light sweep across the paint (frontal chapter)
+    sweepL.intensity=p.sweep*6; if(p.sweep>0.01){ const a=time*0.9; sweepL.position.set(2.6,1.2+Math.sin(a)*0.6,Math.cos(a)*1.6); sweepL.target.position.set(1.2,0.7,0); }
     bike.position.y=p.lift;
-    for(const n in parts){ const v=EXPLODE[n]||[0,0,0]; parts[n].position.set(v[0]*p.ex,v[1]*p.ex,v[2]*p.ex); }
-    // ghost bodywork
-    const g=p.ghost;
-    BODY.forEach(n=>(meshesOf[n]||[]).forEach(m=>{
-      const o=1-0.9*g; m.material.opacity=o; m.material.transparent=g>0.01; m.material.depthWrite=g<0.45; m.visible=o>0.02;
-    }));
-    decals.forEach(d=>{ const o=(1-g)*(1-p.ex); d.material.opacity=o; d.visible=o>0.05; });
-    edges.forEach(e=>{ e.material.opacity=0.55*g; e.visible=g>0.02; });
+    for(const n in parts){ const v=EXPLODE[n]||[0,0,0], w=EXPLODE_PT[n]||[0,0,0]; parts[n].position.set(v[0]*p.ex+w[0]*p.exPT,v[1]*p.ex+w[1]*p.exPT,v[2]*p.ex+w[2]*p.exPT); }
+    // visibility: bodywork ghost / clear-front / powertrain isolation / no-body stage
+    const op={};
+    for(const n in meshesOf){
+      let o=1;
+      if(BODY.includes(n)) o*= (1-0.9*p.ghost)*p.body;
+      if(SETS.clearFront.includes(n)) o*= 1-p.clear;
+      if(!PT.includes(n)) o*= 1-p.iso;
+      op[n]=o;
+      meshesOf[n].forEach(m=>{ const mt=m.material; mt.opacity=o; mt.transparent=o<0.999; mt.depthWrite=o>0.55; m.visible=o>0.02; });
+      if(parts[n]) parts[n].visible=o>0.02;
+    }
+    edges.forEach(e=>{ const o=0.55*p.ghost*p.body; e.material.opacity=o; e.visible=o>0.02; });
+    decals.forEach(d=>{ const o=(1-p.ghost)*(1-p.ex)*(1-p.clear)*p.body*(1-p.iso); d.material.opacity=o; d.visible=o>0.05; });
+    pool.material.opacity=1-0.5*p.iso; shadow.material.opacity=1-p.iso;
     // highlight
     const glow={};
-    (HL[p.hl.a]||[]).forEach(n=>glow[n]=(glow[n]||0)+(1-p.hl.e));
-    (HL[p.hl.b]||[]).forEach(n=>glow[n]=(glow[n]||0)+p.hl.e);
-    for(const n in meshesOf){ const k=Math.min(1,glow[n]||0); meshesOf[n].forEach(m=>{ if(m.material.emissive){ m.material.emissive.setRGB(0.07*k,0.035*k,0.16*k); } }); }
-    // wheels: roll with scroll, plus idle spin on the rear-end chapter
-    const roll=-cSmooth*3.2 - (Math.max(0,1-Math.abs(cSmooth-6)/0.7))*time*2.2;
+    (SETS[p.hl.a]||[]).forEach(n=>glow[n]=(glow[n]||0)+(1-p.hl.e));
+    (SETS[p.hl.b]||[]).forEach(n=>glow[n]=(glow[n]||0)+p.hl.e);
+    for(const n in meshesOf){ const k=Math.min(1,glow[n]||0); meshesOf[n].forEach(m=>{ if(m.material.emissive&&!m.geometry.type.startsWith('Torus')) m.material.emissive.setRGB(0.07*k,0.035*k,0.16*k); }); }
+    // Hossack compression: scroll bell + button-triggered cycle
+    let comp=p.comp;
+    if(compBtnT>0){ const tt=(performance.now()-compBtnT)/1000; if(tt<1.8){ const f=tt/1.8; comp=Math.max(comp,Math.sin(f*Math.PI)**0.8); } else compBtnT=-1; }
+    applyHossack(comp);
+    const cm=document.getElementById('compressMeter'); if(cm&&stage.id==='naked') cm.style.setProperty('--c',comp.toFixed(3));
+    // wheels
+    const roll=-stage.cs*3.2-(stage.id==='showcase'?Math.max(0,1-Math.abs(stage.cs-9)/0.7)*time*2.2:0);
     if(parts.wheel_front&&parts.wheel_front.userData.spin) parts.wheel_front.userData.spin.rotation.z=roll;
     if(parts.wheel_rear&&parts.wheel_rear.userData.spin) parts.wheel_rear.userData.spin.rotation.z=roll;
   }
-  function renderOnce(){ if(!ready) return; apply(poseAt(cSmooth),performance.now()/1000); renderer.render(scene,cam); }
 
+  function resize(){
+    const host=activeStage.host, w=host.clientWidth,h=host.clientHeight; if(!w||!h) return;
+    renderer.setSize(w,h,false); cam.aspect=w/h;
+    if(narrowMQ.matches) cam.setViewOffset(w,h,0,h*0.12,w,h); else cam.setViewOffset(w,h,-w*0.16,0,w,h);
+    cam.updateProjectionMatrix();
+  }
+  addEventListener('resize',resize);
+
+  let last=performance.now();
+  const vis=new Map(STAGES.map(s=>[s,false]));
+  const io=new IntersectionObserver(es=>es.forEach(e=>{ const st=STAGES.find(s=>s.sec===e.target); vis.set(st,e.isIntersecting); }),{rootMargin:'100px'});
+  STAGES.forEach(s=>io.observe(s.sec));
   function frame(now){
     requestAnimationFrame(frame);
     const dt=Math.min(0.05,(now-last)/1000); last=now;
-    cScroll=progress()*(K-1);
-    const k=reduce?1:1-Math.pow(0.0009,dt);  // critically damped follow
-    cSmooth+=(cScroll-cSmooth)*k;
-    updateCopy(cSmooth);
-    if(!visible||!ready) return;
-    apply(poseAt(cSmooth),now/1000);
+    const k=reduce?1:1-Math.pow(0.0009,dt);
+    STAGES.forEach(st=>{ st.c=progress(st)*(st.K-1); st.cs+=(st.c-st.cs)*k; updateCopy(st,st.cs); });
+    bgVideo(STAGES[0].cs);
+    // pick the stage on screen
+    let cur=null; STAGES.forEach(st=>{ const r=st.sec.getBoundingClientRect(); if(r.top<=innerHeight*0.5&&r.bottom>=innerHeight*0.5) cur=st; });
+    if(!cur) cur=STAGES.find(st=>vis.get(st))||null;
+    if(!cur||!ready) return;
+    if(cur!==activeStage){ activeStage=cur; cur.host.appendChild(canvas); resize(); }
+    applyPose(poseAt(KF[cur.id],cur.cs),cur,now/1000);
     renderer.render(scene,cam);
   }
   requestAnimationFrame(frame);
-  new IntersectionObserver(es=>{visible=es[0].isIntersecting},{rootMargin:'200px'}).observe(sec);
-  resize();
+})();
 
-  // part counter on the exploded chapter
-  const pc=document.getElementById('partCount'); let counted=false;
-  addEventListener('scroll',()=>{ if(counted||!pc) return; if(cScroll>3.4){ counted=true; const t0=performance.now(), N=parseInt(pc.textContent,10);
-    (function tick(){ const f=Math.min(1,(performance.now()-t0)/1200); pc.textContent=Math.round(N*(1-Math.pow(1-f,3))); if(f<1) requestAnimationFrame(tick); })(); } },{passive:true});
+</script>
+<script>
+(function(){
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ---- Intro: logo A0 once per session ----
+  const intro=document.getElementById('intro'), iv=document.getElementById('introVid');
+  let seen=false; try{ seen=sessionStorage.getItem('eme-intro')==='1'; }catch(e){}
+  function closeIntro(){ if(!intro||intro.classList.contains('gone')) return; intro.classList.add('gone'); try{ sessionStorage.setItem('eme-intro','1'); }catch(e){} setTimeout(()=>{ intro.remove(); },900); }
+  if(intro){
+    if(seen||reduce){ intro.remove(); }
+    else {
+      const p=iv.play(); if(p&&p.catch) p.catch(()=>closeIntro());
+      iv.addEventListener('ended',()=>setTimeout(closeIntro,500));
+      iv.addEventListener('error',closeIntro);
+      document.getElementById('introSkip').addEventListener('click',closeIntro);
+      ['wheel','touchmove','keydown'].forEach(ev=>addEventListener(ev,closeIntro,{once:true,passive:true}));
+      setTimeout(closeIntro,6500);
+    }
+  }
+  // ---- Dive: logo zoom A1 scrubbed by scroll ----
+  const dive=document.getElementById('dive'), dv=document.getElementById('diveVid'), dc=document.getElementById('diveCopy');
+  if(dive&&dv){
+    let target=0, shown=0, primed=false;
+    const prime=()=>{ if(primed) return; primed=true; const p=dv.play(); if(p&&p.then) p.then(()=>dv.pause()).catch(()=>{}); };
+    addEventListener('touchstart',prime,{once:true,passive:true}); addEventListener('pointerdown',prime,{once:true,passive:true});
+    function tick(){
+      requestAnimationFrame(tick);
+      const r=dive.getBoundingClientRect(); if(r.bottom<0||r.top>innerHeight) return;
+      const span=dive.offsetHeight-innerHeight, p=span>0?Math.min(1,Math.max(0,-r.top/span)):0;
+      const dur=dv.duration||3; target=Math.min(dur-0.05,p*1.15*dur);
+      shown+=(target-shown)*(reduce?1:0.25);
+      if(dv.readyState>=1&&Math.abs(dv.currentTime-shown)>0.03){ try{ dv.currentTime=shown; }catch(e){} }
+      const t=Math.min(1,Math.max(0,(p-0.62)/0.25)); dc.style.opacity=t.toFixed(3); dc.style.transform=`scale(${(0.94+0.06*t).toFixed(3)})`;
+      dv.style.opacity=(1-Math.max(0,(p-0.86)/0.14)).toFixed(3);
+    }
+    requestAnimationFrame(tick);
+  }
+  // ---- Part counter on the exploded chapter ----
+  const pc=document.getElementById('partCount'), show=document.getElementById('showcase');
+  if(pc&&show){ let done=false; const N=parseInt(pc.textContent,10);
+    addEventListener('scroll',()=>{ if(done) return; const r=show.getBoundingClientRect(), span=show.offsetHeight-innerHeight, c=span>0?(-r.top/span)*10:0;
+      if(c>6.4){ done=true; const t0=performance.now(); (function tick(){ const f=Math.min(1,(performance.now()-t0)/1300); pc.textContent=Math.round(N*(1-Math.pow(1-f,3))); if(f<1) requestAnimationFrame(tick); })(); } },{passive:true}); }
 })();
 
 </script>
