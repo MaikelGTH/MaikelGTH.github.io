@@ -705,7 +705,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     ],
     naked:[
       {t:[0.86,0.50,0],az:0.70,el:0.16,d:3.9,body:0,spin:1},
-      {t:[1.28,0.50,0.04],az:0.62,el:0.08,d:2.0,body:0,hl:'front',comp:1},
+      {t:[1.22,0.52,0.05],az:0.36,el:0.10,d:1.95,body:0,hl:'front',comp:1},
       {t:[1.02,0.72,0],az:0.55,el:0.45,d:2.4,body:0,hl:'intake'},
       {t:[0.80,0.44,0],az:0.24,el:0.12,d:2.55,body:0,hl:'engine'},
       {t:[0.44,0.36,0],az:-0.55,el:0.16,d:2.3,body:0,hl:'rear'},
@@ -721,7 +721,7 @@ footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
     ['az','el','d','ghost','ex','exPT','iso','clear','light','lift','sweep','body','spin'].forEach(k=>o[k]=lerp(A[k],B[k],e));
     // Hossack compression is a bell over the dwell of its chapter (0 -> 1 -> 0 while scrolling through)
     const ci=list.findIndex(k=>k.comp>0);
-    o.comp=ci<0?0:Math.max(0,Math.sin(clamp((c-(ci-0.45))/0.9,0,1)*Math.PI));
+    o.comp=ci<0?0:0.45*Math.max(0,Math.sin(clamp((c-(ci-0.45))/0.9,0,1)*Math.PI));
     return o;
   }
 
