@@ -253,6 +253,18 @@ table.cmp tr.key td { background: var(--accent-soft); }
 .pre-apply label { display: flex; gap: 8px; align-items: flex-start; }
 .pre-apply select { border: 1px solid var(--line); border-radius: 3px; background: var(--surface2); padding: 2px 4px; }
 
+/* Optimizador: conclusión y guía de lectura */
+.concl { margin: 0; padding-left: 20px; font-size: 14.5px; line-height: 1.55; max-width: 100ch; }
+.concl li { margin: 4px 0; }
+.concl li::marker { color: var(--accent2); }
+.expl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.expl { border: 1px solid var(--line); border-radius: 8px; background: var(--surface2); padding: 10px 14px 12px; min-width: 0; }
+.expl h3 { margin: 0 0 6px; font-family: var(--f-display); font-size: 16px; font-weight: 600; }
+.expl h3 .tag { font-family: var(--f-body); font-size: 12px; font-weight: 600; color: var(--accent2); background: var(--accent2-soft); padding: 1px 7px; border-radius: 99px; margin-left: 6px; vertical-align: 1px; }
+.expl p { margin: 0 0 6px; font-size: 13.8px; line-height: 1.5; }
+.expl p:last-child { margin-bottom: 0; }
+.expl .ex { color: var(--muted); font-size: 13px; }
+
 </style>
 <script>
 window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
@@ -3128,6 +3140,45 @@ var CH = (function () {
     $('#opt2-st').textContent = 'Terminado: ' + R.evals + ' simulaciones · objetivo ' + (gain >= 0 ? '+' : '') + n2(gain, 1) + ' %.';
     render();
   }
+  function phaseTxt(n) {
+    var fr = n - Math.floor(n);
+    if (n < 0.75) return 'la onda vuelve demasiado pronto (conducto corto para este régimen)';
+    if (fr < 0.2 || fr > 0.8) return 'en fase: la sobrepresión llega a la válvula cuando todavía puede meter aire';
+    if (fr > 0.35 && fr < 0.65) return 'a contrafase: llega una depresión justo antes del cierre, resta llenado';
+    return 'fase intermedia: efecto pequeño';
+  }
+  function conclusion(R, c, a, bandC) {
+    var r0 = c.cfg.rpms[0], r1 = c.cfg.rpms[c.cfg.rpms.length - 1];
+    var g = (R.best.f / R.start.f - 1) * 100, li = [];
+    li.push('El diseño óptimo da un ' + (g >= 0 ? '+' : '') + n2(g, 1) + ' % de ' + (c.cfg.objective === 'power' ? 'potencia' : 'par') + ' medio entre ' + r0 + ' y ' + r1 + ' rpm respecto al de partida.' + (Math.abs(g) < 1.5 ? ' Es una mejora pequeña: el diseño de partida ya estaba cerca del óptimo para este modelo.' : ''));
+    var ss = R.sens.map(function (s) { return { id: s.id, m: Math.max(Math.abs(s.up), Math.abs(s.dn)) }; }).sort(function (x, y) { return y.m - x.m; });
+    var crit = ss.filter(function (s) { return s.m >= 1; }), flat = ss.filter(function (s) { return s.m < 0.5; });
+    function nm(id) { return V[id] ? V[id].label.replace(/\s*\(.*\)\s*$/, '').toLowerCase() : id; }
+    if (crit.length) li.push('Lo que más manda: <b>' + crit.slice(0, 3).map(function (s) { return nm(s.id); }).join('</b>, <b>') + '</b>. Ahí una diferencia de fabricación se nota en el banco.');
+    if (flat.length) li.push('Casi no influye: ' + flat.map(function (s) { return nm(s.id); }).join(', ') + '. Esas cotas se pueden elegir por espacio, peso o fabricación.');
+    var Nh = a.NHbox[0];
+    var where = Nh < r0 ? 'por debajo de la banda' : (Nh > r1 ? 'por encima de la banda' : 'dentro de la banda');
+    li.push('Airbox: resuena (Helmholtz con el difusor como cuello) a ' + n2(a.fHbox, 0) + ' Hz, que el motor excita a <b>' + n2(Nh, 0) + ' rpm</b>, ' + where + '. ' + (Nh >= r0 && Nh <= r1 ? 'En ese régimen la presión del airbox oscila más: puede ayudar o crear un pequeño valle según la fase; mira el barrido.' : 'Fuera de la banda, su efecto en la zona de uso es pequeño.'));
+    li.push('Trompeta: a ' + bandC + ' rpm la onda tarda ' + n2(a.rtDeg, 0) + '° de cigüeñal en ir de la válvula a la boca y volver; caben ' + n2(a.order, 1) + ' viajes en la ventana útil de admisión → ' + phaseTxt(a.order) + '.');
+    li.push('Airbox y trompeta trabajan a frecuencias muy distintas (' + n2(a.fHbox, 0) + ' Hz frente a ' + n2(a.f1, 0) + ' Hz)' + (a.f1 / a.fHbox > 2 ? ', así que no se estorban: se pueden ajustar casi por separado.' : '; al estar cerca, se acoplan y hay que ajustarlos juntos.'));
+    return '<div class="card"><div class="card-h"><h2>Conclusión</h2><span class="sub">Lectura automática del resultado, en lenguaje llano</span></div><div class="card-b"><ul class="concl"><li>' + li.join('</li><li>') + '</li></ul></div></div>';
+  }
+  function guide(P, a, bandC, Ntuned, noCh, A1, A2) {
+    var fAsp = bandC / 120;
+    var R = noCh ? null : (A1 - A2) / (A1 + A2);
+    var ex = [
+      ['El ritmo del motor', 'base', '<p>Un motor de cuatro tiempos abre la válvula de admisión una vez cada dos vueltas. A N rpm «aspira» N/120 veces por segundo: a ' + bandC + ' rpm son ' + n2(fAsp, 0) + ' aspiraciones por segundo (' + n2(fAsp, 0) + ' Hz). Todo lo demás (airbox, trompeta, escape) se compara con ese ritmo.</p><p class="ex">Grados de cigüeñal: un ciclo completo son 720° (dos vueltas). Se usan para decir «cuándo» pasa algo dentro del ciclo.</p>'],
+      ['Ida y vuelta de la trompeta', n2(a.rtDeg, 0) + '°', '<p>Al abrirse la válvula, el pistón baja y crea una depresión que sube por el conducto a la velocidad del sonido (~345 m/s). En la boca de la trompeta, que da al airbox, rebota y vuelve como <b>sobrepresión</b>. «Ida y vuelta» son los grados que gira el cigüeñal mientras dura ese viaje.</p><p>Lo bueno es que la sobrepresión llegue a la válvula justo antes de que se cierre: empuja aire extra dentro del cilindro. El <b>orden n</b> cuenta cuántos viajes caben en la ventana útil: n ≈ 1 es lo ideal (la onda más fuerte); n ≈ 2 o 3 también suma, pero menos; n ≈ 1,5 o 2,5 es lo peor.</p><p class="ex">Conducto más largo → viaje más lento → sintoniza a menos rpm. Por eso una trompeta larga da par abajo y una corta potencia arriba.</p>'],
+      ['¼ de onda (válvula cerrada)', n2(a.f1, 0) + ' Hz', '<p>Con la válvula cerrada, el conducto es un tubo cerrado por un extremo y abierto por el otro: «suena» como una flauta a f₁ = c / (4·L). Esa oscilación sigue viva cuando la válvula vuelve a abrir y puede sumar o restar. Es un efecto secundario frente a la ida y vuelta.</p>'],
+      ['Helmholtz del airbox', n2(a.fHbox, 0) + ' Hz', '<p>Es el efecto de soplar en una botella. El aire dentro del difusor (el «cuello») se mueve como una masa, y el aire del airbox hace de muelle. Juntos oscilan a una frecuencia baja, de decenas a unos cien hercios.</p><p>Si esa frecuencia coincide con el ritmo de aspiración (k = 1) el airbox entra en resonancia: a ' + n2(a.NHbox[0], 0) + ' rpm. Con k = 2 o 3 (' + n2(a.NHbox[1], 0) + ' / ' + n2(a.NHbox[2], 0) + ' rpm) resuena cada 2 o 3 aspiraciones, más débil.</p><p class="ex">Más volumen o difusor más largo/estrecho → frecuencia más baja → resuena a menos rpm. Cambiar el cuello es más eficaz que cambiar el volumen.</p>'],
+      ['Modos propios del airbox', n2(a.boxModes[0].f, 0) + ' Hz', '<p>Son ondas que rebotan entre las paredes de la caja (como el eco en una habitación). Van a cientos de hercios y crean zonas fijas de más y menos presión dentro del airbox. No dependen del difusor.</p><p class="ex">Lo que importa es dónde queda la boca de la trompeta: mejor fuera de una zona de depresión. Se ve en «Campo del airbox» del simulador.</p>'],
+      ['Cómo se relacionan airbox y trompeta', 'diseño', '<p>Trabajan en serie y a ritmos distintos. La trompeta usa ondas rápidas y decide cuánto aire entra en cada apertura. El airbox es el depósito del que bebe y trabaja lento.</p><p>1) El airbox tiene que ser grande frente a la cilindrada (aquí ' + n2(a.VboxRatio, 0) + ' veces; ≥ 10 es lo recomendado): así la boca ve una presión estable y la onda rebota limpia. 2) Su resonancia Helmholtz conviene ponerla donde ayude, en la banda de uso o algo por encima del régimen al que sintoniza la trompeta, para ensanchar la curva; nunca en medio de la banda si crea un valle. 3) Si sus frecuencias están muy separadas, se ajustan por separado.</p>'],
+      ['Escape y cámara de expansión', noCh ? 'sin cámara' : 'R ' + n2(R, 2), '<p>Al abrirse la válvula de escape sale un pulso de presión. Donde el tubo se ensancha (la cámara o el final), rebota y vuelve como <b>depresión</b>. Si llega durante el cruce (las dos válvulas abiertas a la vez) ayuda a vaciar el cilindro y a tirar de aire fresco. Con este diseño eso ocurre hacia ' + n2(Ntuned, 0) + ' rpm.</p><p>R indica cuánto rebota: cuanto más ancha la cámara respecto al primario, más cerca de −1 y más fuerte el rebote. El final de la cámara devuelve además una compresión que, bien colocada, evita que se escape mezcla fresca.</p><p class="ex">Primario más largo → sintoniza a menos rpm. La lana y el silenciador amortiguan; el modelo no lo incluye del todo.</p>'],
+      ['Sensibilidad y tolerancia', 'tabla', '<p><b>Sensibilidad</b>: cuánto cambia el resultado si mueves esa cota un poco (±8 % de su rango). <b>Tolerancia</b>: cuánto te puedes desviar del óptimo perdiendo solo un 1 %. Mucha tolerancia significa que esa cota no es crítica.</p>']
+    ];
+    return '<div class="card"><div class="card-h"><h2>Cómo leer estos resultados</h2><span class="sub">Explicación breve de cada magnitud, con los valores del diseño óptimo</span></div><div class="card-b"><div class="expl-grid">' +
+      ex.map(function (e) { return '<div class="expl"><h3>' + e[0] + '<span class="tag">' + e[1] + '</span></h3>' + e[2] + '</div>'; }).join('') + '</div></div></div>';
+  }
   function render() {
     if (!last || !last.R) return;
     var R = last.R, c = last.c, vars = c.cfg.vars, unit = c.cfg.objective === 'power' ? 'kW' : 'N·m';
@@ -3143,8 +3194,10 @@ var CH = (function () {
       ['Par máximo', n2(t0.torque, 1) + ' → ' + n2(t1.torque, 1), 'N·m a ' + t1.rpm + ' rpm'],
       ['Potencia máxima', n2(p0.power / 0.7355, 1) + ' → ' + n2(p1.power / 0.7355, 1), 'CV a ' + p1.rpm + ' rpm']
     ];
-    var html = '<div class="card"><div class="card-h"><h2>Resultado</h2><span class="sub">Comparación con el diseño de partida, mismas hipótesis</span></div><div class="kpis">' +
+    var html = '<div class="card"><div class="card-h"><h2>Resultado</h2><span class="sub">Comparación con el diseño de partida, mismas hipótesis</span></div><div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">' +
       kp.map(function (k) { return '<div class="kpi"><span class="k">' + k[0] + '</span><span class="v">' + k[1] + '<small>' + k[2] + '</small></span></div>'; }).join('') + '</div></div>';
+    // conclusión en lenguaje llano
+    html += conclusion(R, c, a, bandC);
     // tabla de variables
     var sens = {}; R.sens.forEach(function (s) { sens[s.id] = s; });
     var rows = vars.map(function (d) {
@@ -3209,6 +3262,7 @@ var CH = (function () {
     ];
     html += '<div class="card"><div class="card-h"><h2>Parámetros de diseño de los periféricos</h2><span class="sub">Calculados sobre el diseño óptimo · régimen de referencia ' + bandC + ' rpm</span></div><div class="card-b"><div class="an-grid">' +
       cards.map(function (k) { return '<div class="an"><h3>' + k[0] + '</h3>' + tb(k[1]) + '</div>'; }).join('') + '</div></div></div>';
+    html += guide(R.Pbest, a, bandC, Ntuned, noCh, A1, A2);
     var pg = (p1.power / p0.power - 1) * 100, tg = (R.best.f / R.start.f - 1) * 100;
     if (pg > 10 || tg > 10) html = '<div class="card"><div class="card-b"><div class="box warn"><p><b>Ganancia sospechosa (' + n2(Math.max(pg, tg), 0) + ' %).</b> Mejoras de más de un 10 % solo cambiando periféricos son raras en un motor ya desarrollado. Lo más probable es que el optimizador esté aprovechando una simplificación del modelo (por ejemplo, el escape sin absorción de la lana refleja más de lo real). Repite con rangos realistas o fijando esa variable antes de usar el resultado.</p></div></div></div>' + html;
     html += '<div class="card"><div class="card-b"><div class="box warn"><p>El óptimo es tan bueno como las entradas del modelo. Con la leva y el silenciador aún estimados, úsalo para ver hacia dónde mover cada cota y cuánto importa, no como cota final. Si una variable sale en el límite del rango o contradice un ensayo de banco, manda el ensayo.</p></div></div></div>';
