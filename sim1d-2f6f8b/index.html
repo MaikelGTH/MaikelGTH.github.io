@@ -11,6 +11,7 @@
 <style>
 /* Layout: banco de trabajo técnico. Barra superior con pestañas; columna de parámetros + área de resultados */
 /* Layout: banco de trabajo técnico, tema claro único. Pestañas arriba; parámetros + resultados */
+/* Layout: banco de trabajo técnico. Tema claro y oscuro; verde como color principal, morado del equipo solo en detalles */
 :root {
   --bg: #f6f4ef;
   --surface: #ffffff;
@@ -20,18 +21,37 @@
   --line: #e4e0d7;
   --accent: #2f5d4a;
   --accent-soft: #e8efe9;
+  --accent2: #4b2a92;
+  --accent2-soft: #efeaf8;
   --exh: #a8642c;
   --exh-soft: #f6ebe0;
   --warn: #9a6a12;
   --warn-soft: #f8f0dc;
   --bad: #a83a2c;
+  --bad-soft: #f7e4e0;
   --ok: #3d7a4f;
-  --s1: #2f5d4a; --s2: #b8692e; --s3: #45608f; --s4: #7a8a2a; --s5: #9a4a72; --s6: #8a8f88;
+  --s1: #2f5d4a; --s2: #b8692e; --s3: #4b2a92; --s4: #7a8a2a; --s5: #9a4a72; --s6: #8a8f88;
   --mid: #f3f1ec;
   --f-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --f-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
   --f-mono: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15171a; --surface: #1c1f23; --surface2: #22262b; --ink: #e8e6e1; --muted: #a3a7a1; --line: #30343a;
+    --accent: #7fb79a; --accent-soft: #1f2d27; --accent2: #b9a6ea; --accent2-soft: #2a2340;
+    --exh: #e09a62; --exh-soft: #33261b; --warn: #e3b45c; --warn-soft: #33291a; --bad: #ef7b6c; --bad-soft: #3a211d; --ok: #87c79a;
+    --s1: #7fb79a; --s2: #e09a62; --s3: #b9a6ea; --s4: #b8c26a; --s5: #e58fb8; --s6: #9da19b;
+    --mid: #2a2d31; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15171a; --surface: #1c1f23; --surface2: #22262b; --ink: #e8e6e1; --muted: #a3a7a1; --line: #30343a;
+  --accent: #7fb79a; --accent-soft: #1f2d27; --accent2: #b9a6ea; --accent2-soft: #2a2340;
+  --exh: #e09a62; --exh-soft: #33261b; --warn: #e3b45c; --warn-soft: #33291a; --bad: #ef7b6c; --bad-soft: #3a211d; --ok: #87c79a;
+  --s1: #7fb79a; --s2: #e09a62; --s3: #b9a6ea; --s4: #b8c26a; --s5: #e58fb8; --s6: #9da19b;
+  --mid: #2a2d31; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
@@ -40,13 +60,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line);
 }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); }
+.theme-btn { margin-left: auto; }
+.pg[open] > summary { color: var(--ink); box-shadow: inset 3px 0 0 var(--accent2); border-radius: 10px 10px 0 0; }
 .top-in {
   max-width: 1560px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px;
 }
 .brand { display: flex; flex-direction: column; line-height: 1.1; }
 .brand b { font-family: var(--f-display); font-size: 22px; font-weight: 600; letter-spacing: 0; }
-.brand span { font-size: 12.5px; color: var(--muted); letter-spacing: .02em; }
+.brand span { font-size: 12.5px; color: var(--accent2); letter-spacing: .02em; }
 .tabs { display: flex; gap: 4px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
 .tab { white-space: nowrap; }
 .tab {
@@ -54,7 +76,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   font-family: var(--f-body); font-size: 15px; font-weight: 500; color: var(--muted);
 }
 .tab:hover { color: var(--ink); }
-.tab[aria-selected="true"] { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+.tab[aria-selected="true"] { color: var(--ink); box-shadow: inset 0 -2px 0 var(--accent2); }
 .tab:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .page {
   max-width: 1560px; margin: 0 auto;
@@ -84,7 +106,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .status { font-size: 13.5px; color: var(--muted); }
 .status.err { color: var(--bad); }
 .progress { flex: 1 1 160px; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; min-width: 120px; }
-.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent2); transition: width .2s; }
 .stale { font-size: 12px; color: var(--warn); background: var(--warn-soft); padding: 2px 10px; border-radius: 99px; }
 
 /* parámetros */
@@ -126,7 +148,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 #schem text { font-family: var(--f-body); fill: var(--ink); }
 #schem .lbl { fill: var(--muted); }
 .crank { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; border-top: 1px solid var(--line); }
-.crank input[type=range] { flex: 1 1 260px; accent-color: var(--accent); }
+.crank input[type=range] { flex: 1 1 260px; accent-color: var(--accent2); }
 .crank .deg { font-variant-numeric: tabular-nums; min-width: 150px; font-weight: 500; }
 .legend { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
 .legend canvas { width: 140px; height: 10px; border: 1px solid var(--line); }
@@ -145,7 +167,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .an td.v { text-align: right; font-weight: 500; }
 .flag { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; margin-left: 6px; white-space: nowrap; }
 .flag.w { color: var(--warn); background: var(--warn-soft); }
-.flag.b { color: var(--bad); background: #f7e4e0; }
+.flag.b { color: var(--bad); background: var(--bad-soft); }
 .flag.o { color: var(--ok); background: var(--accent-soft); }
 
 /* gráficas */
@@ -183,7 +205,7 @@ input.txt, select.txt { border: 1px solid var(--line); border-radius: 6px; paddi
 /* formulario */
 .doc { max-width: 1100px; display: flex; flex-direction: column; gap: 22px; }
 .doc h2 { font-family: var(--f-display); font-size: 27px; font-weight: 600; margin: 0; display: flex; gap: 10px; align-items: baseline; text-wrap: balance; }
-.doc h2 .code { font-family: var(--f-body); font-size: 13px; color: var(--accent); font-weight: 600; background: var(--accent-soft); padding: 1px 8px; border-radius: 99px; }
+.doc h2 .code { font-family: var(--f-body); font-size: 13px; color: var(--accent2); font-weight: 600; background: var(--accent2-soft); padding: 1px 8px; border-radius: 99px; }
 .doc h3 { font-family: var(--f-display); font-size: 19px; font-weight: 600; margin: 6px 0 0; color: var(--ink); }
 .doc p { margin: 0; max-width: 75ch; }
 .doc section { display: flex; flex-direction: column; gap: 10px; scroll-margin-top: 80px; }
@@ -208,7 +230,7 @@ table.data thead th { font-weight: 600; font-size: 12.5px; color: var(--muted); 
 table.data td.n, table.data th.n { text-align: right; font-variant-numeric: tabular-nums; }
 .toc { display: flex; flex-wrap: wrap; gap: 6px; }
 .toc a { font-size: 13.5px; text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); padding: 4px 12px; border-radius: 99px; }
-.toc a:hover { border-color: var(--accent); color: var(--accent); }
+.toc a:hover { border-color: var(--accent2); color: var(--accent2); }
 mjx-container[jax="SVG"][display="true"] { margin: 0 !important; text-align: left !important; }
 .modal-bg { position: fixed; inset: 0; background: rgba(10, 15, 20, .45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .modal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; width: min(640px, 100%); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -235,7 +257,6 @@ table.cmp tr.key td { background: var(--accent-soft); }
 window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']] }, svg: { fontCache: 'global' } };
 </script>
 <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.js"></script>
-
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -251,6 +272,7 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
       <button class="tab" role="tab" data-view="form" aria-selected="false">Formulario</button>
       <button class="tab" role="tab" data-view="model" aria-selected="false">Modelo</button>
     </div>
+    <button class="btn small theme-btn" id="theme-btn" type="button">Modo oscuro</button>
   </div>
 </div>
 
@@ -1461,12 +1483,12 @@ var SIM = (function () {
 
   /* ---------------- Optimizador (búsqueda por patrones) ---------------- */
   var OPT_VARS = {
-    Vbox: { label: 'Volumen airbox', unit: 'L', round: 0.1 },
-    trL: { label: 'Trompeta (sin labio)', unit: 'mm', round: 1 },
-    exPrimL: { label: 'Primario de escape', unit: 'mm', round: 5 },
-    exChD: { label: 'Ø cámara de expansión', unit: 'mm', round: 1 },
-    exChL: { label: 'Longitud cámara', unit: 'mm', round: 5 },
-    dfL: { label: 'Longitud difusor', unit: 'mm', round: 5 }
+    Vbox: { label: 'Volumen airbox (aire libre interior)', unit: 'L', round: 0.1 },
+    trL: { label: 'Trompeta (solo la pieza: sin labio, mariposa ni puerto)', unit: 'mm', round: 1 },
+    exPrimL: { label: 'Primario de escape (brida de culata → cámara o silenciador)', unit: 'mm', round: 5 },
+    exChD: { label: 'Ø cámara de expansión (en línea; = Ø primario → sin cámara)', unit: 'mm', round: 1 },
+    exChL: { label: 'Longitud cámara (solo el tramo ancho)', unit: 'mm', round: 5 },
+    dfL: { label: 'Longitud difusor (boca → airbox)', unit: 'mm', round: 5 }
   };
   function applyVars(P, v) {
     var Q = JSON.parse(JSON.stringify(P));
@@ -1598,9 +1620,9 @@ var PARAM_GROUPS = [
     { id: 'etaRam', label: 'Recuperación en la boca η', unit: '–', v: 0.9, step: 0.01, hint: 'Fracción de la presión dinámica que llega como presión de remanso a la boca del difusor.' }
   ] },
   { id: 'dif', title: 'Difusor de entrada', comp: 'dif', fields: [
-    { id: 'dfAin', label: 'Área de entrada (boca)', unit: 'cm²', v: 30, step: 0.5 },
-    { id: 'dfAout', label: 'Área de salida', unit: 'cm²', v: 120, step: 1 },
-    { id: 'dfL', label: 'Longitud', unit: 'mm', v: 400, step: 5 },
+    { id: 'dfAin', label: 'Área de entrada (boca, en el carenado)', unit: 'cm²', v: 30, step: 0.5 },
+    { id: 'dfAout', label: 'Área de salida (donde entra al airbox)', unit: 'cm²', v: 120, step: 1 },
+    { id: 'dfL', label: 'Longitud (boca → entrada al airbox)', unit: 'mm', v: 400, step: 5 },
     { id: 'dfShape', label: 'Ley de área (exponente)', unit: '–', v: 1, step: 0.1, hint: 'A(x) = A_in + (A_out − A_in)(x/L)^n. n>1: abre tarde; n<1: abre pronto.' },
     { id: 'dfCdIn', label: 'Cd de la boca', unit: '–', v: 0.97, step: 0.01, hint: 'Pérdida de entrada en la boca (labio redondeado ≈ 0,97–0,99).' },
     { id: 'dfF', label: 'Factor de fricción (Darcy)', unit: '–', v: 0.025, step: 0.001 },
@@ -1611,9 +1633,9 @@ var PARAM_GROUPS = [
     { id: 'dfZ', label: 'Salida difusor: z', unit: 'mm', v: 63, step: 5 }
   ] },
   { id: 'box', title: 'Airbox', comp: 'box', fields: [
-    { id: 'abLx', label: 'Largo Lx', unit: 'mm', v: 254, step: 5 },
-    { id: 'abLy', label: 'Ancho Ly', unit: 'mm', v: 186, step: 5 },
-    { id: 'abLz', label: 'Alto Lz', unit: 'mm', v: 127, step: 5 },
+    { id: 'abLx', label: 'Largo Lx (interior)', unit: 'mm', v: 254, step: 5 },
+    { id: 'abLy', label: 'Ancho Ly (interior)', unit: 'mm', v: 186, step: 5 },
+    { id: 'abLz', label: 'Alto Lz (interior)', unit: 'mm', v: 127, step: 5 },
     { id: 'abVocc', label: 'Volumen ocupado (trompeta, filtro)', unit: 'L', v: 0.5, step: 0.1, hint: 'Con 254×186×127 mm da 5,5 L de aire (dato del equipo).' },
     { id: 'abModes', label: 'Acoplar modos propios', unit: '', v: 1, type: 'check', hint: 'Superpone las ondas estacionarias del airbox (caja rectangular rígida) a la presión media.' },
     { id: 'abFmax', label: 'Frecuencia máx. de modos', unit: 'Hz', v: 1600, step: 50 },
@@ -1623,16 +1645,16 @@ var PARAM_GROUPS = [
     { id: 'trZ', label: 'Boca trompeta: z (sobre el suelo)', unit: 'mm', v: 70, step: 5, hint: 'Altura del labio sobre el suelo del airbox. La holgura al techo es Lz − z.' }
   ] },
   { id: 'run', title: 'Trompeta y puerto de admisión', comp: 'run', fields: [
-    { id: 'lipD', label: 'Ø exterior del labio', unit: 'mm', v: 56, step: 1 },
-    { id: 'lipL', label: 'Longitud del labio', unit: 'mm', v: 10, step: 1 },
-    { id: 'trL', label: 'Longitud trompeta (sin labio)', unit: 'mm', v: 39, step: 1, hint: 'La trompeta variable se optimiza en la pestaña Trompeta variable.' },
-    { id: 'trD1', label: 'Ø trompeta arriba', unit: 'mm', v: 46, step: 0.5 },
-    { id: 'trD2', label: 'Ø trompeta abajo', unit: 'mm', v: 46, step: 0.5 },
-    { id: 'tbL', label: 'Longitud cuerpo mariposa', unit: 'mm', v: 70, step: 1 },
+    { id: 'lipD', label: 'Ø exterior del labio (boca abocinada)', unit: 'mm', v: 56, step: 1 },
+    { id: 'lipL', label: 'Longitud del labio (parte abocinada)', unit: 'mm', v: 10, step: 1 },
+    { id: 'trL', label: 'Longitud trompeta (solo la pieza: sin labio, mariposa ni puerto)', unit: 'mm', v: 39, step: 1, hint: 'La trompeta variable se optimiza en la pestaña Trompeta variable.' },
+    { id: 'trD1', label: 'Ø trompeta arriba (lado airbox)', unit: 'mm', v: 46, step: 0.5 },
+    { id: 'trD2', label: 'Ø trompeta abajo (lado mariposa)', unit: 'mm', v: 46, step: 0.5 },
+    { id: 'tbL', label: 'Longitud cuerpo mariposa (fija del motor)', unit: 'mm', v: 70, step: 1 },
     { id: 'tbD', label: 'Ø cuerpo mariposa', unit: 'mm', v: 44, step: 0.5 },
-    { id: 'ptL', label: 'Longitud puerto en culata', unit: 'mm', v: 100, step: 1, hint: 'TFG Moya: ≈ 100 mm medido a mano (incertidumbre alta).' },
-    { id: 'ptD1', label: 'Ø puerto entrada', unit: 'mm', v: 44, step: 0.5 },
-    { id: 'ptD2', label: 'Ø puerto junto a válvulas', unit: 'mm', v: 36, step: 0.5, hint: 'Diámetro equivalente del puerto antes de dividirse a las válvulas.' },
+    { id: 'ptL', label: 'Longitud puerto en culata (brida → válvula, fija)', unit: 'mm', v: 100, step: 1, hint: 'TFG Moya: ≈ 100 mm medido a mano (incertidumbre alta).' },
+    { id: 'ptD1', label: 'Ø puerto entrada (brida de la mariposa)', unit: 'mm', v: 44, step: 0.5 },
+    { id: 'ptD2', label: 'Ø puerto junto a válvulas (antes de dividirse)', unit: 'mm', v: 36, step: 0.5, hint: 'Diámetro equivalente del puerto antes de dividirse a las válvulas.' },
     { id: 'mouthCd', label: 'Cd boca trompeta', unit: '–', v: 0.98, step: 0.01 },
     { id: 'endCorr', label: 'Corrección de extremo δ/r', unit: '–', v: 0.61, step: 0.01, hint: '0,61 extremo libre; 0,85 con pestaña. Solo afecta al cálculo analítico.' },
     { id: 'inF', label: 'Factor de fricción (Darcy)', unit: '–', v: 0.02, step: 0.001 }
@@ -1666,7 +1688,7 @@ var PARAM_GROUPS = [
     { id: 'ivDs', label: 'Ø vástago', unit: 'mm', v: 4.5, step: 0.1 },
     { id: 'ivBeta', label: 'Ángulo de asiento', unit: '°', v: 45, step: 1 },
     { id: 'ivW', label: 'Ancho de asiento', unit: 'mm', v: 1.1, step: 0.05 },
-    { id: 'ivLift', label: 'Alzada máxima', unit: 'mm', v: 10.0, step: 0.1, hint: 'Estimada (sin dato de KTM). Leva Hot Cams stage 2: 11,63 mm.' },
+    { id: 'ivLift', label: 'Alzada máxima (en la válvula)', unit: 'mm', v: 10.0, step: 0.1, hint: 'Estimada (sin dato de KTM). Leva Hot Cams stage 2: 11,63 mm.' },
     { id: 'ivOpen', label: 'Apertura (IVO)', unit: '° APMS', v: 35, step: 1, hint: 'Estimado: sin dato de KTM. Mídelo con disco graduado y comparador.' },
     { id: 'ivClose', label: 'Cierre (IVC)', unit: '° DPMI', v: 65, step: 1 },
     { id: 'ivShape', label: 'Forma de la ley (exponente)', unit: '–', v: 1.4, step: 0.05, hint: 'L = Lmax·sin(πφ)^k. k mayor = leva más puntiaguda.' },
@@ -1690,17 +1712,17 @@ var PARAM_GROUPS = [
     { id: 'evCdTable', label: 'Cd de banco de flujo (opcional)', unit: '', v: '', type: 'text' }
   ] },
   { id: 'exh', title: 'Escape', comp: 'exh', fields: [
-    { id: 'exPortL', label: 'Longitud puerto en culata', unit: 'mm', v: 55, step: 1, hint: 'Estimado.' },
-    { id: 'exPortD', label: 'Ø puerto', unit: 'mm', v: 33, step: 0.5, hint: 'Estimado.' },
-    { id: 'exPrimL', label: 'Longitud primario', unit: 'mm', v: 700, step: 5, hint: 'Dato del equipo: 700 mm hasta el silenciador.' },
+    { id: 'exPortL', label: 'Longitud puerto de escape (válvula → brida de culata)', unit: 'mm', v: 55, step: 1, hint: 'Estimado.' },
+    { id: 'exPortD', label: 'Ø puerto de escape', unit: 'mm', v: 33, step: 0.5, hint: 'Estimado.' },
+    { id: 'exPrimL', label: 'Longitud primario (brida de culata → cámara o silenciador)', unit: 'mm', v: 700, step: 5, hint: 'Dato del equipo: 700 mm hasta el silenciador.' },
     { id: 'exPrimD1', label: 'Ø primario inicio', unit: 'mm', v: 42, step: 0.5, hint: 'Dato del equipo: Ø42 (confirmar si es interior).' },
     { id: 'exPrimD2', label: 'Ø primario final', unit: 'mm', v: 42, step: 0.5 },
-    { id: 'exConeIn', label: 'Cono de entrada a cámara', unit: 'mm', v: 0, step: 5, hint: '0 = escalón brusco. Más largo = reflexión más suave y repartida.' },
-    { id: 'exChD', label: 'Ø cámara de expansión', unit: 'mm', v: 42, step: 1, hint: 'Silenciador: núcleo Ø42. La lana no se modela; amortigua las reflexiones de la salida.' },
-    { id: 'exChL', label: 'Longitud cámara', unit: 'mm', v: 170, step: 5, hint: 'Tramo del silenciador antes del dB killer (total escape ≈ 1,2 m).' },
-    { id: 'exConeOut', label: 'Cono de salida de cámara', unit: 'mm', v: 0, step: 5 },
-    { id: 'exTailD', label: 'Ø cola / silenciador', unit: 'mm', v: 45, step: 0.5, hint: 'dB killer: ≈ Ø45 × 300 mm (dato aproximado del equipo).' },
-    { id: 'exTailL', label: 'Longitud cola / silenciador', unit: 'mm', v: 300, step: 5 },
+    { id: 'exConeIn', label: 'Cono de entrada a cámara (transición primario → cámara)', unit: 'mm', v: 0, step: 5, hint: '0 = escalón brusco. Más largo = reflexión más suave y repartida.' },
+    { id: 'exChD', label: 'Ø cámara de expansión (en línea; = Ø primario si no hay cámara)', unit: 'mm', v: 42, step: 1, hint: 'Silenciador: núcleo Ø42. La lana no se modela; amortigua las reflexiones de la salida.' },
+    { id: 'exChL', label: 'Longitud cámara (solo el tramo ancho)', unit: 'mm', v: 170, step: 5, hint: 'Tramo del silenciador antes del dB killer (total escape ≈ 1,2 m).' },
+    { id: 'exConeOut', label: 'Cono de salida de cámara (transición cámara → cola)', unit: 'mm', v: 0, step: 5 },
+    { id: 'exTailD', label: 'Ø cola / silenciador (tramo final)', unit: 'mm', v: 45, step: 0.5, hint: 'dB killer: ≈ Ø45 × 300 mm (dato aproximado del equipo).' },
+    { id: 'exTailL', label: 'Longitud cola / silenciador (hasta la salida)', unit: 'mm', v: 300, step: 5 },
     { id: 'exGamma', label: 'γ del gas de escape', unit: '–', v: 1.35, step: 0.01 },
     { id: 'exF', label: 'Factor de fricción (Darcy)', unit: '–', v: 0.025, step: 0.001 },
     { id: 'exH', label: 'Coef. convección pared', unit: 'W/m²K', v: 150, step: 10, hint: 'Enfría el gas a lo largo del tubo: c baja y cambian los tiempos de las ondas.' },
@@ -2139,24 +2161,24 @@ var CH = (function () {
       ['Primeros modos propios [Hz]', '<span style="white-space:normal">' + modes + '</span>']
     ]]);
     blocks.push(['Trompeta y puerto', [
-      ['Longitud física / δ / efectiva', n2(a.runL, 0) + ' / ' + n2(a.delta, 1) + ' / ' + n2(a.runLef, 0) + ' mm'],
+      ['Conducto boca → válvula (labio + trompeta + mariposa + puerto): físico / δ corrección de extremo / efectivo', n2(a.runL, 0) + ' / ' + n2(a.delta, 1) + ' / ' + n2(a.runLef, 0) + ' mm'],
       ['¼ de onda f₁ / f₃ (válvula cerrada)', n2(a.f1, 0) + ' / ' + n2(a.f3, 0) + ' Hz'],
       ['N con k·f<sub>exc</sub> = f₁ (k = 3, 4)', n2(a.Nf1[2], 0) + ' / ' + n2(a.Nf1[3], 0) + ' rpm'],
       ['Helmholtz cilindro + conducto', n2(a.fHcyl, 0) + ' Hz (V<sub>ef</sub> ' + n2(a.Vef, 0) + ' cm³)'],
       ['Ida y vuelta a ' + N + ' rpm', n2(a.rtDeg, 0) + '°'],
       ['Ventana 75° → IVC / orden', n2(a.window, 0) + '° / n ≈ ' + n2(a.order, 2)],
-      ['L trompeta sintonizada n = 1 / 2 / 3', a.LtunedN.map(function (x) { var v = x - (a.runL - P.trL); return v > 0 ? n2(v, 0) : 'no cabe'; }).join(' / ') + ' mm'],
+      ['L trompeta sintonizada n = 1 / 2 / 3 (solo la pieza)', a.LtunedN.map(function (x) { var v = x - (a.runL - P.trL); return v > 0 ? n2(v, 0) : 'no cabe'; }).join(' / ') + ' mm'],
       ['Holgura boca → techo / suelo', n2(P.abLz - P.trZ, 0) + ' / ' + n2(P.trZ, 0) + ' mm' + flag(Math.min(P.abLz - P.trZ, P.trZ) < P.lipD, '< Ø boca')]
     ]]);
     blocks.push(['Escape', [
       ['c a T media ' + P.exTmean + ' K', n2(a.cE, 0) + ' m/s'],
-      ['Longitud válvula → escalón', n2(a.Lp, 0) + ' mm'],
+      ['Longitud válvula → primer ensanchamiento (puerto + primario + ½ cono)', n2(a.Lp, 0) + ' mm'],
       ['R / T en el escalón', n2(a.Rstep, 2) + ' / ' + n2(a.Tstep, 2)],
       ['Energía reflejada', n2(a.Estep * 100, 0) + ' %' + flag(a.Estep < 0.25, 'débil')],
       ['Llega 1ª reflexión (depresión)', relTDC(a.thArr1) + (a.arr1InOvl ? flag(true, 'en cruce', 'o') : flag(true, 'fuera de cruce'))],
       ['Llega final cámara (compresión)', relTDC(a.thArr2) + (a.arr2InOvl ? flag(true, 'en cruce', 'b') : '')],
       ['Llega salida de cola (depresión)', relTDC(a.thArr3) + (a.arr3InOvl ? flag(true, 'en cruce', 'o') : '')],
-      ['L sintonizada (EVO → PMS cruce)', n2(a.LpTuned, 0) + ' mm'],
+      ['L sintonizada válvula → ensanchamiento (EVO → PMS cruce)', n2(a.LpTuned, 0) + ' mm'],
       ['Helmholtz cámara + cola', n2(a.fHex, 0) + ' Hz → ' + n2(a.NHex, 0) + ' rpm'],
       ['Bell: P / ID (ED = ' + a.ED + '°)', n2(a.bellP, 0) + ' / ' + n2(a.bellID, 1) + ' mm']
     ]]);
@@ -2367,8 +2389,8 @@ var CH = (function () {
   function valveBands(an) {
     var a = ST.single.meta.angles, out = [];
     function band(o, c, col) { if (c >= o) out.push({ x0: o, x1: c, color: col }); else { out.push({ x0: o, x1: 720, color: col }); out.push({ x0: 0, x1: c, color: col }); } }
-    if (an === 'i' || an === 'b') band(a.ivo, a.ivc, 'rgba(15,107,116,0.10)');
-    if (an === 'e' || an === 'b') band(a.evo, a.evc, 'rgba(180,83,42,0.10)');
+    if (an === 'i' || an === 'b') band(a.ivo, a.ivc, tokA('--accent', 0.12));
+    if (an === 'e' || an === 'b') band(a.evo, a.evc, tokA('--exh', 0.12));
     return out;
   }
   function angLines(which) {
@@ -2639,7 +2661,31 @@ var CH = (function () {
   }
 
   /* ---------------- init ---------------- */
+  function tokA(name, al) {
+    var h = getComputedStyle(document.documentElement).getPropertyValue(name).trim().replace('#', '');
+    if (h.length !== 6) return 'rgba(128,128,128,' + al + ')';
+    return 'rgba(' + parseInt(h.slice(0, 2), 16) + ',' + parseInt(h.slice(2, 4), 16) + ',' + parseInt(h.slice(4, 6), 16) + ',' + al + ')';
+  }
+  window.tokA = tokA;
+  function initTheme() {
+    var btn = $('#theme-btn'); if (!btn) return;
+    var saved = lsGet('upm-sim1d-theme');
+    if (saved === 'dark' || saved === 'light') document.documentElement.setAttribute('data-theme', saved);
+    function isDark() {
+      var t = document.documentElement.getAttribute('data-theme');
+      if (t) return t === 'dark';
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    function label() { btn.textContent = isDark() ? 'Modo claro' : 'Modo oscuro'; }
+    btn.addEventListener('click', function () {
+      var next = isDark() ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next); lsSet('upm-sim1d-theme', next); label();
+    });
+    new MutationObserver(label).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    label();
+  }
   function init() {
+    initTheme();
     buildParams(); syncInputs(); renderAnalytic(); updateRanges(); renderKPIs(); renderRefs();
     CH.legend($('#legend'));
     setDeg(0);
@@ -2896,12 +2942,12 @@ var CH = (function () {
     var opts = [], trRows = [];
     [[Nq, 'N par'], [Np, 'N pot.']].forEach(function (o) {
       var L = r.LtrCal(o[0]), ok = L > 10 && L < 400;
-      trRows.push(row('L trompeta calibrada, ' + o[1] + ' ' + o[0] + ' rpm', '', ok ? n2(L, 0) + ' mm' : 'no cabe', 'Ventana efectiva θ = ' + n2(r.thEf, 1) + '° ajustada con el banco del TFG. Es la referencia más fiable', ok));
+      trRows.push(row('L trompeta calibrada (solo la pieza), ' + o[1] + ' ' + o[0] + ' rpm', '', ok ? n2(L, 0) + ' mm' : 'no cabe', 'Ventana efectiva θ = ' + n2(r.thEf, 1) + '° ajustada con el banco del TFG. Es la referencia más fiable', ok));
       if (ok) opts.push('<option value="cal,' + o[0] + '">Calibrada, ' + o[1] + ' ' + o[0] + ' rpm (' + n2(L, 0) + ' mm)</option>');
     });
     [[Np, 1, 'N pot.'], [Np, 2, 'N pot.'], [Nq, 1, 'N par'], [Nq, 2, 'N par'], [Nq, 3, 'N par']].forEach(function (o, i) {
       var L = r.Ltr(o[0], o[1]), ok = L > 15 && L < 400;
-      trRows.push(row('L trompeta teórica (75° → IVC), ' + o[2] + ' ' + o[0] + ' rpm, orden ' + o[1], '', ok ? n2(L, 0) + ' mm' : 'no cabe', ok ? 'Longitud total ' + n2(r.Ltot(o[0], o[1]) * 1e3, 0) + ' mm menos el tramo fijo' : (L <= 15 ? 'El tramo fijo ya es más largo' : 'Demasiado larga para empaquetar'), false));
+      trRows.push(row('L trompeta teórica (solo la pieza; 75° → IVC), ' + o[2] + ' ' + o[0] + ' rpm, orden ' + o[1], '', ok ? n2(L, 0) + ' mm' : 'no cabe', ok ? 'Longitud total ' + n2(r.Ltot(o[0], o[1]) * 1e3, 0) + ' mm menos el tramo fijo' : (L <= 15 ? 'El tramo fijo ya es más largo' : 'Demasiado larga para empaquetar'), false));
       if (ok) opts.push('<option value="' + o[0] + ',' + o[1] + '">Teórica, ' + o[2] + ' ' + o[0] + ' rpm, n = ' + o[1] + ' (' + n2(L, 0) + ' mm)</option>');
     });
     var uNow = r.uMean(X.Dtr, Np);
@@ -2912,7 +2958,7 @@ var CH = (function () {
       var Nc = r.NCal(b.Lt * 1e3), used = Math.abs(b.N - b.Nth) < 1000;
       return '<tr' + (used ? ' class="key"' : '') + '><td class="n">' + n2(b.L, 1) + '</td><td class="n">' + n2(b.Lt * 1e3, 0) + '</td><td class="n">' + n2(b.Nth, 0) + '</td><td class="n">' + n2(b.N, 0) + '</td><td class="n">' + n2(b.th, 1) + '°</td><td class="n">' + n2(Nc, 0) + '</td><td class="c">' + (used ? 'Usada en el ajuste' : 'Pico limitado por otro efecto (válvulas, escape, leva)') + '</td></tr>';
     }).join('');
-    out.push('<div class="card"><div class="card-h"><h2>Calibración con el banco (TFG Moya)</h2><span class="sub">tramo fijo 170 mm · c = 344,4 m/s</span></div><div class="tbl-wrap"><table class="cmp"><thead><tr><th>Trompeta [mm]</th><th>L total [mm]</th><th>N teórico a/(8n)</th><th>N par máx. banco</th><th>θ efectivo</th><th>N con θ calibrado</th><th>Nota</th></tr></thead><tbody>' + bRows + '</tbody></table></div><div class="card-b"><p class="note">θ efectivo = 12·N·L/c es la ventana angular que reproduce el pico medido. Con las tres trompetas largas sale ' + n2(r.thEf, 1) + '°, muy cerca de los 90° del criterio del TFG. En las cortas el pico se queda en ≈ 10.000–10.800 rpm: ahí manda otra limitación y no la longitud.</p></div></div>');
+    out.push('<div class="card"><div class="card-h"><h2>Calibración con el banco (TFG Moya)</h2><span class="sub">tramo fijo 170 mm · c = 344,4 m/s</span></div><div class="tbl-wrap"><table class="cmp"><thead><tr><th>Trompeta [mm] (pieza)</th><th>L total [mm] (pieza + 170 fijos)</th><th>N teórico a/(8n)</th><th>N par máx. banco</th><th>θ efectivo</th><th>N con θ calibrado</th><th>Nota</th></tr></thead><tbody>' + bRows + '</tbody></table></div><div class="card-b"><p class="note">θ efectivo = 12·N·L/c es la ventana angular que reproduce el pico medido. Con las tres trompetas largas sale ' + n2(r.thEf, 1) + '°, muy cerca de los 90° del criterio del TFG. En las cortas el pico se queda en ≈ 10.000–10.800 rpm: ahí manda otra limitación y no la longitud.</p></div></div>');
     var sel = $('#ap-tr-t'); if (sel) { var prev = sel.value; sel.innerHTML = opts.join('') || '<option value="">sin opción válida</option>'; if (prev && opts.join('').indexOf('"' + prev + '"') >= 0) sel.value = prev; }
     // escape
     var LrPot = r.LexRef(Np), LrPar = r.LexRef(Nq), arr = r.arr(X.Lexh, Np);
@@ -2922,8 +2968,8 @@ var CH = (function () {
       row('Régimen sintonizado con tu L', n2(r.NexTuned, 0) + ' rpm', '', 'La depresión llega al PMS de cruce a ese régimen'),
       row('Llegada de la depresión a N pot.', (arr >= 0 ? '+' : '') + n2(arr, 0) + '° rel. PMS', '−' + X.ivOpen + '° a +' + X.evClose + '°', inOvl ? flag('en el cruce', 'o') : flag('fuera del cruce', 'w')),
       row('Ø primario (Bell)', n2(X.Dexh, 1) + ' mm', n2(r.bellID, 1) + ' mm', 'Empírico (Bell) y poco fiable con primarios cortos: da Ø grandes. Su P a N pot. es ' + n2(r.bellP, 0) + ' mm, sin corregir por temperatura. Decide el Ø con el barrido'),
-      row('Ø cámara para A<sub>2</sub>/A<sub>1</sub> = 5', '', n2(r.Dch, 0) + ' mm', 'R = ' + n2(r.Rch, 2) + ' · vuelve el 44 % de la energía'),
-      row('Longitud mínima de cámara', '', n2(Math.max(0, r.LchMin(X.Lexh)), 0) + ' mm', 'Para que la compresión del final de la cámara llegue después del EVC a N pot.')
+      row('Ø cámara para A<sub>2</sub>/A<sub>1</sub> = 5 (en línea)', '', n2(r.Dch, 0) + ' mm', 'R = ' + n2(r.Rch, 2) + ' · vuelve el 44 % de la energía'),
+      row('Longitud mínima de cámara (tramo ancho)', '', n2(Math.max(0, r.LchMin(X.Lexh)), 0) + ' mm', 'Para que la compresión del final de la cámara llegue después del EVC a N pot.')
     ]));
     $('#pre-out').innerHTML = out.join('');
   }
@@ -3079,10 +3125,15 @@ var CH = (function () {
       var robust = s ? Math.max(Math.abs(s.up), Math.abs(s.dn)) : 0;
       var tol = s && s.tol1 ? '±' + n2(s.tol1, d.id === 'Vbox' ? 1 : 0) + ' ' + V[d.id].unit : 'muy plano';
       var label = d.id === 'exChD' && v1 <= c.P.exPrimD2 + 0.5 ? 'sin cámara' : n2(v1, d.id === 'Vbox' ? 1 : 0) + ' ' + V[d.id].unit;
+      var Pb = R.Pbest;
+      if (d.id === 'trL') label += ' <span class="note">(total boca → válvula ' + n2(Pb.lipL + v1 + Pb.tbL + Pb.ptL, 0) + ' mm)</span>';
+      if (d.id === 'exPrimL') label += ' <span class="note">(escape total ' + n2(Pb.exPortL + v1 + Pb.exConeIn + Pb.exChL + Pb.exConeOut + Pb.exTailL, 0) + ' mm)</span>';
+      if (d.id === 'exChL' && Pb.exChD <= Pb.exPrimD2 + 0.5) label += ' <span class="note">(sin cámara: tramo recto)</span>';
+      if (s && s.tol1 && Math.abs(s.up) < 0.5 && Math.abs(s.dn) < 0.5) label += ' <span class="note">(óptimo plano)</span>';
       return '<tr' + (robust >= 1 ? ' class="key"' : '') + '><td>' + V[d.id].label + '</td><td class="n">' + n2(v0, d.id === 'Vbox' ? 1 : 0) + '</td><td class="n"><b>' + label + '</b> ' + atLim + '</td><td class="n">' + n2(d.min, 0) + '–' + n2(d.max, 0) + '</td><td class="n">' + (s ? n2(s.dn, 1) + ' / ' + n2(s.up, 1) + ' %' : '–') + '</td><td class="n">' + tol + '</td></tr>';
     }).join('');
     html += '<div class="card"><div class="card-h"><h2>Valores óptimos</h2><span class="sub">Sensibilidad: cambio del objetivo al mover la variable ±8 % de su rango · Tolerancia: desviación que cuesta 1 %</span></div><div class="tbl-wrap"><table class="cmp"><thead><tr><th>Variable</th><th>Inicial</th><th>Óptimo</th><th>Rango</th><th>Sensibilidad − / +</th><th>Tolerancia (−1 %)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
-      '<div class="card-b"><p class="note">Las filas resaltadas son críticas (≥ 1 % de efecto): ahí la cota de fabricación importa. «En el límite» significa que el óptimo está fuera del rango o que lo frena una restricción: amplía el rango si es físicamente posible, o toma el límite como valor de diseño.</p></div></div>';
+      '<div class="card-b"><p class="note">«Óptimo plano»: cualquier valor cercano da casi lo mismo (menos de 0,5 % de diferencia); usa el que mejor encaje en el diseño. Las filas resaltadas son críticas (≥ 1 % de efecto): ahí la cota de fabricación importa. «En el límite» significa que el óptimo está fuera del rango o que lo frena una restricción: amplía el rango si es físicamente posible, o toma el límite como valor de diseño.</p></div></div>';
     // curvas
     html += '<div class="card"><div class="charts"><div class="chart tall"><h4>Par [N·m] y potencia [kW]: inicial frente a óptimo</h4><canvas id="o2-c1"></canvas></div><div class="chart"><h4>Convergencia del objetivo</h4><canvas id="o2-c2"></canvas></div></div></div>';
     // parámetros de diseño de periféricos
@@ -3113,17 +3164,17 @@ var CH = (function () {
         ['(L/A)<sub>ef</sub> (cuello Helmholtz)', n2(a.neckLA, 1) + ' m⁻¹']
       ]],
       ['Trompeta y admisión', [
-        ['Trompeta sin labio / con labio', n2(P.trL, 0) + ' / ' + n2(P.trL + P.lipL, 0) + ' mm'],
-        ['Conducto total boca → válvula', n2(Lrun, 0) + ' mm (efectiva ' + n2(a.runLef, 0) + ')'],
+        ['Trompeta: pieza sin labio / con labio', n2(P.trL, 0) + ' / ' + n2(P.trL + P.lipL, 0) + ' mm'],
+        ['Conducto total boca → válvula (labio + trompeta + 170 fijos)', n2(Lrun, 0) + ' mm (efectiva ' + n2(a.runLef, 0) + ')'],
         ['Ø trompeta / Ø labio', n2(P.trD1, 1) + ' / ' + n2(P.lipD, 0) + ' mm'],
         ['¼ de onda f₁ (válvula cerrada)', n2(a.f1, 0) + ' Hz'],
         ['Ida y vuelta a ' + bandC + ' rpm', n2(a.rtDeg, 0) + '° (orden n ≈ ' + n2(a.order, 2) + ')']
       ]],
       ['Escape', [
-        ['Primario', n2(P.exPrimL, 0) + ' mm · Ø' + n2(P.exPrimD1, 0) + '→' + n2(P.exPrimD2, 0)],
-        ['Cámara de expansión', noCh ? 'sin cámara (recto)' : 'Ø' + n2(P.exChD, 0) + ' × ' + n2(P.exChL, 0) + ' mm'],
+        ['Primario (brida de culata → cámara)', n2(P.exPrimL, 0) + ' mm · Ø' + n2(P.exPrimD1, 0) + '→' + n2(P.exPrimD2, 0)],
+        ['Cámara de expansión (en línea)', noCh ? 'sin cámara (recto)' : 'Ø' + n2(P.exChD, 0) + ' × ' + n2(P.exChL, 0) + ' mm'],
         ['A₂/A₁ · R · energía reflejada', noCh ? '–' : n2(A2 / A1, 2) + ' · ' + n2((A1 - A2) / (A1 + A2), 2) + ' · ' + n2(Math.pow((A1 - A2) / (A1 + A2), 2) * 100, 0) + ' %'],
-        ['Longitud total del escape', n2(Ltot, 0) + ' mm'],
+        ['Longitud total del escape (válvula → salida)', n2(Ltot, 0) + ' mm'],
         ['Régimen sintonizado (1ª reflexión al PMS de cruce)', n2(Ntuned, 0) + ' rpm (T media ' + P.exTmean + ' K)'],
         ['Helmholtz cámara + cola', noCh ? '–' : n2(a.fHex, 0) + ' Hz → ' + n2(a.NHex, 0) + ' rpm']
       ]]
@@ -3140,7 +3191,7 @@ var CH = (function () {
       { x: x, y: i1.map(function (s) { return s.torque; }), color: css('--s1'), width: 2.2, dots: true, label: 'Par óptimo' },
       { x: x, y: i0.map(function (s) { return s.power; }), color: css('--s6'), dash: [2, 3], axis: 'r', label: 'Potencia inicial' },
       { x: x, y: i1.map(function (s) { return s.power; }), color: css('--s2'), width: 2.2, axis: 'r', dots: true, label: 'Potencia óptima' }],
-      bands: [{ x0: c.cfg.rpms[0], x1: c.cfg.rpms[c.cfg.rpms.length - 1], color: 'rgba(15,107,116,0.08)' }] });
+      bands: [{ x0: c.cfg.rpms[0], x1: c.cfg.rpms[c.cfg.rpms.length - 1], color: (window.tokA ? window.tokA('--accent2', 0.10) : 'rgba(75,42,146,0.08)') }] });
     var h = R.hist.filter(function (p) { return p.f > -1e8; }), bestSoFar = -1e9;
     CH.line($('#o2-c2'), { xName: 'sim.', xLabel: 'simulación', yLabel: unit, series: [
       { x: h.map(function (p) { return p.k; }), y: h.map(function (p) { return p.f; }), color: css('--s3'), dots: true, label: 'Evaluación' },
