@@ -4,52 +4,37 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Simulador 1D de admisión y escape para motor monocilíndrico 4T: difusor ram air, airbox, trompeta, válvulas, cilindro y escape.">
 <title>Simulador 1D Admisión-Escape</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Source+Sans+3:wght@400;500;600&display=swap">
 <style>
 /* Layout: banco de trabajo técnico. Barra superior con pestañas; columna de parámetros + área de resultados */
+/* Layout: banco de trabajo técnico, tema claro único. Pestañas arriba; parámetros + resultados */
 :root {
-  --bg: #eceff2;
+  --bg: #f6f4ef;
   --surface: #ffffff;
-  --surface2: #f5f7f9;
-  --ink: #15202b;
-  --muted: #586572;
-  --line: #d2d9e0;
-  --accent: #0f6b74;
-  --accent-soft: #dcecee;
-  --exh: #b4532a;
-  --exh-soft: #f5e3da;
-  --warn: #9a5b00;
-  --warn-soft: #f6ead6;
-  --bad: #b3261e;
-  --ok: #2f7d32;
-  --s1: #0f6b74; --s2: #c0562a; --s3: #4a55a2; --s4: #6b8a1f; --s5: #a23a7a; --s6: #6b7785;
-  --mid: #f2f2ee;
-  --f-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0f151b; --surface: #161e26; --surface2: #1b252f; --ink: #e2e8ed; --muted: #92a0ac; --line: #2a3541;
-    --accent: #5cc3cc; --accent-soft: #1b3236; --exh: #e58a5f; --exh-soft: #36241b; --warn: #e0a64e; --warn-soft: #33281a;
-    --bad: #f07167; --ok: #7cc47f;
-    --s1: #5cc3cc; --s2: #e58a5f; --s3: #9aa5f0; --s4: #a9c95a; --s5: #e48bc2; --s6: #9aa7b3;
-    --mid: #2a3038; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0f151b; --surface: #161e26; --surface2: #1b252f; --ink: #e2e8ed; --muted: #92a0ac; --line: #2a3541;
-  --accent: #5cc3cc; --accent-soft: #1b3236; --exh: #e58a5f; --exh-soft: #36241b; --warn: #e0a64e; --warn-soft: #33281a;
-  --bad: #f07167; --ok: #7cc47f;
-  --s1: #5cc3cc; --s2: #e58a5f; --s3: #9aa5f0; --s4: #a9c95a; --s5: #e48bc2; --s6: #9aa7b3;
-  --mid: #2a3038; color-scheme: dark;
+  --surface2: #faf8f4;
+  --ink: #1f2722;
+  --muted: #69716b;
+  --line: #e4e0d7;
+  --accent: #2f5d4a;
+  --accent-soft: #e8efe9;
+  --exh: #a8642c;
+  --exh-soft: #f6ebe0;
+  --warn: #9a6a12;
+  --warn-soft: #f8f0dc;
+  --bad: #a83a2c;
+  --ok: #3d7a4f;
+  --s1: #2f5d4a; --s2: #b8692e; --s3: #45608f; --s4: #7a8a2a; --s5: #9a4a72; --s6: #8a8f88;
+  --mid: #f3f1ec;
+  --f-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-mono: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
 }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; line-height: 1.5; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.55; font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 button, input, select, textarea { font: inherit; color: inherit; }
 .top {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--surface); border-bottom: 1px solid var(--line);
@@ -60,15 +45,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 10px;
 }
 .brand { display: flex; flex-direction: column; line-height: 1.1; }
-.brand b { font-family: var(--f-display); font-size: 22px; font-weight: 700; letter-spacing: .01em; }
-.brand span { font-family: var(--f-mono); font-size: 11px; color: var(--muted); letter-spacing: .05em; text-transform: uppercase; }
+.brand b { font-family: var(--f-display); font-size: 22px; font-weight: 600; letter-spacing: 0; }
+.brand span { font-size: 12.5px; color: var(--muted); letter-spacing: .02em; }
 .tabs { display: flex; gap: 4px; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
 .tab { white-space: nowrap; }
 .tab {
-  border: 1px solid transparent; background: none; padding: 6px 12px; border-radius: 3px; cursor: pointer;
-  font-family: var(--f-display); font-size: 16px; font-weight: 600; color: var(--muted);
+  border: none; background: none; padding: 8px 12px; border-radius: 0; cursor: pointer;
+  font-family: var(--f-body); font-size: 15px; font-weight: 500; color: var(--muted);
 }
-.tab[aria-selected="true"] { color: var(--ink); border-color: var(--line); background: var(--surface2); box-shadow: inset 0 -2px 0 var(--accent); }
+.tab:hover { color: var(--ink); }
+.tab[aria-selected="true"] { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
 .tab:focus-visible, .btn:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .page {
   max-width: 1560px; margin: 0 auto;
@@ -79,14 +65,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 @media (max-width: 1000px) { .simgrid { grid-template-columns: minmax(0, 1fr); } }
 .side { display: flex; flex-direction: column; gap: 8px; position: sticky; top: 70px; max-height: calc(100vh - 86px); overflow-y: auto; padding-right: 4px; }
 @media (max-width: 1000px) { .side { position: static; max-height: none; overflow: visible; } }
-.main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; min-width: 0; }
-.card-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
-.card-h h2 { margin: 0; font-family: var(--f-display); font-size: 19px; font-weight: 600; }
+.main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; box-shadow: 0 1px 2px rgba(40,35,20,.04); overflow: hidden; }
+.card-h { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; padding: 14px 18px 12px; border-bottom: 1px solid var(--line); }
+.card-h h2 { margin: 0; font-family: var(--f-display); font-size: 20px; font-weight: 600; }
 .card-h .sub { font-size: 12.5px; color: var(--muted); }
-.card-b { padding: 12px 14px; }
+.card-b { padding: 14px 18px; }
 .btn {
-  border: 1px solid var(--line); background: var(--surface2); padding: 6px 12px; border-radius: 3px; cursor: pointer; font-weight: 500; font-size: 13.5px;
+  border: 1px solid var(--line); background: var(--surface); padding: 7px 14px; border-radius: 999px; cursor: pointer; font-weight: 500; font-size: 14px;
 }
 .btn:hover { border-color: var(--accent); }
 .btn.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
@@ -95,86 +81,86 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .btn.small { padding: 3px 8px; font-size: 12px; }
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.status { font-family: var(--f-mono); font-size: 12.5px; color: var(--muted); }
+.status { font-size: 13.5px; color: var(--muted); }
 .status.err { color: var(--bad); }
-.progress { flex: 1 1 160px; height: 6px; background: var(--surface2); border: 1px solid var(--line); border-radius: 3px; overflow: hidden; min-width: 120px; }
+.progress { flex: 1 1 160px; height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; min-width: 120px; }
 .progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s; }
-.stale { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--warn); border: 1px solid var(--warn); padding: 1px 6px; border-radius: 2px; }
+.stale { font-size: 12px; color: var(--warn); background: var(--warn-soft); padding: 2px 10px; border-radius: 99px; }
 
 /* parámetros */
-.pg { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+.pg { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
 .pg > summary {
   list-style: none; cursor: pointer; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  font-family: var(--f-display); font-weight: 600; font-size: 16px;
+  font-family: var(--f-display); font-weight: 600; font-size: 16.5px;
 }
 .pg > summary::-webkit-details-marker { display: none; }
-.pg > summary::after { content: "+"; font-family: var(--f-mono); color: var(--muted); }
+.pg > summary::after { content: "+"; color: var(--muted); font-size: 18px; }
 .pg[open] > summary::after { content: "−"; }
 .pg.flash { animation: flash 1.2s ease-out; }
 @keyframes flash { 0% { box-shadow: 0 0 0 3px var(--accent); } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (prefers-reduced-motion: reduce) { .pg.flash { animation: none; } .progress i { transition: none; } }
 .pg .fields { display: flex; flex-direction: column; gap: 2px; padding: 4px 12px 12px; }
-.fld { display: grid; grid-template-columns: minmax(0, 1fr) 92px 64px; gap: 6px; align-items: center; padding: 3px 0; border-top: 1px dashed var(--line); }
+.fld { display: grid; grid-template-columns: minmax(0, 1fr) 92px 64px; gap: 8px; align-items: center; padding: 5px 0; border-top: 1px solid var(--line); }
 .fld:first-child { border-top: none; }
-.fld label { font-size: 13px; min-width: 0; }
+.fld label { font-size: 14px; min-width: 0; }
 .fld .hint { display: block; font-size: 11.5px; color: var(--muted); line-height: 1.35; }
-.fld input[type=number] { width: 100%; padding: 3px 6px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface2); text-align: right; font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
-.fld .unit { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.fld input[type=number] { width: 100%; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface2); text-align: right; font-size: 14px; font-variant-numeric: tabular-nums; }
+.fld .unit { font-size: 12.5px; color: var(--muted); }
 .fld.chk { grid-template-columns: minmax(0, 1fr) auto; }
 .fld.txt { grid-template-columns: minmax(0, 1fr); }
-.fld textarea { width: 100%; min-height: 64px; border: 1px solid var(--line); border-radius: 3px; background: var(--surface2); font-family: var(--f-mono); font-size: 12px; padding: 4px 6px; }
+.fld textarea { width: 100%; min-height: 64px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface2); font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; padding: 6px 8px; }
 .fld input.changed { border-color: var(--accent); }
 
 /* KPI */
 .kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 1px; background: var(--line); border-top: 1px solid var(--line); }
-.kpi { background: var(--surface); padding: 8px 12px; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
-.kpi .k { font-size: 11.5px; color: var(--muted); }
-.kpi .v { font-family: var(--f-mono); font-size: 18px; font-variant-numeric: tabular-nums; }
-.kpi .v small { font-size: 11.5px; color: var(--muted); margin-left: 2px; }
+.kpi { background: var(--surface); padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi .k { font-size: 12.5px; color: var(--muted); }
+.kpi .v { font-family: var(--f-display); font-size: 21px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi .v small { font-family: var(--f-body); font-weight: 400; font-size: 12.5px; color: var(--muted); margin-left: 4px; }
 
 /* esquema */
 .schem-wrap { overflow-x: auto; }
 #schem { width: 100%; min-width: 640px; height: auto; display: block; }
 #schem .comp { cursor: pointer; }
 #schem .comp:hover .hl { stroke: var(--accent); stroke-width: 2.5; }
-#schem text { font-family: var(--f-mono); fill: var(--ink); }
+#schem text { font-family: var(--f-body); fill: var(--ink); }
 #schem .lbl { fill: var(--muted); }
 .crank { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; border-top: 1px solid var(--line); }
 .crank input[type=range] { flex: 1 1 260px; accent-color: var(--accent); }
-.crank .deg { font-family: var(--f-mono); font-variant-numeric: tabular-nums; min-width: 150px; }
-.legend { display: flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.crank .deg { font-variant-numeric: tabular-nums; min-width: 150px; font-weight: 500; }
+.legend { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
 .legend canvas { width: 140px; height: 10px; border: 1px solid var(--line); }
-.probes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px 12px; padding: 8px 14px 12px; font-size: 12.5px; }
+.probes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 16px; padding: 10px 18px 16px; font-size: 13.5px; }
 .probes div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px dotted var(--line); }
-.probes b { font-family: var(--f-mono); font-weight: 500; font-variant-numeric: tabular-nums; }
+.probes b { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 /* analítico */
 .an-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 12px; }
-.an { border: 1px solid var(--line); border-radius: 4px; background: var(--surface2); min-width: 0; }
-.an h3 { margin: 0; padding: 7px 10px; font-family: var(--f-display); font-size: 15.5px; font-weight: 600; border-bottom: 1px solid var(--line); }
-.an table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-.an td { padding: 4px 10px; border-top: 1px dashed var(--line); vertical-align: top; }
+.an { border: 1px solid var(--line); border-radius: 8px; background: var(--surface2); min-width: 0; }
+.an h3 { margin: 0; padding: 10px 12px 8px; font-family: var(--f-display); font-size: 16.5px; font-weight: 600; border-bottom: 1px solid var(--line); }
+.an table { width: 100%; border-collapse: collapse; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+.an td { padding: 6px 12px; border-top: 1px solid var(--line); vertical-align: top; }
 .an tr:first-child td { border-top: none; }
 .an td:first-child { width: 50%; }
-.an td.v { text-align: right; font-family: var(--f-mono); }
-.flag { font-family: var(--f-mono); font-size: 10.5px; padding: 0 4px; border-radius: 2px; margin-left: 4px; }
-.flag.w { color: var(--warn); border: 1px solid var(--warn); }
-.flag.b { color: var(--bad); border: 1px solid var(--bad); }
-.flag.o { color: var(--ok); border: 1px solid var(--ok); }
+.an td.v { text-align: right; font-weight: 500; }
+.flag { font-size: 11.5px; padding: 1px 7px; border-radius: 99px; margin-left: 6px; white-space: nowrap; }
+.flag.w { color: var(--warn); background: var(--warn-soft); }
+.flag.b { color: var(--bad); background: #f7e4e0; }
+.flag.o { color: var(--ok); background: var(--accent-soft); }
 
 /* gráficas */
-.subtabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 14px 0; }
-.subtab { border: 1px solid var(--line); background: var(--surface2); padding: 4px 10px; border-radius: 3px 3px 0 0; cursor: pointer; font-size: 13px; }
-.subtab[aria-selected="true"] { background: var(--surface); border-bottom-color: var(--surface); font-weight: 600; color: var(--accent); }
-.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; padding: 12px 14px 14px; }
+.subtabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 18px 0; }
+.subtab { border: 1px solid var(--line); background: var(--surface); padding: 5px 14px; border-radius: 99px; cursor: pointer; font-size: 14px; color: var(--muted); }
+.subtab[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; padding: 16px 18px 18px; }
 @media (max-width: 520px) { .charts { grid-template-columns: minmax(0, 1fr); } }
 .chart { position: relative; min-width: 0; }
-.chart h4 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.chart h4 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
 .chart canvas { width: 100%; height: 280px; display: block; }
 .chart.tall canvas { height: 360px; }
 .tip {
-  position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 4px 8px;
-  font-family: var(--f-mono); font-size: 11.5px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.12); z-index: 5;
+  position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px;
+  font-size: 12.5px; white-space: nowrap; box-shadow: 0 4px 14px rgba(40,35,20,.10); z-index: 5;
 }
 .tip i { display: inline-block; width: 8px; height: 8px; margin-right: 4px; border-radius: 1px; }
 .chart .ctl { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; font-size: 12.5px; margin-bottom: 4px; }
@@ -184,60 +170,60 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 
 /* tablas de resultados */
 .tbl-wrap { overflow-x: auto; }
-table.res { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+table.res { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
 table.res th, table.res td { padding: 5px 9px; border-top: 1px solid var(--line); text-align: right; white-space: nowrap; }
-table.res th { font-family: var(--f-mono); font-weight: 500; font-size: 11.5px; color: var(--muted); border-top: none; position: sticky; top: 0; background: var(--surface); }
+table.res th { font-weight: 600; font-size: 12.5px; color: var(--muted); border-top: none; position: sticky; top: 0; background: var(--surface); }
 table.res td:first-child, table.res th:first-child { text-align: left; }
 table.res tr.best td { background: var(--accent-soft); }
 .refs { display: flex; flex-wrap: wrap; gap: 6px; }
-.refchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); padding: 2px 4px 2px 8px; border-radius: 3px; font-size: 12.5px; background: var(--surface2); }
+.refchip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); padding: 2px 4px 2px 10px; border-radius: 99px; font-size: 13px; background: var(--surface2); }
 .refchip i { width: 18px; height: 0; border-top: 2px dashed; display: inline-block; }
-input.txt { border: 1px solid var(--line); border-radius: 3px; padding: 4px 8px; background: var(--surface2); }
+input.txt, select.txt { border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px; background: var(--surface2); }
 
 /* formulario */
 .doc { max-width: 1100px; display: flex; flex-direction: column; gap: 22px; }
-.doc h2 { font-family: var(--f-display); font-size: 25px; margin: 0; display: flex; gap: 10px; align-items: baseline; text-wrap: balance; }
-.doc h2 .code { font-family: var(--f-mono); font-size: 13px; color: var(--accent); font-weight: 500; }
-.doc h3 { font-family: var(--f-display); font-size: 18px; margin: 4px 0 0; color: var(--muted); }
+.doc h2 { font-family: var(--f-display); font-size: 27px; font-weight: 600; margin: 0; display: flex; gap: 10px; align-items: baseline; text-wrap: balance; }
+.doc h2 .code { font-family: var(--f-body); font-size: 13px; color: var(--accent); font-weight: 600; background: var(--accent-soft); padding: 1px 8px; border-radius: 99px; }
+.doc h3 { font-family: var(--f-display); font-size: 19px; font-weight: 600; margin: 6px 0 0; color: var(--ink); }
 .doc p { margin: 0; max-width: 75ch; }
 .doc section { display: flex; flex-direction: column; gap: 10px; scroll-margin-top: 80px; }
-.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
-.frow { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1.1fr) minmax(0, 1fr); gap: 14px; padding: 11px 14px; border-top: 1px solid var(--line); align-items: center; }
+.sheet { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.frow { display: grid; grid-template-columns: minmax(140px, 200px) minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; padding: 14px 18px; border-top: 1px solid var(--line); align-items: center; }
 .frow:first-child { border-top: none; }
 .frow .name { font-weight: 600; font-size: 13.5px; }
 .frow .eq { overflow-x: auto; min-width: 0; }
-.frow .ex { font-size: 13px; color: var(--muted); min-width: 0; }
+.frow .ex { font-size: 14px; color: var(--muted); min-width: 0; }
 @media (max-width: 800px) { .frow { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
-.box { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 10px 14px; border-radius: 0 4px 4px 0; font-size: 13.5px; }
+.box { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 14.5px; }
 .box.warn { border-color: var(--warn); background: var(--warn-soft); }
 .box p + p { margin-top: 6px; }
 .figure { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
 @media (max-width: 800px) { .figure { grid-template-columns: minmax(0, 1fr); } }
-.figure .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; min-width: 0; }
-.figure .panel h4 { margin: 0 0 6px; font-family: var(--f-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+.figure .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.figure .panel h4 { margin: 0 0 6px; font-size: 13px; letter-spacing: .02em; color: var(--muted); font-weight: 600; }
 .figure svg { width: 100%; height: auto; display: block; }
-table.data { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.data { border-collapse: collapse; width: 100%; font-size: 14px; }
 table.data th, table.data td { text-align: left; padding: 7px 12px; border-top: 1px solid var(--line); vertical-align: top; }
-table.data thead th { font-family: var(--f-mono); font-weight: 500; font-size: 11.5px; color: var(--muted); border-top: none; }
+table.data thead th { font-weight: 600; font-size: 12.5px; color: var(--muted); border-top: none; }
 table.data td.n, table.data th.n { text-align: right; font-variant-numeric: tabular-nums; }
 .toc { display: flex; flex-wrap: wrap; gap: 6px; }
-.toc a { font-family: var(--f-mono); font-size: 12px; text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); padding: 4px 9px; border-radius: 3px; }
+.toc a { font-size: 13.5px; text-decoration: none; color: var(--ink); border: 1px solid var(--line); background: var(--surface); padding: 4px 12px; border-radius: 99px; }
 .toc a:hover { border-color: var(--accent); color: var(--accent); }
 mjx-container[jax="SVG"][display="true"] { margin: 0 !important; text-align: left !important; }
 .modal-bg { position: fixed; inset: 0; background: rgba(10, 15, 20, .45); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
-.modal { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; width: min(640px, 100%); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.modal { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; width: min(640px, 100%); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
 .modal textarea { width: 100%; min-height: 220px; font-family: var(--f-mono); font-size: 12px; border: 1px solid var(--line); background: var(--surface2); padding: 8px; border-radius: 3px; }
 
 /* precálculo */
 .pre-in { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); border-top: 1px solid var(--line); }
 .pre-in .pre-grp { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
-.pre-grp { background: var(--surface); padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.pre-grp h3 { margin: 0 0 4px; font-family: var(--f-display); font-size: 16px; font-weight: 600; }
+.pre-grp { background: var(--surface); padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pre-grp h3 { margin: 0 0 6px; font-family: var(--f-display); font-size: 17px; font-weight: 600; }
 .pre-out { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 520px), 1fr)); gap: 16px; }
-table.cmp { border-collapse: collapse; width: 100%; font-size: 12.5px; font-variant-numeric: tabular-nums; }
-table.cmp th, table.cmp td { padding: 6px 10px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
-table.cmp th { font-family: var(--f-mono); font-weight: 500; font-size: 11px; color: var(--muted); border-top: none; }
-table.cmp td.n { text-align: right; font-family: var(--f-mono); white-space: nowrap; }
+table.cmp { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+table.cmp th, table.cmp td { padding: 8px 14px; border-top: 1px solid var(--line); text-align: left; vertical-align: top; }
+table.cmp th { font-weight: 600; font-size: 12.5px; color: var(--muted); border-top: none; }
+table.cmp td.n { text-align: right; white-space: nowrap; font-weight: 500; }
 table.cmp td.c { color: var(--muted); font-size: 12px; min-width: 150px; }
 table.cmp tr.key td { background: var(--accent-soft); }
 .pre-apply { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 6px 16px; font-size: 13px; }
@@ -261,6 +247,7 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
       <button class="tab" role="tab" data-view="sim" aria-selected="false">Simulador</button>
       <button class="tab" role="tab" data-view="sweep" aria-selected="false">Barrido rpm</button>
       <button class="tab" role="tab" data-view="opt" aria-selected="false">Trompeta variable</button>
+      <button class="tab" role="tab" data-view="optim" aria-selected="false">Optimizador</button>
       <button class="tab" role="tab" data-view="form" aria-selected="false">Formulario</button>
       <button class="tab" role="tab" data-view="model" aria-selected="false">Modelo</button>
     </div>
@@ -417,6 +404,28 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
     </div>
   </div>
 
+  <!-- ===================== OPTIMIZADOR ===================== -->
+  <div class="view" id="view-optim" hidden>
+    <div class="main">
+      <div class="card">
+        <div class="card-h">
+          <h2>Optimizador de periféricos</h2>
+          <div class="toolbar">
+            <button class="btn primary" id="opt2-go">Optimizar</button>
+            <button class="btn" id="opt2-stop" disabled>Detener</button>
+            <button class="btn" id="opt2-apply" disabled>Pasar óptimo al simulador</button>
+          </div>
+        </div>
+        <div class="card-b toolbar">
+          <div class="progress"><i id="opt2-prog"></i></div>
+          <span class="status" id="opt2-st">Busca la combinación de airbox, trompeta, escape y difusor que maximiza el par o la potencia media en una banda de régimen. Unos 45 cálculos ≈ 2–4 minutos.</span>
+        </div>
+        <div class="card-b" id="opt2-in" style="border-top:1px solid var(--line)"></div>
+      </div>
+      <div id="opt2-out" style="display:flex;flex-direction:column;gap:16px"></div>
+    </div>
+  </div>
+
   <!-- ===================== FORMULARIO ===================== -->
   <div class="view" id="view-form" hidden>
     <div class="doc">
@@ -482,13 +491,13 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
               <line x1="140" y1="72" x2="190" y2="72" stroke="var(--accent-soft)" stroke-width="3"/>
               <path d="M210 30 l0 -12 m0 12 l0 12" stroke="var(--ink)" stroke-width="1.5" fill="none"/>
               <path d="M206 22 l4 -6 l4 6 M206 38 l4 6 l4 -6" stroke="var(--ink)" stroke-width="1.5" fill="none"/>
-              <text x="220" y="34" font-size="11" fill="var(--ink)" font-family="IBM Plex Mono, monospace">x(t)</text>
-              <text x="14" y="44" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">masa:</text>
-              <text x="14" y="58" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">aire del cuello</text>
+              <text x="220" y="34" font-size="11" fill="var(--ink)" font-family="Source Sans 3, sans-serif">x(t)</text>
+              <text x="14" y="44" font-size="11" fill="var(--muted)" font-family="Source Sans 3, sans-serif">masa:</text>
+              <text x="14" y="58" font-size="11" fill="var(--muted)" font-family="Source Sans 3, sans-serif">aire del cuello</text>
               <line x1="108" y1="50" x2="140" y2="47" stroke="var(--muted)" stroke-width="1"/>
-              <text x="165" y="135" font-size="13" fill="var(--ink)" text-anchor="middle" font-family="IBM Plex Mono, monospace">V</text>
-              <text x="165" y="152" font-size="11" fill="var(--muted)" text-anchor="middle" font-family="IBM Plex Mono, monospace">muelle: aire comprimible</text>
-              <text x="165" y="10" font-size="11" fill="var(--muted)" text-anchor="middle" font-family="IBM Plex Mono, monospace">A, L</text>
+              <text x="165" y="135" font-size="13" fill="var(--ink)" text-anchor="middle" font-family="Source Sans 3, sans-serif">V</text>
+              <text x="165" y="152" font-size="11" fill="var(--muted)" text-anchor="middle" font-family="Source Sans 3, sans-serif">muelle: aire comprimible</text>
+              <text x="165" y="10" font-size="11" fill="var(--muted)" text-anchor="middle" font-family="Source Sans 3, sans-serif">A, L</text>
             </svg>
           </div>
           <div class="panel">
@@ -498,12 +507,12 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
               <g stroke="var(--ink)" stroke-width="1.5"><line x1="40" y1="20" x2="30" y2="10"/><line x1="70" y1="20" x2="60" y2="10"/><line x1="100" y1="20" x2="90" y2="10"/><line x1="130" y1="20" x2="120" y2="10"/><line x1="160" y1="20" x2="150" y2="10"/><line x1="190" y1="20" x2="180" y2="10"/><line x1="220" y1="20" x2="210" y2="10"/><line x1="250" y1="20" x2="240" y2="10"/><line x1="280" y1="20" x2="270" y2="10"/></g>
               <polyline points="160,20 160,36 176,44 144,56 176,68 144,80 176,92 144,104 160,112 160,124" fill="none" stroke="var(--ink)" stroke-width="2"/>
               <rect x="120" y="124" width="80" height="46" rx="3" fill="var(--accent)" opacity=".85"/>
-              <text x="160" y="152" font-size="14" fill="var(--surface)" text-anchor="middle" font-family="IBM Plex Mono, monospace">m</text>
-              <text x="196" y="76" font-size="13" fill="var(--ink)" font-family="IBM Plex Mono, monospace">k</text>
+              <text x="160" y="152" font-size="14" fill="var(--surface)" text-anchor="middle" font-family="Source Sans 3, sans-serif">m</text>
+              <text x="196" y="76" font-size="13" fill="var(--ink)" font-family="Source Sans 3, sans-serif">k</text>
               <path d="M226 128 l0 36" stroke="var(--ink)" stroke-width="1.5"/>
               <path d="M222 134 l4 -6 l4 6 M222 158 l4 6 l4 -6" stroke="var(--ink)" stroke-width="1.5" fill="none"/>
-              <text x="236" y="150" font-size="11" fill="var(--ink)" font-family="IBM Plex Mono, monospace">x(t)</text>
-              <text x="160" y="196" font-size="11" fill="var(--muted)" text-anchor="middle" font-family="IBM Plex Mono, monospace">m = ρAL · k = ρc²A²/V</text>
+              <text x="236" y="150" font-size="11" fill="var(--ink)" font-family="Source Sans 3, sans-serif">x(t)</text>
+              <text x="160" y="196" font-size="11" fill="var(--muted)" text-anchor="middle" font-family="Source Sans 3, sans-serif">m = ρAL · k = ρc²A²/V</text>
             </svg>
           </div>
         </div>
@@ -1449,7 +1458,93 @@ var SIM = (function () {
     return a;
   }
 
-  return { _rhs: rhs, _init: initState, _dt: computeDt, runPoint: runPoint, analytic: analytic, prep: prep, build: build, volume: volume, valveAreaFn: valveAreaFn, liftFn: liftFn, mod720: mod720, parseTable: parseTable, pathDiam: pathDiam, RGAS: RGAS };
+
+  /* ---------------- Optimizador (búsqueda por patrones) ---------------- */
+  var OPT_VARS = {
+    Vbox: { label: 'Volumen airbox', unit: 'L', round: 0.1 },
+    trL: { label: 'Trompeta (sin labio)', unit: 'mm', round: 1 },
+    exPrimL: { label: 'Primario de escape', unit: 'mm', round: 5 },
+    exChD: { label: 'Ø cámara de expansión', unit: 'mm', round: 1 },
+    exChL: { label: 'Longitud cámara', unit: 'mm', round: 5 },
+    dfL: { label: 'Longitud difusor', unit: 'mm', round: 5 }
+  };
+  function applyVars(P, v) {
+    var Q = JSON.parse(JSON.stringify(P));
+    if (v.Vbox != null) {
+      var V0 = Q.abLx * Q.abLy * Q.abLz / 1e6, k = Math.cbrt((v.Vbox + Q.abVocc) / V0);
+      ['abLx', 'abLy', 'abLz', 'trX', 'trY', 'trZ', 'dfX', 'dfY', 'dfZ'].forEach(function (id) { Q[id] = Q[id] * k; });
+    }
+    if (v.trL != null) Q.trL = v.trL;
+    if (v.exPrimL != null) Q.exPrimL = v.exPrimL;
+    if (v.exChD != null) Q.exChD = Math.max(v.exChD, Q.exPrimD2);
+    if (v.exChL != null) Q.exChL = v.exChL;
+    if (v.dfL != null) Q.dfL = v.dfL;
+    return Q;
+  }
+  function curve(Q, rpms) {
+    var init = null, out = [];
+    for (var i = 0; i < rpms.length; i++) {
+      Q.rpm = rpms[i];
+      var r = SIM_runPoint(Q, { init: init }); init = r.state; out.push(r.summary);
+    }
+    return out;
+  }
+  var SIM_runPoint = null;
+  function optimize(P, cfg, onProg) {
+    var fastP = JSON.parse(JSON.stringify(P));
+    fastP.abModes = 0; fastP.maxCycles = Math.min(fastP.maxCycles, 10); fastP.tol = Math.max(fastP.tol, 0.5);
+    var vars = cfg.vars, n = vars.length, cache = {}, evals = 0, hist = [];
+    function toVals(u) { var v = {}; vars.forEach(function (d, i) { var x = d.min + u[i] * (d.max - d.min); var rd = OPT_VARS[d.id].round; v[d.id] = Math.round(x / rd) * rd; }); return v; }
+    function objective(list) {
+      var s = 0; list.forEach(function (r) { s += cfg.objective === 'power' ? r.power : r.torque; }); return s / list.length;
+    }
+    function f(u) {
+      var v = toVals(u), key = JSON.stringify(v);
+      if (cache[key]) return cache[key];
+      var val = -1e9, list = null;
+      try { list = curve(applyVars(fastP, v), cfg.rpms); val = objective(list); } catch (e) { val = -1e9; }
+      evals++;
+      var res = { v: v, f: val, list: list };
+      cache[key] = res; hist.push({ k: evals, f: val });
+      if (onProg) onProg({ phase: 'search', evals: evals, max: cfg.maxEvals, v: v, f: val, best: best ? best : res });
+      return res;
+    }
+    var u0 = vars.map(function (d) { return Math.min(1, Math.max(0, (d.x0 - d.min) / (d.max - d.min))); });
+    var best = null;
+    var start = f(u0); best = start; var u = u0.slice(), step = cfg.step0 || 0.25;
+    while (step >= (cfg.stepMin || 0.03) && evals < cfg.maxEvals) {
+      var improved = false;
+      for (var i = 0; i < n && evals < cfg.maxEvals; i++) {
+        for (var dir = 1; dir >= -1; dir -= 2) {
+          var w = u.slice(); w[i] = Math.min(1, Math.max(0, w[i] + dir * step));
+          if (w[i] === u[i]) continue;
+          var r = f(w);
+          if (r.f > best.f + 1e-6) { best = r; u = w; improved = true; break; }
+        }
+      }
+      if (!improved) step /= 2;
+    }
+    // sensibilidad en el óptimo: ±h por variable (h = 8 % del rango)
+    var sens = [];
+    var h = 0.08;
+    for (var j = 0; j < n; j++) {
+      var up = u.slice(), dn = u.slice(); up[j] = Math.min(1, u[j] + h); dn[j] = Math.max(0, u[j] - h);
+      var fu = up[j] !== u[j] ? f(up).f : best.f, fd = dn[j] !== u[j] ? f(dn).f : best.f;
+      var dx = h * (vars[j].max - vars[j].min);
+      var c = (fu - 2 * best.f + fd) / (dx * dx);
+      var tol1 = c < 0 ? Math.sqrt(2 * 0.01 * best.f / -c) : null;
+      sens.push({ id: vars[j].id, up: (fu / best.f - 1) * 100, dn: (fd / best.f - 1) * 100, dx: dx, tol1: tol1 });
+      if (onProg) onProg({ phase: 'sens', evals: evals, max: cfg.maxEvals, best: best });
+    }
+    // curvas completas inicial / óptimo
+    if (onProg) onProg({ phase: 'curves', evals: evals, max: cfg.maxEvals, best: best });
+    var full = cfg.fullRpms;
+    var c0 = curve(applyVars(fastP, start.v), full), c1 = curve(applyVars(fastP, best.v), full);
+    return { start: { v: start.v, f: start.f }, best: { v: best.v, f: best.f }, Pbest: applyVars(P, best.v), sens: sens, hist: hist, curves: { rpms: full, start: c0, best: c1 }, evals: evals };
+  }
+
+  SIM_runPoint = runPoint;
+  return { optimize: optimize, applyVars: applyVars, OPT_VARS: OPT_VARS, _rhs: rhs, _init: initState, _dt: computeDt, runPoint: runPoint, analytic: analytic, prep: prep, build: build, volume: volume, valveAreaFn: valveAreaFn, liftFn: liftFn, mod720: mod720, parseTable: parseTable, pathDiam: pathDiam, RGAS: RGAS };
 })();
 
 /* ---------------- Worker ---------------- */
@@ -1469,6 +1564,9 @@ if (typeof self !== 'undefined' && typeof window === 'undefined' && typeof impor
           self.postMessage({ type: 'sweepPoint', i: i, n: msg.rpms.length, s: rr.summary });
         }
         self.postMessage({ type: 'sweepDone', results: out });
+      } else if (msg.cmd === 'optim') {
+        var R = SIM.optimize(msg.P, msg.cfg, function (p) { self.postMessage({ type: 'optimProg', p: { phase: p.phase, evals: p.evals, max: p.max, v: p.v, f: p.f, best: p.best ? { v: p.best.v, f: p.best.f } : null } }); });
+        self.postMessage({ type: 'optimDone', R: R });
       } else if (msg.cmd === 'opt') {
         var P2 = JSON.parse(JSON.stringify(msg.P)), res = [], tot = msg.Ls.length * msg.rpms.length, cnt = 0;
         for (var a = 0; a < msg.Ls.length; a++) {
@@ -2872,6 +2970,200 @@ var CH = (function () {
   }
 
   function init() { build(); calc(); }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+</script>
+<script>
+/* Optimizador de periféricos: airbox, trompeta, escape (primario + cámara) y difusor */
+(function () {
+  'use strict';
+  function $(s) { return document.querySelector(s); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function n2(v, d) { if (!isFinite(v)) return '–'; return Number(v).toFixed(d == null ? 1 : d).replace('.', ','); }
+  function css(v) { return CH.css(v); }
+  function flag(t, k) { return '<span class="flag ' + (k || 'w') + '">' + t + '</span>'; }
+  var V = SIM.OPT_VARS;
+  var DEF = { Vbox: [2.4, 9], trL: [10, 180], exPrimL: [300, 1100], exChD: [42, 110], exChL: [80, 400], dfL: [150, 600] };
+  var worker = null, last = null, running = false;
+
+  function curP() { return window.SIMAPP ? SIMAPP.getP() : defaultParams(); }
+  function curVals(P) {
+    return { Vbox: +(P.abLx * P.abLy * P.abLz / 1e6 - P.abVocc).toFixed(2), trL: P.trL, exPrimL: P.exPrimL, exChD: P.exChD, exChL: P.exChL, dfL: P.dfL };
+  }
+  function build() {
+    var P = curP(), cv = curVals(P);
+    var rows = Object.keys(V).map(function (id) {
+      return '<tr><td><label><input type="checkbox" id="ov-' + id + '" checked> ' + esc(V[id].label) + '</label></td><td class="n" id="ocur-' + id + '">' + n2(cv[id], id === 'Vbox' ? 2 : 0) + ' ' + V[id].unit + '</td>' +
+        '<td><input type="number" class="txt" style="width:84px" id="omin-' + id + '" value="' + DEF[id][0] + '"></td><td><input type="number" class="txt" style="width:84px" id="omax-' + id + '" value="' + DEF[id][1] + '"></td></tr>';
+    }).join('');
+    $('#opt2-in').innerHTML =
+      '<div class="toolbar" style="margin-bottom:10px">' +
+      '<label>Objetivo <select id="o-obj" class="txt"><option value="torque">Par medio en la banda</option><option value="power">Potencia media en la banda</option></select></label>' +
+      '<label>Banda <input type="number" class="txt" style="width:84px" id="o-n0" value="8000" step="250"> – <input type="number" class="txt" style="width:84px" id="o-n1" value="12500" step="250"> rpm</label>' +
+      '<label>Puntos <input type="number" class="txt" style="width:60px" id="o-np" value="4" min="2" max="8"></label>' +
+      '<label>Simulaciones máx. <input type="number" class="txt" style="width:70px" id="o-max" value="45" min="10" max="200"></label></div>' +
+      '<div class="tbl-wrap"><table class="cmp"><thead><tr><th>Variable</th><th>Valor actual</th><th>Mín.</th><th>Máx.</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="note" style="margin-top:8px">Parte del diseño actual del simulador (la velocidad de la moto para el ram es la de «Ambiente y ram air»). Con Ø de cámara igual al del primario no hay cámara: el optimizador decide si compensa ponerla. Para ganar velocidad, durante la búsqueda se desactivan los modos propios del airbox.</p>';
+  }
+  function cfgFromUI() {
+    var P = curP(), cv = curVals(P), vars = [];
+    Object.keys(V).forEach(function (id) {
+      if (!$('#ov-' + id).checked) return;
+      var mn = parseFloat($('#omin-' + id).value), mx = parseFloat($('#omax-' + id).value);
+      if (id === 'exChD') mn = Math.max(mn, P.exPrimD2);
+      if (!(mx > mn)) return;
+      vars.push({ id: id, min: mn, max: mx, x0: Math.min(mx, Math.max(mn, cv[id])) });
+    });
+    var n0 = +$('#o-n0').value, n1 = +$('#o-n1').value, np = Math.max(2, Math.min(8, Math.round(+$('#o-np').value)));
+    var rpms = []; for (var i = 0; i < np; i++) rpms.push(Math.round((n0 + (n1 - n0) * i / (np - 1)) / 50) * 50);
+    var full = []; for (var N = Math.min(P.swMin, n0); N <= Math.max(P.swMax, n1) + 1; N += 1000) full.push(N);
+    return { P: P, cfg: { objective: $('#o-obj').value, rpms: rpms, fullRpms: full, maxEvals: Math.max(10, +$('#o-max').value), vars: vars } };
+  }
+  function run() {
+    if (running) return;
+    var c = cfgFromUI();
+    if (!c.cfg.vars.length) { $('#opt2-st').textContent = 'Marca al menos una variable.'; return; }
+    running = true; $('#opt2-go').disabled = true; $('#opt2-stop').disabled = false; $('#opt2-apply').disabled = true;
+    $('#opt2-prog').style.width = '0%'; $('#opt2-st').textContent = 'Buscando…';
+    var src = document.getElementById('solver-src').textContent;
+    worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    worker.onmessage = function (ev) {
+      var d = ev.data;
+      if (d.type === 'optimProg') {
+        var p = d.p, pct = p.phase === 'search' ? Math.min(85, p.evals / p.max * 85) : (p.phase === 'sens' ? 90 : 95);
+        $('#opt2-prog').style.width = pct + '%';
+        var unit = c.cfg.objective === 'power' ? ' kW' : ' N·m';
+        $('#opt2-st').textContent = (p.phase === 'search' ? 'Simulación ' + p.evals + ' de ' + p.max : p.phase === 'sens' ? 'Sensibilidad alrededor del óptimo' : 'Curvas completas inicial y óptima') + (p.best ? ' · mejor ' + n2(p.best.f, 2) + unit : '');
+        if (p.best) { last = last || {}; last.partialBest = p.best; }
+      } else if (d.type === 'optimDone') {
+        done(d.R, c);
+      } else if (d.type === 'error') { stop(); $('#opt2-st').textContent = d.message; }
+    };
+    worker.onerror = function (e) { stop(); $('#opt2-st').textContent = 'Error: ' + (e.message || ''); };
+    worker.postMessage({ cmd: 'optim', P: c.P, cfg: c.cfg });
+  }
+  function stop() {
+    if (worker) { worker.terminate(); worker = null; }
+    running = false; $('#opt2-go').disabled = false; $('#opt2-stop').disabled = true;
+  }
+  function done(R, c) {
+    stop(); $('#opt2-prog').style.width = '100%';
+    last = { R: R, c: c }; $('#opt2-apply').disabled = false;
+    var gain = (R.best.f / R.start.f - 1) * 100;
+    $('#opt2-st').textContent = 'Terminado: ' + R.evals + ' simulaciones · objetivo ' + (gain >= 0 ? '+' : '') + n2(gain, 1) + ' %.';
+    render();
+  }
+  function render() {
+    if (!last || !last.R) return;
+    var R = last.R, c = last.c, vars = c.cfg.vars, unit = c.cfg.objective === 'power' ? 'kW' : 'N·m';
+    var cs = R.curves, i0 = cs.start, i1 = cs.best;
+    function mx(list, k) { return list.reduce(function (a, s) { return s[k] > a[k] ? s : a; }); }
+    var t0 = mx(i0, 'torque'), t1 = mx(i1, 'torque'), p0 = mx(i0, 'power'), p1 = mx(i1, 'power');
+    var bandC = Math.round((c.cfg.rpms[0] + c.cfg.rpms[c.cfg.rpms.length - 1]) / 2 / 50) * 50;
+    var Qb = JSON.parse(JSON.stringify(R.Pbest)); Qb.rpm = bandC;
+    var Q0 = JSON.parse(JSON.stringify(c.P)); Q0.rpm = bandC;
+    var a = SIM.analytic(Qb), a0 = SIM.analytic(Q0);
+    var kp = [
+      ['Objetivo (' + (c.cfg.objective === 'power' ? 'potencia' : 'par') + ' medio ' + c.cfg.rpms[0] + '–' + c.cfg.rpms[c.cfg.rpms.length - 1] + ')', n2(R.start.f, 2) + ' → ' + n2(R.best.f, 2), unit + ' (' + ((R.best.f / R.start.f - 1) * 100 >= 0 ? '+' : '') + n2((R.best.f / R.start.f - 1) * 100, 1) + ' %)'],
+      ['Par máximo', n2(t0.torque, 1) + ' → ' + n2(t1.torque, 1), 'N·m a ' + t1.rpm + ' rpm'],
+      ['Potencia máxima', n2(p0.power / 0.7355, 1) + ' → ' + n2(p1.power / 0.7355, 1), 'CV a ' + p1.rpm + ' rpm']
+    ];
+    var html = '<div class="card"><div class="card-h"><h2>Resultado</h2><span class="sub">Comparación con el diseño de partida, mismas hipótesis</span></div><div class="kpis">' +
+      kp.map(function (k) { return '<div class="kpi"><span class="k">' + k[0] + '</span><span class="v">' + k[1] + '<small>' + k[2] + '</small></span></div>'; }).join('') + '</div></div>';
+    // tabla de variables
+    var sens = {}; R.sens.forEach(function (s) { sens[s.id] = s; });
+    var rows = vars.map(function (d) {
+      var v0 = R.start.v[d.id], v1 = R.best.v[d.id], s = sens[d.id], rng = d.max - d.min;
+      var atLim = Math.abs(v1 - d.min) < 0.02 * rng ? flag('en el mínimo') : (Math.abs(v1 - d.max) < 0.02 * rng ? flag('en el máximo') : '');
+      var robust = s ? Math.max(Math.abs(s.up), Math.abs(s.dn)) : 0;
+      var tol = s && s.tol1 ? '±' + n2(s.tol1, d.id === 'Vbox' ? 1 : 0) + ' ' + V[d.id].unit : 'muy plano';
+      var label = d.id === 'exChD' && v1 <= c.P.exPrimD2 + 0.5 ? 'sin cámara' : n2(v1, d.id === 'Vbox' ? 1 : 0) + ' ' + V[d.id].unit;
+      return '<tr' + (robust >= 1 ? ' class="key"' : '') + '><td>' + V[d.id].label + '</td><td class="n">' + n2(v0, d.id === 'Vbox' ? 1 : 0) + '</td><td class="n"><b>' + label + '</b> ' + atLim + '</td><td class="n">' + n2(d.min, 0) + '–' + n2(d.max, 0) + '</td><td class="n">' + (s ? n2(s.dn, 1) + ' / ' + n2(s.up, 1) + ' %' : '–') + '</td><td class="n">' + tol + '</td></tr>';
+    }).join('');
+    html += '<div class="card"><div class="card-h"><h2>Valores óptimos</h2><span class="sub">Sensibilidad: cambio del objetivo al mover la variable ±8 % de su rango · Tolerancia: desviación que cuesta 1 %</span></div><div class="tbl-wrap"><table class="cmp"><thead><tr><th>Variable</th><th>Inicial</th><th>Óptimo</th><th>Rango</th><th>Sensibilidad − / +</th><th>Tolerancia (−1 %)</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<div class="card-b"><p class="note">Las filas resaltadas son críticas (≥ 1 % de efecto): ahí la cota de fabricación importa. «En el límite» significa que el óptimo está fuera del rango o que lo frena una restricción: amplía el rango si es físicamente posible, o toma el límite como valor de diseño.</p></div></div>';
+    // curvas
+    html += '<div class="card"><div class="charts"><div class="chart tall"><h4>Par [N·m] y potencia [kW]: inicial frente a óptimo</h4><canvas id="o2-c1"></canvas></div><div class="chart"><h4>Convergencia del objetivo</h4><canvas id="o2-c2"></canvas></div></div></div>';
+    // parámetros de diseño de periféricos
+    var P = R.Pbest, Vb = P.abLx * P.abLy * P.abLz / 1e6 - P.abVocc;
+    var noCh = P.exChD <= P.exPrimD2 + 0.5;
+    var A1 = Math.pow(P.exPrimD2, 2), A2 = Math.pow(P.exChD, 2);
+    var Ltot = P.exPortL + P.exPrimL + P.exConeIn + P.exChL + P.exConeOut + P.exTailL;
+    var Lrun = P.lipL + P.trL + P.tbL + P.ptL;
+    var cE = Math.sqrt(P.exGamma * 287.05 * P.exTmean);
+    var dthE = 180 + P.evOpen;
+    var Lrefl = noCh ? Ltot : P.exPortL + P.exPrimL + 0.5 * P.exConeIn;
+    var Ntuned = cE * dthE / (12 * Lrefl / 1e3);
+    function tb(rows) { return '<table>' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td class="v">' + r[1] + '</td></tr>'; }).join('') + '</table>'; }
+    var cards = [
+      ['Airbox', [
+        ['Volumen de aire', n2(Vb, 2) + ' L (' + n2(a.VboxRatio, 1) + '·V<sub>d</sub>)' + (Vb < 2.4 ? flag('< 2,4 L reglamento', 'b') : '')],
+        ['Dimensiones (proporciones actuales)', Math.round(P.abLx) + ' × ' + Math.round(P.abLy) + ' × ' + Math.round(P.abLz) + ' mm'],
+        ['f Helmholtz con el difusor óptimo', n2(a.fHbox, 0) + ' Hz (antes ' + n2(a0.fHbox, 0) + ')'],
+        ['Resonancia k = 1 / 2', n2(a.NHbox[0], 0) + ' / ' + n2(a.NHbox[1], 0) + ' rpm'],
+        ['Primer modo propio', a.boxModes[0].idx + ' ' + n2(a.boxModes[0].f, 0) + ' Hz'],
+        ['Holgura boca → techo', n2(P.abLz - P.trZ, 0) + ' mm' + (P.abLz - P.trZ < P.lipD ? flag('< Ø boca') : '')]
+      ]],
+      ['Difusor de entrada', [
+        ['Longitud', n2(P.dfL, 0) + ' mm'],
+        ['Áreas entrada → salida', n2(P.dfAin, 0) + ' → ' + n2(P.dfAout, 0) + ' cm² (AR ' + n2(a.AR, 2) + ')'],
+        ['Semiángulo equivalente', n2(a.thEq, 2) + '°' + (a.thEq > 5 ? flag('> 5°') : flag('ok', 'o'))],
+        ['C<sub>p</sub> ideal / K Gibson', n2(a.Cpi, 3) + ' / ' + n2(a.Kgibson, 3)],
+        ['(L/A)<sub>ef</sub> (cuello Helmholtz)', n2(a.neckLA, 1) + ' m⁻¹']
+      ]],
+      ['Trompeta y admisión', [
+        ['Trompeta sin labio / con labio', n2(P.trL, 0) + ' / ' + n2(P.trL + P.lipL, 0) + ' mm'],
+        ['Conducto total boca → válvula', n2(Lrun, 0) + ' mm (efectiva ' + n2(a.runLef, 0) + ')'],
+        ['Ø trompeta / Ø labio', n2(P.trD1, 1) + ' / ' + n2(P.lipD, 0) + ' mm'],
+        ['¼ de onda f₁ (válvula cerrada)', n2(a.f1, 0) + ' Hz'],
+        ['Ida y vuelta a ' + bandC + ' rpm', n2(a.rtDeg, 0) + '° (orden n ≈ ' + n2(a.order, 2) + ')']
+      ]],
+      ['Escape', [
+        ['Primario', n2(P.exPrimL, 0) + ' mm · Ø' + n2(P.exPrimD1, 0) + '→' + n2(P.exPrimD2, 0)],
+        ['Cámara de expansión', noCh ? 'sin cámara (recto)' : 'Ø' + n2(P.exChD, 0) + ' × ' + n2(P.exChL, 0) + ' mm'],
+        ['A₂/A₁ · R · energía reflejada', noCh ? '–' : n2(A2 / A1, 2) + ' · ' + n2((A1 - A2) / (A1 + A2), 2) + ' · ' + n2(Math.pow((A1 - A2) / (A1 + A2), 2) * 100, 0) + ' %'],
+        ['Longitud total del escape', n2(Ltot, 0) + ' mm'],
+        ['Régimen sintonizado (1ª reflexión al PMS de cruce)', n2(Ntuned, 0) + ' rpm (T media ' + P.exTmean + ' K)'],
+        ['Helmholtz cámara + cola', noCh ? '–' : n2(a.fHex, 0) + ' Hz → ' + n2(a.NHex, 0) + ' rpm']
+      ]]
+    ];
+    html += '<div class="card"><div class="card-h"><h2>Parámetros de diseño de los periféricos</h2><span class="sub">Calculados sobre el diseño óptimo · régimen de referencia ' + bandC + ' rpm</span></div><div class="card-b"><div class="an-grid">' +
+      cards.map(function (k) { return '<div class="an"><h3>' + k[0] + '</h3>' + tb(k[1]) + '</div>'; }).join('') + '</div></div></div>';
+    var pg = (p1.power / p0.power - 1) * 100, tg = (R.best.f / R.start.f - 1) * 100;
+    if (pg > 10 || tg > 10) html = '<div class="card"><div class="card-b"><div class="box warn"><p><b>Ganancia sospechosa (' + n2(Math.max(pg, tg), 0) + ' %).</b> Mejoras de más de un 10 % solo cambiando periféricos son raras en un motor ya desarrollado. Lo más probable es que el optimizador esté aprovechando una simplificación del modelo (por ejemplo, el escape sin absorción de la lana refleja más de lo real). Repite con rangos realistas o fijando esa variable antes de usar el resultado.</p></div></div></div>' + html;
+    html += '<div class="card"><div class="card-b"><div class="box warn"><p>El óptimo es tan bueno como las entradas del modelo. Con la leva y el silenciador aún estimados, úsalo para ver hacia dónde mover cada cota y cuánto importa, no como cota final. Si una variable sale en el límite del rango o contradice un ensayo de banco, manda el ensayo.</p></div></div></div>';
+    $('#opt2-out').innerHTML = html;
+    var x = cs.rpms;
+    CH.line($('#o2-c1'), { xName: 'rpm', xLabel: 'N [rpm]', yLabel: 'Par [N·m]', y2Label: 'Potencia [kW]', series: [
+      { x: x, y: i0.map(function (s) { return s.torque; }), color: css('--s6'), dash: [5, 3], label: 'Par inicial' },
+      { x: x, y: i1.map(function (s) { return s.torque; }), color: css('--s1'), width: 2.2, dots: true, label: 'Par óptimo' },
+      { x: x, y: i0.map(function (s) { return s.power; }), color: css('--s6'), dash: [2, 3], axis: 'r', label: 'Potencia inicial' },
+      { x: x, y: i1.map(function (s) { return s.power; }), color: css('--s2'), width: 2.2, axis: 'r', dots: true, label: 'Potencia óptima' }],
+      bands: [{ x0: c.cfg.rpms[0], x1: c.cfg.rpms[c.cfg.rpms.length - 1], color: 'rgba(15,107,116,0.08)' }] });
+    var h = R.hist.filter(function (p) { return p.f > -1e8; }), bestSoFar = -1e9;
+    CH.line($('#o2-c2'), { xName: 'sim.', xLabel: 'simulación', yLabel: unit, series: [
+      { x: h.map(function (p) { return p.k; }), y: h.map(function (p) { return p.f; }), color: css('--s3'), dots: true, label: 'Evaluación' },
+      { x: h.map(function (p) { return p.k; }), y: h.map(function (p) { bestSoFar = Math.max(bestSoFar, p.f); return bestSoFar; }), color: css('--s1'), width: 2, label: 'Mejor hasta ahora' }] });
+  }
+  function apply() {
+    if (!last || !last.R || !window.SIMAPP) return;
+    var Pb = last.R.Pbest, o = {};
+    ['abLx', 'abLy', 'abLz', 'trX', 'trY', 'trZ', 'dfX', 'dfY', 'dfZ'].forEach(function (k) { o[k] = Math.round(Pb[k]); });
+    ['trL', 'exPrimL', 'exChD', 'exChL', 'dfL'].forEach(function (k) { o[k] = Pb[k]; });
+    SIMAPP.apply(o); $('#opt2-st').textContent = 'Óptimo pasado al simulador.'; SIMAPP.show('sim');
+  }
+  function init() {
+    build();
+    $('#opt2-go').addEventListener('click', run);
+    $('#opt2-stop').addEventListener('click', function () { stop(); $('#opt2-st').textContent = 'Detenido.'; });
+    $('#opt2-apply').addEventListener('click', apply);
+    document.querySelector('.tab[data-view="optim"]').addEventListener('click', function () {
+      var cv = curVals(curP());
+      Object.keys(V).forEach(function (id) { var e = document.getElementById('ocur-' + id); if (e) e.textContent = n2(cv[id], id === 'Vbox' ? 2 : 0) + ' ' + V[id].unit; });
+      setTimeout(render, 30);
+    });
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
 
