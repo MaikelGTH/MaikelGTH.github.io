@@ -148,12 +148,14 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 #schem text { font-family: var(--f-body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
 #schem .wall { fill: none; stroke: var(--ink); stroke-width: 0.9; stroke-linejoin: round; opacity: .85; }
 #schem .lbl { fill: var(--muted); }
+#schem .pv { fill: var(--accent2); font-weight: 600; font-variant-numeric: tabular-nums; }
 .crank { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; border-top: 1px solid var(--line); }
 .crank input[type=range] { flex: 1 1 260px; accent-color: var(--accent2); }
 .crank .deg { font-variant-numeric: tabular-nums; min-width: 150px; font-weight: 500; }
 .legend { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); }
 .legend canvas { width: 140px; height: 10px; border: 1px solid var(--line); }
-.probes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px 16px; padding: 10px 18px 16px; font-size: 13.5px; }
+.probes { display: block; padding: 10px 18px 16px; font-size: 13.5px; }
+.probes .note { margin: 8px 0 0; }
 .probes div { display: flex; justify-content: space-between; gap: 6px; border-bottom: 1px dotted var(--line); }
 .probes b { font-weight: 600; font-variant-numeric: tabular-nums; }
 
@@ -346,7 +348,7 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
         </div>
 
         <div class="card">
-          <div class="card-h"><h2>Esquema del sistema</h2><span class="sub">Escala real en mm · alzada de válvulas ×2 · color = presión en el ángulo θ</span></div>
+          <div class="card-h"><h2>Esquema del sistema</h2><span class="sub">Escala real en mm · alzada de válvulas ×2 · color y números morados = presión [bar] en el ángulo θ</span></div>
           <div class="schem-wrap"><svg id="schem" role="img" aria-label="Esquema: difusor, airbox, trompeta, cilindro y escape"></svg></div>
           <div class="crank">
             <button class="btn small" id="btn-play">Reproducir</button>
@@ -1268,7 +1270,7 @@ var SIM = (function () {
       var nc = m.cellsTotal, nm = m.modes.length;
       return {
         pc: new Float32Array(720), Tc: new Float32Array(720), V: new Float32Array(720),
-        pb: new Float32Array(720), pTr: new Float32Array(720), pDf: new Float32Array(720),
+        pb: new Float32Array(720), Tb: new Float32Array(720), pTr: new Float32Array(720), pDf: new Float32Array(720),
         mIV: new Float32Array(720), mEV: new Float32Array(720), mMouth: new Float32Array(720), mTr: new Float32Array(720),
         liftI: new Float32Array(720), liftE: new Float32Array(720), AeI: new Float32Array(720), AeE: new Float32Array(720),
         xb: new Float32Array(720), Yc: new Float32Array(720), Qw: new Float32Array(720),
@@ -1333,7 +1335,7 @@ var SIM = (function () {
         var deg = Math.floor(thm1);
         if (deg !== lastDeg) {
           var r = rec1;
-          R.pc[deg] = r.pc; R.Tc[deg] = r.Tc; R.V[deg] = r.V; R.pb[deg] = r.pb; R.pTr[deg] = r.pTr; R.pDf[deg] = r.pDf;
+          R.pc[deg] = r.pc; R.Tc[deg] = r.Tc; R.V[deg] = r.V; R.pb[deg] = r.pb; R.Tb[deg] = r.Tb; R.pTr[deg] = r.pTr; R.pDf[deg] = r.pDf;
           R.mIV[deg] = r.mIV; R.mEV[deg] = r.mEV; R.mMouth[deg] = r.mMouth; R.mTr[deg] = r.mTr;
           R.liftI[deg] = m.ivLift(thNew) * 1e3; R.liftE[deg] = m.evLift(thNew) * 1e3; R.AeI[deg] = r.AeI; R.AeE[deg] = r.AeE;
           R.xb[deg] = aux.Qtot > 0 ? wiebeX(m, thNew) : 0; R.Yc[deg] = r.Yc; R.Qw[deg] = r.Qw;
@@ -2366,9 +2368,15 @@ var CH = (function () {
       var pt;
       if (pb.kind === 'pipe') { var path = pb.pipe === 0 ? pathD : (pb.pipe === 1 ? pathR : pathE); var pp = m.pipes[pb.pipe]; pt = pointAt(path, (pb.cell + 0.5) * pp.dx * mm); }
       else if (pb.kind === 'box') pt = [mouthX + lipR + 14, mouthY - 14];
+      else if (pb.kind === 'boxm') pt = [x0 + Lx - fs * 1.4, y0 + fs * 1.4];
       else pt = [cylCx - B / 2 - 10 - fs * 0.9, yDeck + hClear + 4];
       o.push('<circle cx="' + pt[0].toFixed(1) + '" cy="' + pt[1].toFixed(1) + '" r="' + (fs * 0.6) + '" fill="var(--surface)" stroke="' + ink + '"/>');
       o.push(T(pt[0], pt[1] + fs * 0.33, String(k + 1), { anchor: 'middle', fs: fs * 0.75 }));
+      if (rec && pb.kind !== 'cyl') {
+        var pv = pb.kind === 'box' ? rec.pTr[deg] : pb.kind === 'boxm' ? rec.pb[deg] : pb.kind === 'cyl' ? rec.pc[deg] : cellState(R, m, pb.pipe, pb.cell, deg).p;
+        var below = pb.key === 'dOut';
+        o.push('<text class="pv"' + (below ? ' text-anchor="middle"' : '') + ' x="' + (below ? pt[0] : pt[0] + fs * 0.75).toFixed(1) + '" y="' + (below ? pt[1] + fs * 1.6 : pt[1] - fs * 0.55).toFixed(1) + '" font-size="' + (fs * 0.72).toFixed(1) + '">' + n2(pv / 1e5, pb.kind === 'cyl' ? 1 : 3) + '</text>');
+      }
     });
     svg.innerHTML = o.join('');
     renderProbes(m, probes, rec, NC);
@@ -2376,42 +2384,70 @@ var CH = (function () {
   function probeDefs(m) {
     var pd = m.pipes[0], pr = m.pipes[1], pe = m.pipes[2];
     function cellAt(pp, x) { return Math.max(0, Math.min(pp.n - 1, Math.floor(x / pp.dx))); }
-    var xs = 0, xPrimEnd = 0, xChMid = 0;
-    m.segExh.forEach(function (sg) { if (sg.name === 'Primario') xPrimEnd = xs + sg.L; if (sg.name === 'Cámara') xChMid = xs + sg.L / 2; xs += sg.L; });
-    return [
-      { name: 'Boca del difusor', kind: 'pipe', pipe: 0, cell: 0 },
-      { name: 'Airbox en la boca', kind: 'box' },
-      { name: 'Boca de la trompeta', kind: 'pipe', pipe: 1, cell: 0 },
-      { name: 'Puerto adm. (válvula)', kind: 'pipe', pipe: 1, cell: pr.n - 1 },
-      { name: 'Cilindro', kind: 'cyl' },
-      { name: 'Puerto esc. (válvula)', kind: 'pipe', pipe: 2, cell: 0 },
-      { name: 'Final del primario', kind: 'pipe', pipe: 2, cell: cellAt(pe, xPrimEnd) - 1 },
-      { name: 'Centro de la cámara', kind: 'pipe', pipe: 2, cell: cellAt(pe, xChMid) },
-      { name: 'Salida del escape', kind: 'pipe', pipe: 2, cell: pe.n - 1 }
+    var xs = 0, xPrimMid = 0, xPrimEnd = 0, xChMid = 0, xTail = 0;
+    m.segExh.forEach(function (sg) {
+      if (sg.name === 'Primario') { xPrimMid = xs + sg.L / 2; xPrimEnd = xs + sg.L; }
+      if (sg.name === 'Cámara') xChMid = xs + sg.L / 2;
+      if (sg.name === 'Cola/silenc.') xTail = xs;
+      xs += sg.L;
+    });
+    var xr = 0, xTrMid = 0;
+    m.segRun.forEach(function (sg) { if (sg.name === 'Trompeta') xTrMid = xr + sg.L / 2; xr += sg.L; });
+    var dPr = 0, dCh = 0; m.segExh.forEach(function (sg) { if (sg.name === 'Primario') dPr = sg.D1; if (sg.name === 'Cámara') dCh = sg.D0; });
+    var noCh = !(dCh > dPr + 5e-4);
+    var L = [
+      { key: 'dIn', name: 'Entrada del difusor', kind: 'pipe', pipe: 0, cell: 0 },
+      { key: 'dMid', name: 'Mitad del difusor', kind: 'pipe', pipe: 0, cell: cellAt(pd, pd.L / 2) },
+      { key: 'dOut', name: 'Salida del difusor', kind: 'pipe', pipe: 0, cell: pd.n - 1 },
+      { key: 'boxM', name: 'Airbox (media)', kind: 'boxm' },
+      { key: 'box', name: 'Airbox junto a la boca', kind: 'box' },
+      { key: 'rIn', name: 'Boca de la trompeta', kind: 'pipe', pipe: 1, cell: 0 },
+      { key: 'rMid', name: 'Centro de la trompeta', kind: 'pipe', pipe: 1, cell: cellAt(pr, xTrMid) },
+      { key: 'rOut', name: 'Puerto adm. (válvula)', kind: 'pipe', pipe: 1, cell: pr.n - 1 },
+      { key: 'cyl', name: 'Cilindro', kind: 'cyl' },
+      { key: 'eIn', name: 'Puerto esc. (válvula)', kind: 'pipe', pipe: 2, cell: 0 },
+      { key: 'ePm', name: 'Mitad del primario', kind: 'pipe', pipe: 2, cell: cellAt(pe, xPrimMid) },
+      { key: 'ePe', name: 'Final del primario', kind: 'pipe', pipe: 2, cell: Math.max(0, cellAt(pe, xPrimEnd) - 1) }
     ];
+    if (xChMid > 0) L.push({ key: 'eCh', name: noCh ? 'Centro tramo «cámara» (sin ensanche)' : 'Centro de la cámara', kind: 'pipe', pipe: 2, cell: cellAt(pe, xChMid) });
+    L.push({ key: 'eTl', name: 'Entrada cola / silenciador', kind: 'pipe', pipe: 2, cell: cellAt(pe, xTail) });
+    L.push({ key: 'eOut', name: 'Salida del escape', kind: 'pipe', pipe: 2, cell: pe.n - 1 });
+    return L;
   }
-  function probeSeries(pb, R, field) {
-    var meta = R.meta, rec = R.rec, NC = meta.cellsTotal, out = new Float64Array(720);
-    if (pb.kind === 'box') { for (var d = 0; d < 720; d++) out[d] = field === 'p' ? rec.pTr[d] : NaN; return out; }
+  function pipeOff(meta, pipe) { return pipe === 0 ? 0 : (pipe === 1 ? meta.pipes[0].n : meta.pipes[0].n + meta.pipes[1].n); }
+  // Magnitudes derivadas del estado de la celda (definiciones exactas):
+  // ρ = p/(R·T) · ṁ = ρ·u·A · M = u/√(γRT) · p0 = p·(1 + (γ−1)/2·M²)^(γ/(γ−1))
+  function cellState(R, mp, pipe, cell, d) {
+    var meta = R.meta, rec = R.rec, NC = meta.cellsTotal, i = d * NC + pipeOff(meta, pipe) + cell;
+    var pp = mp.pipes[pipe], g = pp.g, Rg = pp.R, D = meta.pipes[pipe].D[cell];
+    var p = rec.pipeP[i], u = rec.pipeU[i], T = rec.pipeT[i], rho = p / (Rg * T), A = Math.PI / 4 * D * D;
+    var M = u / Math.sqrt(g * Rg * T);
+    return { p: p, u: u, T: T, rho: rho, m: rho * u * A, M: M, p0: p * Math.pow(1 + 0.5 * (g - 1) * M * M, g / (g - 1)), D: D };
+  }
+  function probeSeries(pb, R, field, mp) {
+    var rec = R.rec, out = new Float64Array(720), d;
+    if (pb.kind === 'box') { for (d = 0; d < 720; d++) out[d] = field === 'p' || field === 'p0' ? rec.pTr[d] : NaN; return out; }
+    if (pb.kind === 'boxm') { for (d = 0; d < 720; d++) out[d] = field === 'p' || field === 'p0' ? rec.pb[d] : (field === 'T' ? rec.Tb[d] : NaN); return out; }
     if (pb.kind === 'cyl') { for (d = 0; d < 720; d++) out[d] = field === 'p' ? rec.pc[d] : (field === 'T' ? rec.Tc[d] : NaN); return out; }
-    var off = pb.pipe === 0 ? 0 : (pb.pipe === 1 ? meta.pipes[0].n : meta.pipes[0].n + meta.pipes[1].n);
-    var arr = field === 'p' ? rec.pipeP : (field === 'u' ? rec.pipeU : rec.pipeT);
-    for (d = 0; d < 720; d++) out[d] = arr[d * NC + off + pb.cell];
+    mp = mp || SIM.prep(R.P);
+    for (d = 0; d < 720; d++) out[d] = cellState(R, mp, pb.pipe, pb.cell, d)[field];
     return out;
   }
   function renderProbes(m, probes, rec, NC) {
-    var pd = m.pipes[0], pr = m.pipes[1];
-    var html = probes.map(function (pb, k) {
-      var val = '–';
+    var R = ST.single, d = ST.deg, rows = '';
+    function f(v, k) { if (!isFinite(v)) return '–'; var s = n2(v, k); return /^-0,?0*$/.test(s) ? s.slice(1) : s; }
+    probes.forEach(function (pb, k) {
+      var c = ['–', '–', '–', '–', '–', '–'];
       if (rec) {
-        var d = ST.deg;
-        if (pb.kind === 'box') val = n2(rec.pTr[d] / 1e5, 3) + ' bar';
-        else if (pb.kind === 'cyl') val = n2(rec.pc[d] / 1e5, 2) + ' bar · ' + n2(rec.Tc[d], 0) + ' K';
-        else { var off = pb.pipe === 0 ? 0 : (pb.pipe === 1 ? pd.n : pd.n + pr.n); var i = d * NC + off + pb.cell; val = n2(rec.pipeP[i] / 1e5, 3) + ' bar · ' + n2(rec.pipeU[i], 0) + ' m/s'; }
+        if (pb.kind === 'box') c = [f(rec.pTr[d] / 1e5, 3), '–', '–', '–', '–', '–'];
+        else if (pb.kind === 'boxm') c = [f(rec.pb[d] / 1e5, 3), '–', '–', '–', '–', f(rec.Tb[d], 0)];
+        else if (pb.kind === 'cyl') c = [f(rec.pc[d] / 1e5, 2), '–', '–', '–', '–', f(rec.Tc[d], 0)];
+        else { var s = cellState(R, m, pb.pipe, pb.cell, d); c = [f(s.p / 1e5, 3), f(s.p0 / 1e5, 3), f(s.u, 0), f(s.M, 2), f(s.m * 1e3, 1), f(s.T, 0)]; }
       }
-      return '<div><span>' + (k + 1) + '. ' + pb.name + '</span><b>' + val + '</b></div>';
-    }).join('');
-    $('#probes').innerHTML = html;
+      rows += '<tr><td>' + (k + 1) + '. ' + pb.name + '</td><td>' + c.join('</td><td>') + '</td></tr>';
+    });
+    $('#probes').innerHTML = '<div class="tbl-wrap"><table class="res"><thead><tr><th>Punto (θ = ' + d + '°)</th><th>p [bar]</th><th>p₀ [bar]</th><th>u [m/s]</th><th>Mach</th><th>ṁ [g/s]</th><th>T [K]</th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
+      '<p class="note">Valores del cálculo 1D en la celda de cada punto (media de la celda). p = presión estática; p₀ = presión de remanso, p·(1 + (γ−1)/2·M²)<sup>γ/(γ−1)</sup>; ṁ = ρ·u·A con ρ = p/(R·T). Signo de u y ṁ: + hacia la válvula en la admisión (y hacia el airbox en el difusor), + hacia la salida en el escape. El airbox es un volumen 0D: tiene presión pero no velocidad propia.</p>';
   }
   function setDeg(d) {
     ST.deg = ((Math.round(d) % 720) + 720) % 720;
@@ -2449,11 +2485,14 @@ var CH = (function () {
     if (ST.ptBuilt !== ST.ptTab || !$('#pt-body canvas')) onlyDynamic = false;
     var rec = R.rec, meta = R.meta, pAtm = meta.pAtm, tab = ST.ptTab;
     var mp = SIM.prep(R.P), probes = probeDefs(mp);
-    function ser(k, f) { return probeSeries(probes[k], R, f || 'p'); }
+    var PK = {}; probes.forEach(function (pb, k) { PK[pb.key] = pb; });
+    function ser(key, f) { return PK[key] ? probeSeries(PK[key], R, f || 'p', mp) : null; }
+    function S(key, f, col, label, extra) { var y = ser(key, f); if (!y) return null; var o = { x: DEG, y: f === 'p' || f === 'p0' || !f ? bar(y) : (f === 'm' ? Array.from(y, function (v) { return v * 1e3; }) : Array.from(y)), color: col, label: label }; for (var e in extra || {}) o[e] = extra[e]; return o; }
+    function L(arr) { return arr.filter(Boolean); }
     function bar(arr) { return Array.from(arr, function (v) { return v / 1e5; }); }
     if (!onlyDynamic) {
-      if (tab === 'adm') body.innerHTML = '<div class="charts">' + chartBox('c-a1', 'Presión en la admisión [bar abs]', true) + chartBox('c-a2', 'Velocidad del gas [m/s] (+ hacia la válvula)', true) + '</div>';
-      else if (tab === 'esc') body.innerHTML = '<div class="charts">' + chartBox('c-e1', 'Presión en el escape [bar abs]', true) + chartBox('c-e2', 'Temperatura del gas en el escape [K]', true) + '</div>';
+      if (tab === 'adm') body.innerHTML = '<div class="charts">' + chartBox('c-a1', 'Presión en el difusor y el airbox [bar abs]', true) + chartBox('c-a3', 'Presión en la trompeta y el puerto [bar abs]', true) + chartBox('c-a2', 'Velocidad del gas [m/s] (+ hacia la válvula)', true) + chartBox('c-a4', 'Caudal másico ṁ = ρ·u·A [g/s] (+ hacia la válvula)', true) + '</div>';
+      else if (tab === 'esc') body.innerHTML = '<div class="charts">' + chartBox('c-e1', 'Presión en el escape [bar abs]', true) + chartBox('c-e2', 'Temperatura del gas en el escape [K]', true) + chartBox('c-e3', 'Caudal másico ṁ = ρ·u·A [g/s] (+ hacia la salida)', true) + chartBox('c-e4', 'Velocidad del gas [m/s] (+ hacia la salida)', true) + '</div>';
       else if (tab === 'cyl') body.innerHTML = '<div class="charts">' + chartBox('c-c1', 'Presión en cilindro [bar] y fracción quemada', true) + chartBox('c-c2', 'Diagrama p-V (log-log)', true) + chartBox('c-c3', 'Temperatura en cilindro [K] y fracción de aire fresco') + chartBox('c-c4', 'Bombeo: p-V a baja presión [bar]') + '</div>';
       else if (tab === 'val') body.innerHTML = '<div class="charts">' + chartBox('c-v1', 'Alzada [mm] y área efectiva [cm²]', true) + chartBox('c-v2', 'Caudal por las válvulas [g/s] (+ entra al cilindro)', true) + chartBox('c-v3', 'Caudal en la boca del difusor y en la boca de la trompeta [g/s]') + '</div>';
       else if (tab === 'wave') body.innerHTML = '<div class="charts" style="grid-template-columns:minmax(0,1fr)"><div class="chart"><div class="ctl"><label>Variable <select id="wv-var"><option value="p">Presión p/p<sub>atm</sub></option><option value="u">Velocidad</option><option value="T">Temperatura</option><option value="Y">Aire fresco</option></select></label><span class="status" id="wv-rng"></span></div><h4>Admisión: boca del difusor (arriba) → airbox → trompeta → válvula (abajo)</h4><canvas id="c-w1" style="height:340px"></canvas></div><div class="chart"><h4>Escape: válvula (arriba) → salida (abajo)</h4><canvas id="c-w2" style="height:380px"></canvas></div><p class="note" style="padding:0 14px 12px">Cada fila es una celda del conducto y cada columna un grado de cigüeñal. Las franjas diagonales son ondas viajando; la pendiente es su velocidad (c ± u) y el cambio de color al llegar a un cambio de sección es la reflexión.</p></div>';
@@ -2464,20 +2503,23 @@ var CH = (function () {
     }
     var s1 = css('--s1'), s2 = css('--s2'), s3 = css('--s3'), s4 = css('--s4'), s5 = css('--s5'), s6 = css('--s6');
     if (tab === 'adm') {
-      CH.line($('#c-a1'), { xName: 'θ', xLabel: 'θ [°] (0 = PMS cruce, 360 = PMS combustión)', yLabel: 'p [bar]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('i'), vlines: angLines('it'), series: [
-        { x: DEG, y: bar(ser(3)), color: s1, label: 'Puerto (válvula)' }, { x: DEG, y: bar(ser(2)), color: s3, label: 'Boca trompeta' },
-        { x: DEG, y: bar(ser(1)), color: s4, label: 'Airbox en la boca' }, { x: DEG, y: bar(rec.pb), color: s6, label: 'Airbox media', dash: [5, 3] },
-        { x: DEG, y: bar(ser(0)), color: s5, label: 'Boca difusor' }] });
-      CH.line($('#c-a2'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'u [m/s]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('i'), vlines: angLines('t'), zeroLine: true, series: [
-        { x: DEG, y: Array.from(ser(3, 'u')), color: s1, label: 'Puerto' }, { x: DEG, y: Array.from(ser(2, 'u')), color: s3, label: 'Boca trompeta' },
-        { x: DEG, y: Array.from(ser(0, 'u')), color: s5, label: 'Boca difusor' }] });
+      var bi = valveBands('i');
+      CH.line($('#c-a1'), { xName: 'θ', xLabel: 'θ [°] (0 = PMS cruce, 360 = PMS combustión)', yLabel: 'p [bar]', xMin: 0, xMax: 720, xTicks: XT, bands: bi, vlines: angLines('it'), series: L([
+        S('dIn', 'p', s5, 'Entrada difusor'), S('dMid', 'p', s2, 'Mitad difusor'), S('dOut', 'p', s3, 'Salida difusor'),
+        S('box', 'p', s4, 'Airbox junto a la boca'), S('boxM', 'p', s6, 'Airbox media', { dash: [5, 3] })]) });
+      CH.line($('#c-a3'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'p [bar]', xMin: 0, xMax: 720, xTicks: XT, bands: bi, vlines: angLines('it'), series: L([
+        S('rIn', 'p', s3, 'Boca trompeta'), S('rMid', 'p', s5, 'Centro trompeta'), S('rOut', 'p', s1, 'Puerto (válvula)'), S('boxM', 'p', s6, 'Airbox media', { dash: [5, 3] })]) });
+      CH.line($('#c-a2'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'u [m/s]', xMin: 0, xMax: 720, xTicks: XT, bands: bi, vlines: angLines('t'), zeroLine: true, series: L([
+        S('dIn', 'u', s5, 'Entrada difusor'), S('dMid', 'u', s2, 'Mitad difusor'), S('dOut', 'u', s4, 'Salida difusor'), S('rIn', 'u', s3, 'Boca trompeta'), S('rMid', 'u', s6, 'Centro trompeta'), S('rOut', 'u', s1, 'Puerto')]) });
+      CH.line($('#c-a4'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'ṁ [g/s]', xMin: 0, xMax: 720, xTicks: XT, bands: bi, vlines: angLines('t'), zeroLine: true, series: L([
+        S('dIn', 'm', s5, 'Entrada difusor'), S('dMid', 'm', s2, 'Mitad difusor'), S('dOut', 'm', s4, 'Salida difusor'), S('rIn', 'm', s3, 'Boca trompeta'), S('rMid', 'm', s6, 'Centro trompeta'), S('rOut', 'm', s1, 'Puerto')]) });
     } else if (tab === 'esc') {
-      CH.line($('#c-e1'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'p [bar]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('b'), vlines: angLines('iet'), series: [
-        { x: DEG, y: bar(ser(5)), color: s2, label: 'Puerto esc.' }, { x: DEG, y: bar(ser(6)), color: s3, label: 'Final primario' },
-        { x: DEG, y: bar(ser(7)), color: s4, label: 'Cámara' }, { x: DEG, y: bar(ser(8)), color: s6, label: 'Salida' }] });
-      CH.line($('#c-e2'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'T [K]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('e'), vlines: angLines('t'), series: [
-        { x: DEG, y: Array.from(ser(5, 'T')), color: s2, label: 'Puerto esc.' }, { x: DEG, y: Array.from(ser(6, 'T')), color: s3, label: 'Final primario' },
-        { x: DEG, y: Array.from(ser(7, 'T')), color: s4, label: 'Cámara' }, { x: DEG, y: Array.from(ser(8, 'T')), color: s6, label: 'Salida' }] });
+      var eb = valveBands('b');
+      function EX(f) { return L([S('eIn', f, s2, 'Puerto esc.'), S('ePm', f, s5, 'Mitad primario'), S('ePe', f, s3, 'Final primario'), S('eCh', f, s4, 'Centro cámara'), S('eTl', f, s1, 'Entrada cola'), S('eOut', f, s6, 'Salida')]); }
+      CH.line($('#c-e1'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'p [bar]', xMin: 0, xMax: 720, xTicks: XT, bands: eb, vlines: angLines('iet'), series: EX('p') });
+      CH.line($('#c-e2'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'T [K]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('e'), vlines: angLines('t'), series: EX('T') });
+      CH.line($('#c-e3'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'ṁ [g/s]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('e'), vlines: angLines('t'), zeroLine: true, series: EX('m') });
+      CH.line($('#c-e4'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'u [m/s]', xMin: 0, xMax: 720, xTicks: XT, bands: valveBands('e'), vlines: angLines('t'), zeroLine: true, series: EX('u') });
     } else if (tab === 'cyl') {
       CH.line($('#c-c1'), { xName: 'θ', xLabel: 'θ [°]', yLabel: 'p [bar]', y2Label: 'x_b [–]', xMin: 0, xMax: 720, xTicks: XT, vlines: angLines('iet'), y2Min: 0, y2Max: 1, series: [
         { x: DEG, y: bar(rec.pc), color: s2, label: 'p cilindro' }, { x: DEG, y: Array.from(rec.xb), color: s6, label: 'Fracción quemada', axis: 'r', dash: [5, 3] }] });
