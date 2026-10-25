@@ -145,7 +145,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 #schem { width: 100%; min-width: 640px; height: auto; display: block; }
 #schem .comp { cursor: pointer; }
 #schem .comp:hover .hl { stroke: var(--accent); stroke-width: 2.5; }
-#schem text { font-family: var(--f-body); fill: var(--ink); }
+#schem text { font-family: var(--f-body); fill: var(--ink); paint-order: stroke; stroke: var(--surface); stroke-width: 3px; stroke-linejoin: round; }
+#schem .wall { fill: none; stroke: var(--ink); stroke-width: 0.9; stroke-linejoin: round; opacity: .85; }
 #schem .lbl { fill: var(--muted); }
 .crank { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 14px; border-top: 1px solid var(--line); }
 .crank input[type=range] { flex: 1 1 260px; accent-color: var(--accent2); }
@@ -2256,9 +2257,33 @@ var CH = (function () {
       var g = '';
       for (var i = 0; i < pp.n; i++) {
         var s0 = i * pp.dx * mm, s1 = (i + 1) * pp.dx * mm;
-        g += '<polyline points="' + segPolyline(path, s0, s1 + 0.6) + '" fill="none" stroke="' + cellColor(idx, i, fb) + '" stroke-width="' + (pp.D[i] * mm).toFixed(1) + '" stroke-linejoin="round"/>';
+        g += '<polyline points="' + segPolyline(path, s0, s1 + 0.6) + '" fill="none" stroke="' + cellColor(idx, i, fb) + '" stroke-width="' + (pp.D[i] * mm).toFixed(1) + '" stroke-linejoin="miter"/>';
       }
       return g;
+    }
+    function walls(path, pp) {
+      var Ltot = pp.n * pp.dx * mm, Lp = [], Rp = [], ss = [];
+      for (var i = 0; i <= pp.n; i++) ss.push({ s: Math.min(i * pp.dx * mm, Ltot), v: -1 });
+      for (var k = 1; k < path.length - 1; k++) if (path[k].s > 0 && path[k].s < Ltot) ss.push({ s: path[k].s, v: k });
+      ss.sort(function (p, q) { return p.s - q.s; });
+      ss = ss.filter(function (e) {
+        if (e.v > 0 || e.s === 0 || e.s >= Ltot) return true;
+        for (var k = 1; k < path.length - 1; k++) if (Math.abs(path[k].s - e.s) < Dat(e.s) / 2 + 1) return false;
+        return true;
+      });
+      function Dat(s) { var c = Math.min(pp.n - 1, Math.max(0, Math.floor(s / (pp.dx * mm) - 1e-9))); return pp.D[c] * mm; }
+      function nrm(k) { var a0 = path[k - 1], b0 = path[k], tx = b0.x - a0.x, ty = b0.y - a0.y, tn = Math.hypot(tx, ty) || 1; return [-ty / tn, tx / tn]; }
+      function segIdx(s) { for (var k = 1; k < path.length; k++) if (s <= path[k].s + 1e-9) return k; return path.length - 1; }
+      ss.forEach(function (e) {
+        var p = pointAt(path, e.s), D = Dat(e.s), n;
+        if (e.v > 0) {
+          var n1 = nrm(e.v), n2 = nrm(e.v + 1), mx = n1[0] + n2[0], my = n1[1] + n2[1], ml = Math.hypot(mx, my) || 1;
+          var c = (mx / ml) * n1[0] + (my / ml) * n1[1]; n = [mx / ml / Math.max(c, 0.3), my / ml / Math.max(c, 0.3)];
+        } else n = nrm(segIdx(e.s));
+        Lp.push((p[0] + n[0] * D / 2).toFixed(1) + ',' + (p[1] + n[1] * D / 2).toFixed(1));
+        Rp.push((p[0] - n[0] * D / 2).toFixed(1) + ',' + (p[1] - n[1] * D / 2).toFixed(1));
+      });
+      return '<polyline class="wall" points="' + Lp.join(' ') + '"/><polyline class="wall" points="' + Rp.join(' ') + '"/>';
     }
     function T(x, y, t, opt) { opt = opt || {}; return '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" font-size="' + (opt.fs || fs).toFixed(1) + '"' + (opt.anchor ? ' text-anchor="' + opt.anchor + '"' : '') + (opt.cls ? ' class="' + opt.cls + '"' : '') + '>' + esc(t) + '</text>'; }
     // Airbox
@@ -2266,8 +2291,9 @@ var CH = (function () {
     o.push('<g class="comp" data-comp="box"><rect class="hl" x="' + x0 + '" y="' + y0 + '" width="' + Lx + '" height="' + Lz + '" fill="' + (rec ? pColor(pbNow, pAtm) : 'var(--accent-soft)') + '" fill-opacity="' + (rec ? 0.55 : 1) + '" stroke="' + ink + '" stroke-width="1.6"/>');
     o.push(T(x0 + 6, y0 - 8, 'Airbox ' + P.abLx + '×' + P.abLy + '×' + P.abLz + ' mm · V ' + n2(m.Vbox * 1e3, 2) + ' L'));
     // cota z de la boca
-    o.push('<line x1="' + (mouthX - P.lipD / 2 - 14) + '" y1="' + mouthY + '" x2="' + (mouthX - P.lipD / 2 - 14) + '" y2="' + floorY + '" stroke="' + muted + '" stroke-dasharray="3 3"/>');
-    o.push(T(mouthX - P.lipD / 2 - 18, (mouthY + floorY) / 2, 'z ' + P.trZ, { anchor: 'end', cls: 'lbl', fs: fs * 0.85 }));
+    var zX = mouthX + P.lipD / 2 + 16;
+    o.push('<line x1="' + zX + '" y1="' + mouthY + '" x2="' + zX + '" y2="' + floorY + '" stroke="' + muted + '" stroke-dasharray="3 3"/>');
+    o.push(T(zX + 4, (mouthY + floorY) / 2 + fs * 0.3, 'z ' + P.trZ, { cls: 'lbl', fs: fs * 0.85 }));
     o.push('</g>');
     // Difusor
     o.push('<g class="comp" data-comp="dif">' + drawPipe(pathD, pd, 0, 'var(--accent-soft)'));
@@ -2278,7 +2304,7 @@ var CH = (function () {
     o.push(T(4, dCy + dIn / 2 + fs * 1.4, P.vMoto + ' km/h', { cls: 'lbl', fs: fs * 0.85 }));
     o.push('</g>');
     // Trompeta + puerto
-    o.push('<g class="comp" data-comp="run">' + drawPipe(pathR, pr, 1, 'var(--accent-soft)'));
+    o.push('<g class="comp" data-comp="run">' + drawPipe(pathR, pr, 1, 'var(--accent-soft)') + walls(pathR, pr));
     var lipR = P.lipD / 2;
     o.push('<path class="hl" d="M' + (mouthX - lipR - 4) + ',' + (mouthY + 2) + ' q2,-6 6,-2 M' + (mouthX + lipR + 4) + ',' + (mouthY + 2) + ' q-2,-6 -6,-2" stroke="' + ink + '" fill="none" stroke-width="1.6"/>');
     var acc = 0, labelsR = [];
@@ -2305,7 +2331,7 @@ var CH = (function () {
     o.push('<g class="comp" data-comp="iv"><line x1="' + vx + '" y1="' + (vy - 30) + '" x2="' + vx + '" y2="' + (vy + lI) + '" stroke="' + ink + '" stroke-width="2"/><rect class="hl" x="' + (vx - P.ivD / 2) + '" y="' + (vy + lI) + '" width="' + P.ivD + '" height="2.5" fill="' + ink + '"/></g>');
     o.push('<g class="comp" data-comp="ev"><line x1="' + evx + '" y1="' + (vy - 30) + '" x2="' + evx + '" y2="' + (vy + lE) + '" stroke="' + ink + '" stroke-width="2"/><rect class="hl" x="' + (evx - P.evD / 2) + '" y="' + (vy + lE) + '" width="' + P.evD + '" height="2.5" fill="' + ink + '"/></g>');
     // Escape
-    o.push('<g class="comp" data-comp="exh">' + drawPipe(pathE, pe, 2, 'var(--exh-soft)'));
+    o.push('<g class="comp" data-comp="exh">' + drawPipe(pathE, pe, 2, 'var(--exh-soft)') + walls(pathE, pe));
     acc = 0;
     m.segExh.forEach(function (sg) {
       if (sg.L <= 0) return;
@@ -2315,7 +2341,9 @@ var CH = (function () {
       if (sg.L * mm < 70) return;
       var txt = sg.name + ' ' + Math.round(sg.L * mm) + ' · Ø' + Math.round(sg.D0 * mm) + (Math.abs(sg.D1 - sg.D0) > 1e-4 ? '→' + Math.round(sg.D1 * mm) : '');
       var Dm = Math.max(sg.D0, sg.D1) * mm;
-      o.push(T(mid[0], mid[1] - Dm / 2 - 6, txt, { anchor: 'middle', cls: 'lbl', fs: fs * 0.85 }));
+      var q0 = pointAt(pathE, Math.max(0, (acc - sg.L / 2) * mm - 2)), q1 = pointAt(pathE, (acc - sg.L / 2) * mm + 2);
+      if (Math.abs(q1[1] - q0[1]) > Math.abs(q1[0] - q0[0])) o.push(T(mid[0] + Dm / 2 + 8, mid[1], txt, { cls: 'lbl', fs: fs * 0.85 }));
+      else o.push(T(mid[0], mid[1] - Dm / 2 - 6, txt, { anchor: 'middle', cls: 'lbl', fs: fs * 0.85 }));
     });
     var endP = pointAt(pathE, Le);
     o.push('<path d="M' + endP[0] + ',' + endP[1] + ' l-18,0 m6,-5 l-6,5 l6,5" stroke="' + muted + '" fill="none" stroke-width="1.4"/>');
@@ -2326,7 +2354,7 @@ var CH = (function () {
       var pt;
       if (pb.kind === 'pipe') { var path = pb.pipe === 0 ? pathD : (pb.pipe === 1 ? pathR : pathE); var pp = m.pipes[pb.pipe]; pt = pointAt(path, (pb.cell + 0.5) * pp.dx * mm); }
       else if (pb.kind === 'box') pt = [mouthX + lipR + 14, mouthY - 14];
-      else pt = [cylCx - B / 4, yDeck + 8];
+      else pt = [cylCx - B / 2 - 10 - fs * 0.9, yDeck + hClear + 4];
       o.push('<circle cx="' + pt[0].toFixed(1) + '" cy="' + pt[1].toFixed(1) + '" r="' + (fs * 0.6) + '" fill="var(--surface)" stroke="' + ink + '"/>');
       o.push(T(pt[0], pt[1] + fs * 0.33, String(k + 1), { anchor: 'middle', fs: fs * 0.75 }));
     });
