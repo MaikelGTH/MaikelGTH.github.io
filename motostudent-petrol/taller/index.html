@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Taller · Inventario</title>
+<style>
+:root{
+  --bg:#f3f4f6; --panel:#ffffff; --ink:#111827; --ink2:#4b5563; --ink3:#9ca3af; --line:#e5e7eb;
+  --accent:#ea580c; --accent-ink:#fff; --ok:#16a34a; --warn:#d97706; --err:#dc2626; --info:#2563eb;
+  --cell:38px; --radius:10px; --shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.hidden{display:none!important}
+
+/* Cabecera */
+header{position:sticky;top:0;z-index:30;background:#111827;color:#f9fafb;padding:10px 16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.brand b{font-size:16px;letter-spacing:.2px}
+.brand span{font-size:12px;color:#9ca3af}
+.search{position:relative;flex:1 1 280px;max-width:520px}
+.search input{width:100%;padding:9px 12px 9px 34px;border-radius:8px;border:1px solid #374151;background:#1f2937;color:#f9fafb}
+.search input::placeholder{color:#9ca3af}
+.search svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.6}
+.results{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--panel);color:var(--ink);border-radius:var(--radius);box-shadow:0 12px 32px rgba(0,0,0,.25);max-height:65vh;overflow:auto;z-index:40}
+.results .r{display:block;width:100%;text-align:left;border:0;background:none;padding:9px 12px;border-bottom:1px solid var(--line)}
+.results .r:hover,.results .r.act{background:#fff7ed}
+.results .r small{display:block;color:var(--ink2)}
+.results .empty{padding:12px;color:var(--ink2)}
+.sync{display:flex;align-items:center;gap:8px;font-size:12px;color:#d1d5db}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.dot.busy{background:var(--info);animation:pulse 1s infinite}
+.dot.err{background:var(--err)}
+@keyframes pulse{50%{opacity:.3}}
+.hbtn{border:1px solid #374151;background:#1f2937;color:#f9fafb;border-radius:8px;padding:7px 11px;display:inline-flex;gap:6px;align-items:center}
+.hbtn:hover{background:#374151}
+.hbtn.on{background:var(--accent);border-color:var(--accent)}
+
+/* Barras */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px}
+.tab.act{background:#111827;color:#fff;border-color:#111827}
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px;color:var(--ink2)}
+.crumbs button{border:0;background:none;color:var(--info);padding:2px 4px;border-radius:4px}
+.crumbs button:hover{background:#eff6ff}
+.crumbs .sep{color:var(--ink3)}
+.spacer{flex:1}
+.btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 12px;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#f9fafb}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(.95)}
+.btn.dan{color:var(--err);border-color:#fecaca}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 8px;font-size:12px}
+.banner{margin:10px 16px 0;padding:10px 12px;border-radius:8px;font-size:13px}
+.banner.err{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.banner.warn{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.banner.info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe}
+
+/* Admin */
+.adminbar{position:sticky;top:0;z-index:25;background:#fff7ed;border-bottom:2px solid var(--accent);padding:8px 16px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.adminbar b{color:#9a3412}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#fed7aa;color:#7c2d12;font-size:12px}
+
+main{padding:16px}
+.layout{display:flex;gap:16px;align-items:flex-start}
+.layout>.grow{flex:1;min-width:0}
+
+/* Plano */
+.planwrap{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto;max-height:calc(100vh - 210px);touch-action:pan-x pan-y;position:relative}
+.plan{position:relative;display:grid;gap:2px;padding:12px;width:max-content;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:calc(var(--cell) + 2px) calc(var(--cell) + 2px);background-position:11px 11px}
+.el{position:relative;border-radius:6px;border:1px solid rgba(0,0,0,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2px 4px;overflow:hidden;user-select:none;transition:box-shadow .15s,transform .15s}
+.el .lb{font-weight:700;font-size:12px;line-height:1.1;word-break:break-word}
+.el .nm{font-size:10px;opacity:.8;line-height:1.1;margin-top:2px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.el .ct{position:absolute;top:2px;right:3px;font-size:9px;font-weight:700;background:rgba(255,255,255,.85);color:#111;border-radius:999px;padding:0 5px}
+.el.vert .lb{writing-mode:vertical-rl;transform:rotate(180deg);word-break:normal}
+.el.vert .nm{display:none}
+.el.click{cursor:pointer}
+.el.click:hover{box-shadow:0 0 0 3px rgba(234,88,12,.45);z-index:2}
+.el.puerta{border-style:dashed}
+.el.hit{box-shadow:0 0 0 3px #facc15,0 0 16px #facc15;z-index:3}
+.el.dim{opacity:.35}
+.el.sel{box-shadow:0 0 0 3px var(--accent);z-index:4}
+.el.edit{cursor:move}
+.el .rs{position:absolute;right:0;bottom:0;width:14px;height:14px;cursor:nwse-resize;background:linear-gradient(135deg,transparent 50%,rgba(0,0,0,.45) 50%)}
+.el.oculto{opacity:.4;outline:2px dashed #9ca3af}
+.zoom{display:flex;gap:4px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12px;color:var(--ink2);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:4px;border:1px solid rgba(0,0,0,.15)}
+
+/* Paneles */
+.card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px;margin-bottom:14px}
+.card h2{margin:0 0 4px;font-size:20px}
+.card h3{margin:0 0 8px;font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;color:var(--ink2);font-size:13px}
+.meta b{color:var(--ink)}
+.side{width:320px;flex:none;position:sticky;top:120px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 8px;align-items:center}
+.kv label{font-size:12px;color:var(--ink2)}
+.kv input,.kv select,.kv textarea{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.kv input[type=color]{padding:2px;height:32px}
+.row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+
+/* Mueble: estructura */
+.estructura{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.seccion{flex:1 1 260px;min-width:240px;border:1px solid var(--line);border-radius:var(--radius);background:#fafafa}
+.seccion>.tt{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-weight:600}
+.seccion>.bd{padding:8px}
+.estante{border:2px solid #6b7280;border-radius:8px;background:#fff;overflow:hidden;width:100%}
+.balda{display:flex;gap:8px;align-items:stretch;border-bottom:4px solid #9ca3af;min-height:58px;padding:6px 8px;background:linear-gradient(#fff,#f9fafb)}
+.balda:last-child{border-bottom:0}
+.balda.hit{background:#fef9c3}
+.balda .bn{flex:none;width:92px;display:flex;flex-direction:column;justify-content:center;border:0;background:none;text-align:left;padding:0;color:var(--ink)}
+.balda .bn b{font-size:13px}
+.balda .bn small{color:var(--ink3);font-size:11px}
+.balda .bc{flex:1;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.caja{border:1px solid #d6a96b;background:#fdf3e3;border-radius:6px;padding:5px 8px;text-align:left;min-width:110px;max-width:220px}
+.caja:hover{background:#fbe6c2}
+.caja b{display:block;font-size:12px}
+.caja small{color:#92400e;font-size:11px}
+.caja.hit{outline:3px solid #facc15}
+.sueltos{border:1px dashed #9ca3af;background:#fff;border-radius:6px;padding:5px 8px;font-size:12px;color:var(--ink2)}
+.sueltos:hover{background:#f3f4f6}
+.vacia{color:var(--ink3);font-style:italic;font-size:12px}
+
+/* Tabla de artículos */
+.tablewrap{overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink2);background:#f9fafb;position:sticky;top:0}
+td.q{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+td .na{color:var(--ink3);font-weight:400;font-style:italic}
+td .tx{color:var(--warn);font-weight:500}
+tr.hit td{background:#fef9c3;animation:flash 1.6s ease 2}
+@keyframes flash{50%{background:#fde047}}
+td input,td select{width:100%;min-width:70px;padding:4px 6px;border:1px solid var(--line);border-radius:5px}
+td input[data-f=nombre]{min-width:220px}td input[data-f=observaciones],td input[data-f=descripcion]{min-width:160px}td select[data-f=ubicacion_id]{min-width:180px}
+.low{color:var(--err);font-size:11px;display:block}
+.filtro{padding:6px 10px;border:1px solid var(--line);border-radius:8px;min-width:200px}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:60;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal .box{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.modal .box.wide{max-width:640px;max-height:85vh;overflow:auto}
+.modal h3{margin:0 0 6px}
+.codigo{width:100%;font-size:28px;letter-spacing:10px;text-align:center;padding:10px;border:2px solid var(--line);border-radius:10px;margin:12px 0}
+.codigo:focus{outline:none;border-color:var(--accent)}
+.msg{font-size:13px;min-height:18px}
+.msg.err{color:var(--err)}
+.issue{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.issue .g{flex:none;font-size:11px;font-weight:700;border-radius:4px;padding:1px 6px;height:fit-content}
+.g.ERROR{background:#fee2e2;color:#991b1b}.g.AVISO{background:#fef3c7;color:#92400e}.g.INFO{background:#dbeafe;color:#1e40af}
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:10px;z-index:70;box-shadow:var(--shadow);max-width:90vw}
+.toast.err{background:var(--err)}
+.loading{padding:60px;text-align:center;color:var(--ink2)}
+
+@media (max-width:900px){
+  .layout{flex-direction:column}
+  .side{width:100%;position:static}
+  main{padding:10px}
+  :root{--cell:30px}
+  .balda .bn{width:70px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b id="titulo">Taller</b><span id="subtitulo">Inventario</span></div>
+  <div class="search">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="Buscar pieza, referencia, caja o mueble…" autocomplete="off" aria-label="Buscar en todo el taller">
+    <div id="results" class="results hidden" role="listbox"></div>
+  </div>
+  <div class="sync" title="Estado de la conexión con la hoja de cálculo">
+    <span id="dot" class="dot busy"></span><span id="syncTxt">Conectando…</span>
+    <button class="hbtn" id="btnSync" title="Actualizar ahora desde la hoja">⟳</button>
+  </div>
+  <button class="hbtn" id="btnIssues" title="Problemas detectados en los datos">⚠ <span id="nIssues">0</span></button>
+  <button class="hbtn" id="btnAdmin">✎ Modo edición</button>
+</header>
+<div id="adminbar" class="adminbar hidden"></div>
+<div id="banners"></div>
+<div id="nav" class="bar"></div>
+<main id="main"><div class="loading">Cargando inventario desde la hoja de cálculo…</div></main>
+<div id="modal"></div>
+
+<script>window.TALLER_API = 'https://script.google.com/macros/s/AKfycbzGeHWIkLfOFFu16WVpnof9QM2j3oiJaINURLd03QsYuvQ9nPX1tgSIr3-mW7pcVqk/exec';</script>
+<script>
+'use strict';
+/* =====================================================================
+   Conexión con el backend
+   - Dentro de Apps Script se usa google.script.run.
+   - Alojada en otro dominio (GitHub Pages) se llama a la URL /exec de
+     Apps Script, definida en window.TALLER_API.
+   - En el servidor de pruebas local se usa fetch('/rpc').
+   ===================================================================== */
+const API = {
+  call(fn, ...args) {
+    if (window.google && google.script && google.script.run) {
+      return new Promise((res, rej) => google.script.run.withSuccessHandler(res).withFailureHandler(e => rej(e))[fn](...args));
+    }
+    if (window.TALLER_API) {
+      const url = window.TALLER_API;
+      const json = r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); };
+      if (fn === 'apiLeer') return fetch(url + '?api=leer&huella=' + encodeURIComponent(args[0] || ''), { cache: 'no-store' }).then(json);
+      const cuerpo = fn === 'apiLogin' ? { accion: 'login', codigo: args[0] }
+        : fn === 'apiGuardar' ? { accion: 'guardar', token: args[0], cambios: args[1] }
+          : { accion: 'cerrar', token: args[0] };
+      // text/plain evita la comprobación previa CORS que Apps Script no admite
+      return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo) }).then(json);
+    }
+    return fetch('/rpc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ fn, args }) })
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+};
+
+const TIPOS_UBIC = ['mueble', 'equipo', 'zona', 'puerta', 'seccion', 'balda', 'cajon', 'caja'];
+const TIPO_TXT = { mueble: 'Mueble', equipo: 'Equipo', zona: 'Zona', puerta: 'Puerta', seccion: 'Sección', balda: 'Balda', cajon: 'Cajón', caja: 'Caja' };
+const TABLAS = { PLANTAS: 'planta_id', UBICACIONES: 'ubicacion_id', PLANO: 'elemento_id', INVENTARIO: 'articulo_id', CONFIG: 'clave' };
+const EDITABLES = {
+  PLANTAS: ['nombre', 'orden', 'filas', 'columnas', 'activo'],
+  UBICACIONES: ['padre_id', 'planta_id', 'tipo', 'nombre', 'orden', 'descripcion', 'notas', 'activo'],
+  PLANO: ['planta_id', 'ubicacion_id', 'etiqueta', 'tipo', 'fila', 'columna', 'ancho', 'alto', 'color', 'orden', 'visible'],
+  INVENTARIO: ['ubicacion_id', 'nombre', 'cantidad', 'cantidad_texto', 'unidad', 'referencia', 'categoria', 'descripcion', 'observaciones', 'stock_minimo'],
+  CONFIG: ['valor']
+};
+
+const S = {
+  base: null,        // últimos datos leídos de la hoja
+  remoto: null,      // datos nuevos llegados mientras hay un borrador
+  borrador: null,    // copia editable (solo en modo edición)
+  pila: [],          // deshacer
+  huella: '', ultimaSync: null, errorSync: null, sincronizando: false,
+  vista: { tipo: 'plano', planta: null, id: null, resaltar: null },
+  token: null, sel: null, zoom: 1, filtroCajas: '', timer: null
+};
+const D = () => S.borrador || S.base;
+
+/* ============================== utilidades ============================== */
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+const vacio = v => v === '' || v === null || v === undefined;
+const verdadero = v => v === true || String(v).toUpperCase() === 'TRUE' || v === 1 || String(v).toUpperCase() === 'VERDADERO' || String(v).toUpperCase() === 'SI' || String(v).toUpperCase() === 'SÍ';
+const num = v => (vacio(v) ? NaN : Number(String(v).replace(',', '.')));
+const $ = s => document.querySelector(s);
+const clone = o => JSON.parse(JSON.stringify(o));
+const hora = d => d ? d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+function contraste(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || ''); if (!m) return '#111827';
+  const n = parseInt(m[1], 16), l = (0.299 * (n >> 16 & 255) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) / 255;
+  return l > 0.55 ? '#111827' : '#ffffff';
+}
+function toast(t, err) {
+  const d = document.createElement('div'); d.className = 'toast' + (err ? ' err' : ''); d.textContent = t;
+  document.body.appendChild(d); setTimeout(() => d.remove(), err ? 6000 : 2600);
+}
+/** 'CAJA MOTOR 2' -> 'Caja motor 2'; respeta códigos como 'EME 10-P' o 'CNC'. Solo cambia textos escritos todo en mayúsculas. */
+/* Diálogos propios (los confirm/prompt nativos pueden bloquearse dentro de Google) */
+function formulario(titulo, campos, okTxt, texto) {
+  return new Promise(res => {
+    $('#modal').innerHTML = `<div class="modal"><form class="box" id="fdlg" autocomplete="off"><h3>${esc(titulo)}</h3>${texto ? `<p class="meta">${esc(texto)}</p>` : ''}
+      ${campos.length ? `<div class="kv" style="margin-top:10px">${campos.map((c, i) => `<label for="dl${i}">${esc(c.label)}</label><input id="dl${i}" data-k="${esc(c.k)}" value="${esc(c.valor ?? '')}" ${c.tipo ? `type="${c.tipo}"` : ''}>`).join('')}</div>` : ''}
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button type="button" class="btn" id="dlno">Cancelar</button><button class="btn ${okTxt && /borrar|descartar|salir/i.test(okTxt) ? 'dan' : 'pri'}" id="dlok">${esc(okTxt || 'Aceptar')}</button></div></form></div>`;
+    const fin = v => { $('#modal').innerHTML = ''; res(v); };
+    $('#dlno').onclick = () => fin(null);
+    $('#fdlg').onsubmit = e => { e.preventDefault(); const o = {}; $('#fdlg').querySelectorAll('[data-k]').forEach(i => o[i.dataset.k] = i.value); fin(o); };
+    const f = $('#fdlg').querySelector('input') || $('#dlok'); f.focus(); if (f.select) f.select();
+  });
+}
+const preguntar = (titulo, okTxt, texto) => formulario(titulo, [], okTxt, texto).then(v => !!v);
+
+function capital(s) {
+  s = String(s || '');
+  if (s !== s.toUpperCase() || !/[A-ZÁÉÍÓÚÑ]{4,}/.test(s)) return s;
+  const t = s.split(' ').map(w => /^[A-ZÁÉÍÓÚÑ]{4,}$/.test(w) ? w.toLowerCase() : w).join(' ');
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
+
+/* ============================== índices ============================== */
+let IX = null;
+function indexar() {
+  const d = D(); if (!d) return;
+  const ix = { u: {}, hijos: {}, items: {}, plantas: [], planoPorPlanta: {}, cfg: {}, total: {}, elPorUbic: {} };
+  d.UBICACIONES.forEach(u => { ix.u[u.ubicacion_id] = u; });
+  d.UBICACIONES.forEach(u => { const p = u.padre_id || ''; (ix.hijos[p] = ix.hijos[p] || []).push(u); });
+  Object.values(ix.hijos).forEach(l => l.sort((a, b) => (num(a.orden) || 0) - (num(b.orden) || 0) || String(a.ubicacion_id).localeCompare(b.ubicacion_id)));
+  d.INVENTARIO.forEach(a => { (ix.items[a.ubicacion_id] = ix.items[a.ubicacion_id] || []).push(a); });
+  ix.plantas = d.PLANTAS.filter(p => p.activo === '' || verdadero(p.activo)).sort((a, b) => (num(a.orden) || 0) - (num(b.orden) || 0));
+  d.PLANO.forEach(e => { (ix.planoPorPlanta[e.planta_id] = ix.planoPorPlanta[e.planta_id] || []).push(e); if (e.ubicacion_id) ix.elPorUbic[e.ubicacion_id] = e; });
+  d.CONFIG.forEach(c => { ix.cfg[c.clave] = c.valor; });
+  const total = id => {
+    if (ix.total[id] !== undefined) return ix.total[id];
+    ix.total[id] = 0; // evita bucles si hay ciclos
+    let n = (ix.items[id] || []).length;
+    (ix.hijos[id] || []).forEach(h => { n += total(h.ubicacion_id); });
+    return (ix.total[id] = n);
+  };
+  d.UBICACIONES.forEach(u => total(u.ubicacion_id));
+  IX = ix;
+}
+function ruta(id) {
+  const out = []; const vistos = {};
+  let u = IX.u[id];
+  while (u && !vistos[u.ubicacion_id]) { vistos[u.ubicacion_id] = 1; out.unshift(u); u = IX.u[u.padre_id]; }
+  return out;
+}
+function raiz(id) { const r = ruta(id); return r[0]; }
+function plantaDe(id) { const r = raiz(id); return r ? r.planta_id : ''; }
+function nombrePlanta(pid) { const p = D().PLANTAS.find(p => p.planta_id === pid); return p ? p.nombre : pid; }
+function etiquetaUbic(u) { return u ? (u.tipo === 'mueble' || u.tipo === 'equipo' || u.tipo === 'zona' ? `${u.ubicacion_id} · ${capital(u.nombre)}` : capital(u.nombre)) : ''; }
+function textoRuta(id) { return ruta(id).map(etiquetaUbic).join(' › '); }
+
+/* ============================== validación ============================== */
+function validar() {
+  const d = D(), out = [];
+  const add = (g, t, ir) => out.push({ g, t, ir });
+  Object.entries(TABLAS).forEach(([tab, key]) => {
+    const vistos = {};
+    d[tab].forEach(r => {
+      const id = String(r[key] ?? '').trim();
+      if (!id) add('ERROR', `${tab}: hay una fila sin ${key} (fila ${r._fila || '?'})`);
+      else if (vistos[id]) add('ERROR', `${tab}: identificador duplicado "${id}"`);
+      vistos[id] = 1;
+    });
+  });
+  const plantas = new Set(d.PLANTAS.map(p => p.planta_id));
+  d.UBICACIONES.forEach(u => {
+    if (u.padre_id && !IX.u[u.padre_id]) add('ERROR', `Ubicación ${u.ubicacion_id}: su padre "${u.padre_id}" no existe`, u.ubicacion_id);
+    if (!u.padre_id && !plantas.has(u.planta_id)) add('ERROR', `Mueble ${u.ubicacion_id}: planta "${u.planta_id || '(vacía)'}" no existe`, u.ubicacion_id);
+    if (!TIPOS_UBIC.includes(u.tipo)) add('ERROR', `Ubicación ${u.ubicacion_id}: tipo "${u.tipo}" no válido`, u.ubicacion_id);
+    if (!String(u.nombre || '').trim()) add('AVISO', `Ubicación ${u.ubicacion_id} sin nombre`, u.ubicacion_id);
+    if (u.tipo === 'caja' && (!u.padre_id || !IX.u[u.padre_id])) add('ERROR', `Caja ${u.ubicacion_id} sin ubicación completa`, u.ubicacion_id);
+    const r = ruta(u.ubicacion_id); if (r.length && r[0].padre_id) add('ERROR', `Ubicación ${u.ubicacion_id}: la cadena de padres forma un ciclo`, u.ubicacion_id);
+  });
+  d.INVENTARIO.forEach(a => {
+    if (!String(a.nombre || '').trim()) add('ERROR', `Artículo ${a.articulo_id} sin nombre`, a.ubicacion_id);
+    if (!IX.u[a.ubicacion_id]) add('ERROR', `Artículo ${a.articulo_id} (${a.nombre}): ubicación "${a.ubicacion_id}" no existe`);
+    if (!vacio(a.cantidad) && (isNaN(num(a.cantidad)) || num(a.cantidad) < 0)) add('ERROR', `Artículo ${a.articulo_id}: cantidad no válida "${a.cantidad}"`, a.ubicacion_id);
+    if (vacio(a.cantidad) && a.cantidad_texto) add('INFO', `${a.nombre}: cantidad sin número ("${a.cantidad_texto}")`, a.ubicacion_id);
+    if (!vacio(a.stock_minimo) && !vacio(a.cantidad) && num(a.cantidad) < num(a.stock_minimo)) add('AVISO', `${a.nombre}: por debajo del stock mínimo (${a.cantidad} < ${a.stock_minimo})`, a.ubicacion_id);
+  });
+  d.PLANO.forEach(e => {
+    const p = d.PLANTAS.find(p => p.planta_id === e.planta_id);
+    if (!p) add('ERROR', `Plano ${e.elemento_id}: planta "${e.planta_id}" no existe`);
+    if (e.ubicacion_id && !IX.u[e.ubicacion_id]) add('ERROR', `Plano ${e.elemento_id}: ubicación "${e.ubicacion_id}" no existe`);
+    if (p && (num(e.columna) + num(e.ancho) - 1 > num(p.columnas) || num(e.fila) + num(e.alto) - 1 > num(p.filas))) add('AVISO', `Plano ${e.elemento_id} se sale de la cuadrícula de ${p.nombre}`);
+    if (e.ubicacion_id && IX.u[e.ubicacion_id] && !IX.total[e.ubicacion_id] && IX.u[e.ubicacion_id].tipo === 'mueble') add('INFO', `${e.etiqueta}: está en el plano pero no tiene inventario`, e.ubicacion_id);
+  });
+  (IX.hijos[''] || []).forEach(u => {
+    if (!IX.elPorUbic[u.ubicacion_id] && u.tipo !== 'puerta') add(IX.total[u.ubicacion_id] ? 'AVISO' : 'INFO', `${u.ubicacion_id} (${u.nombre}) no está dibujado en el plano`, u.ubicacion_id);
+  });
+  const ord = { ERROR: 0, AVISO: 1, INFO: 2 };
+  return out.sort((a, b) => ord[a.g] - ord[b.g]);
+}
+
+/* ============================== sincronización ============================== */
+async function sincronizar(manual) {
+  if (S.sincronizando) return;
+  S.sincronizando = true; pintarSync();
+  try {
+    const r = await API.call('apiLeer', S.borrador ? '' : S.huella);
+    if (!r || !r.ok) throw new Error(r && r.error ? r.error : 'Respuesta vacía');
+    S.ultimaSync = new Date(); S.errorSync = null;
+    if (!r.sinCambios) {
+      S.huella = r.huella;
+      if (S.borrador) { S.remoto = r.datos; }
+      else { S.base = r.datos; indexar(); pintar(); }
+    }
+    if (manual) toast(r.sinCambios ? 'Ya estaba al día' : 'Datos actualizados desde la hoja');
+  } catch (e) {
+    S.errorSync = String(e && e.message || e);
+    if (manual) toast('No se pudo leer la hoja: ' + S.errorSync, true);
+  } finally {
+    S.sincronizando = false; pintarSync(); pintarBanners();
+    if (!S.base) $('#main').innerHTML = `<div class="card"><h3>No se pueden cargar los datos</h3><p>${esc(S.errorSync || '')}</p><button class="btn pri" onclick="sincronizar(true)">Reintentar</button></div>`;
+  }
+}
+function programarSync() {
+  clearInterval(S.timer);
+  const seg = Math.max(15, num(IX && IX.cfg.intervalo_sincronizacion_seg) || 60);
+  S.timer = setInterval(() => { if (!document.hidden) sincronizar(false); }, seg * 1000);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(false); });
+
+function pintarSync() {
+  const dot = $('#dot'), t = $('#syncTxt');
+  dot.className = 'dot' + (S.sincronizando ? ' busy' : S.errorSync ? ' err' : '');
+  if (S.sincronizando) t.textContent = 'Sincronizando…';
+  else if (S.errorSync) t.textContent = 'Sin conexión' + (S.ultimaSync ? ' · datos de ' + hora(S.ultimaSync) : '');
+  else t.textContent = S.ultimaSync ? 'Sincronizado ' + hora(S.ultimaSync) : '';
+}
+function pintarBanners() {
+  const b = [];
+  if (S.errorSync && S.base) b.push(`<div class="banner err"><b>No se ha podido leer la hoja.</b> ${esc(S.errorSync)}<br>Se muestran los últimos datos correctos (${hora(S.ultimaSync)}). No son datos nuevos.</div>`);
+  if (S.borrador && S.remoto) b.push(`<div class="banner warn">La hoja ha cambiado mientras editabas. Al guardar se comprobará que nadie haya modificado lo mismo que tú.</div>`);
+  $('#banners').innerHTML = b.join('');
+}
+
+/* ============================== navegación ============================== */
+function ir(v) { S.vista = Object.assign({ tipo: 'plano', planta: S.vista.planta, id: null, resaltar: null }, v); S.sel = null; pintar(); window.scrollTo(0, 0); }
+function irUbicacion(id, resaltar) { ir({ tipo: 'ubicacion', id, resaltar, planta: plantaDe(id) || S.vista.planta }); }
+
+function pintar() {
+  if (!S.base) return;
+  indexar();
+  const cfg = IX.cfg;
+  $('#titulo').textContent = cfg.titulo || 'Taller';
+  $('#subtitulo').textContent = cfg.subtitulo || '';
+  document.title = (cfg.titulo || 'Taller') + ' · Inventario';
+  if (!S.vista.planta || !IX.plantas.find(p => p.planta_id === S.vista.planta)) S.vista.planta = cfg.planta_inicial && IX.plantas.find(p => p.planta_id === cfg.planta_inicial) ? cfg.planta_inicial : (IX.plantas[0] || {}).planta_id;
+  const issues = validar();
+  $('#nIssues').textContent = issues.filter(i => i.g !== 'INFO').length;
+  pintarAdminBar();
+  pintarBanners();
+  if (S.vista.tipo === 'ubicacion' && IX.u[S.vista.id]) vistaUbicacion(S.vista.id);
+  else vistaPlano();
+  if (!S.timer) programarSync();
+}
+
+/* ============================== vista: plano ============================== */
+function vistaPlano() {
+  S.vista.tipo = 'plano';
+  const p = D().PLANTAS.find(p => p.planta_id === S.vista.planta);
+  const ed = !!S.borrador;
+  $('#nav').innerHTML = `
+    <div class="tabs">${IX.plantas.map(pl => `<button class="tab ${pl.planta_id === S.vista.planta ? 'act' : ''}" data-planta="${esc(pl.planta_id)}">${esc(pl.nombre)}</button>`).join('')}</div>
+    <span class="spacer"></span>
+    <div class="zoom"><button class="btn sm" data-zoom="-1" title="Reducir">−</button><button class="btn sm" data-zoom="0" title="Tamaño normal">${Math.round(S.zoom * 100)}%</button><button class="btn sm" data-zoom="1" title="Ampliar">+</button></div>`;
+  $('#nav').querySelectorAll('[data-planta]').forEach(b => b.onclick = () => { S.vista.planta = b.dataset.planta; S.sel = null; pintar(); });
+  $('#nav').querySelectorAll('[data-zoom]').forEach(b => b.onclick = () => { const z = +b.dataset.zoom; S.zoom = z === 0 ? 1 : Math.min(2.5, Math.max(0.4, S.zoom + z * 0.2)); pintar(); });
+  if (!p) { $('#main').innerHTML = '<div class="card">No hay plantas definidas en la pestaña PLANTAS.</div>'; return; }
+
+  const q = norm($('#q').value);
+  const hits = q.length >= 2 ? new Set(buscar(q).map(r => r.raiz).filter(Boolean)) : null;
+  const els = (IX.planoPorPlanta[p.planta_id] || []).filter(e => ed || e.visible === '' || verdadero(e.visible)).sort((a, b) => (num(a.orden) || 0) - (num(b.orden) || 0));
+  const cell = Math.round(parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell')) * S.zoom);
+  const cols = Math.max(1, num(p.columnas) || 1), filas = Math.max(1, num(p.filas) || 1);
+  const html = els.map(e => {
+    const u = IX.u[e.ubicacion_id];
+    const n = u ? IX.total[u.ubicacion_id] : 0;
+    const clic = !!u;
+    const cls = ['el', e.tipo === 'puerta' ? 'puerta' : '', clic && !ed ? 'click' : '', ed ? 'edit' : '',
+      num(e.ancho) === 1 && num(e.alto) >= 2 && String(e.etiqueta).length > 3 ? 'vert' : '',
+      hits ? (hits.has(e.ubicacion_id) ? 'hit' : 'dim') : '', S.sel === e.elemento_id ? 'sel' : '', ed && !(e.visible === '' || verdadero(e.visible)) ? 'oculto' : ''].join(' ');
+    const bg = e.color || '#e5e7eb';
+    const nombre = u && capital(u.nombre) !== e.etiqueta ? capital(u.nombre) : '';
+    return `<div class="${cls}" data-el="${esc(e.elemento_id)}" ${clic ? `data-u="${esc(u.ubicacion_id)}"` : ''} title="${esc((u ? u.ubicacion_id + ' · ' + u.nombre : e.etiqueta) + (u ? ` · ${n} artículos` : ''))}"
+      style="grid-column:${num(e.columna) || 1} / span ${num(e.ancho) || 1};grid-row:${num(e.fila) || 1} / span ${num(e.alto) || 1};background:${esc(bg)};color:${contraste(bg)}">
+      <span class="lb">${esc(e.etiqueta)}</span>${nombre && (num(e.ancho) >= 2 || num(e.alto) >= 2) ? `<span class="nm">${esc(nombre)}</span>` : ''}
+      ${n ? `<span class="ct">${n}</span>` : ''}${ed ? '<span class="rs" data-rs="1"></span>' : ''}</div>`;
+  }).join('');
+  const sinPos = (IX.hijos[''] || []).filter(u => u.planta_id === p.planta_id && !IX.elPorUbic[u.ubicacion_id]);
+  const leyenda = [...new Map(els.filter(e => IX.u[e.ubicacion_id]).map(e => [e.ubicacion_id, e])).values()];
+
+  $('#main').innerHTML = `
+    <div class="layout">
+      <div class="grow">
+        ${!ed ? `<p style="margin:0 0 10px;color:var(--ink2)">Pulsa un mueble para ver sus baldas, cajones y cajas. El número de la esquina es la cantidad de artículos registrados.</p>` : ''}
+        <div class="planwrap" id="planwrap">
+          <div class="plan" id="plan" style="--cell:${cell}px;grid-template-columns:repeat(${cols},${cell}px);grid-template-rows:repeat(${filas},${cell}px)">${html}</div>
+        </div>
+        ${sinPos.length ? `<div class="card" style="margin-top:12px"><h3>Sin posición en el plano (${sinPos.length})</h3>
+          <div class="row">${sinPos.map(u => `<button class="btn sm" data-sinpos="${esc(u.ubicacion_id)}">${esc(u.ubicacion_id)} · ${esc(capital(u.nombre))}${IX.total[u.ubicacion_id] ? ` (${IX.total[u.ubicacion_id]})` : ''}</button>`).join('')}</div>
+          <p class="meta">${ed ? 'Pulsa uno para colocarlo en el plano.' : 'Se pueden abrir igualmente; un editor puede colocarlos en el plano.'}</p></div>` : ''}
+        <div class="legend">${leyenda.map(e => `<span><i style="background:${esc(e.color)}"></i>${esc(e.etiqueta)} ${esc(capital(IX.u[e.ubicacion_id].nombre))}</span>`).join('')}</div>
+      </div>
+      ${ed ? panelPlano(p) : ''}
+    </div>`;
+
+  const plan = $('#plan');
+  plan.querySelectorAll('.el').forEach(div => {
+    if (!ed && div.dataset.u) div.onclick = () => irUbicacion(div.dataset.u);
+    if (ed) div.onpointerdown = ev => arrastrar(ev, div, cell);
+  });
+  $('#main').querySelectorAll('[data-sinpos]').forEach(b => b.onclick = () => ed ? colocar(b.dataset.sinpos, p) : irUbicacion(b.dataset.sinpos));
+  $('#planwrap').addEventListener('wheel', ev => { if (ev.ctrlKey) { ev.preventDefault(); S.zoom = Math.min(2.5, Math.max(0.4, S.zoom - Math.sign(ev.deltaY) * 0.1)); pintar(); } }, { passive: false });
+  if (ed) enlazarPanelPlano(p);
+}
+
+/* -------- edición del plano -------- */
+function panelPlano(p) {
+  const e = S.sel && D().PLANO.find(x => x.elemento_id === S.sel);
+  const opcU = ['<option value="">— ninguno (puerta, zona decorativa) —</option>'].concat(D().UBICACIONES.filter(u => !u.padre_id).map(u => `<option value="${esc(u.ubicacion_id)}" ${e && e.ubicacion_id === u.ubicacion_id ? 'selected' : ''}>${esc(u.ubicacion_id)} · ${esc(capital(u.nombre))}</option>`));
+  return `<aside class="side">
+    <div class="card"><h3>Planta</h3>
+      <div class="kv">
+        <label>Nombre</label><input data-pl="nombre" value="${esc(p.nombre)}">
+        <label>Columnas</label><input data-pl="columnas" type="number" min="1" max="200" value="${esc(p.columnas)}">
+        <label>Filas</label><input data-pl="filas" type="number" min="1" max="200" value="${esc(p.filas)}">
+      </div>
+      <div class="row"><button class="btn sm" id="nuevaPlanta">+ Nueva planta</button><button class="btn sm" id="nuevoMueble">+ Nuevo mueble</button><button class="btn sm" id="nuevoEl">+ Elemento (puerta/zona)</button></div>
+    </div>
+    <div class="card"><h3>${e ? 'Elemento ' + esc(e.elemento_id) : 'Ningún elemento seleccionado'}</h3>
+      ${e ? `<div class="kv">
+        <label>Etiqueta</label><input data-e="etiqueta" value="${esc(e.etiqueta)}">
+        <label>Mueble</label><select data-e="ubicacion_id">${opcU.join('')}</select>
+        <label>Tipo</label><select data-e="tipo">${['mueble', 'equipo', 'zona', 'puerta'].map(t => `<option ${e.tipo === t ? 'selected' : ''} value="${t}">${TIPO_TXT[t]}</option>`).join('')}</select>
+        <label>Color</label><input data-e="color" type="color" value="${esc(/^#[0-9a-f]{6}$/i.test(e.color) ? e.color : '#e5e7eb')}">
+        <label>Columna</label><input data-e="columna" type="number" min="1" value="${esc(e.columna)}">
+        <label>Fila</label><input data-e="fila" type="number" min="1" value="${esc(e.fila)}">
+        <label>Ancho</label><input data-e="ancho" type="number" min="1" value="${esc(e.ancho)}">
+        <label>Alto</label><input data-e="alto" type="number" min="1" value="${esc(e.alto)}">
+        <label>Orden</label><input data-e="orden" type="number" min="0" value="${esc(e.orden)}">
+        <label>Visible</label><select data-e="visible"><option value="TRUE" ${verdadero(e.visible) || e.visible === '' ? 'selected' : ''}>Sí</option><option value="FALSE" ${!(verdadero(e.visible) || e.visible === '') ? 'selected' : ''}>No</option></select>
+      </div>
+      <div class="row">${e.ubicacion_id ? `<button class="btn sm" id="abrirSel">Abrir mueble</button>` : ''}<button class="btn sm dan" id="borrarEl">Quitar del plano</button></div>
+      <p class="meta" style="margin-top:8px">Arrastra el rectángulo para moverlo y la esquina inferior derecha para cambiar su tamaño. Quitarlo del plano no borra el mueble ni su inventario.</p>`
+      : '<p class="meta">Pulsa un rectángulo del plano para editarlo.</p>'}
+    </div></aside>`;
+}
+function enlazarPanelPlano(p) {
+  $('#main').querySelectorAll('[data-pl]').forEach(i => i.onchange = () => cambiar('PLANTAS', p.planta_id, { [i.dataset.pl]: i.type === 'number' ? Number(i.value) : i.value }));
+  $('#main').querySelectorAll('[data-e]').forEach(i => i.onchange = () => {
+    let v = i.value; if (i.type === 'number') v = Math.max(i.dataset.e === 'orden' ? 0 : 1, Math.round(Number(v) || 1)); if (i.dataset.e === 'visible') v = v === 'TRUE';
+    cambiar('PLANO', S.sel, { [i.dataset.e]: v });
+  });
+  const b = id => $('#' + id);
+  if (b('borrarEl')) b('borrarEl').onclick = () => { accion(() => { D().PLANO = D().PLANO.filter(x => x.elemento_id !== S.sel); }); S.sel = null; pintar(); };
+  if (b('abrirSel')) b('abrirSel').onclick = () => { const e = D().PLANO.find(x => x.elemento_id === S.sel); irUbicacion(e.ubicacion_id); };
+  b('nuevoEl').onclick = () => { const id = nuevoIdPlano('ZONA'); accion(() => D().PLANO.push(nuevoElemento(id, p, '', 'ZONA', 'zona'))); S.sel = id; pintar(); };
+  b('nuevaPlanta').onclick = () => dialogoNuevaPlanta();
+  b('nuevoMueble').onclick = () => dialogoNuevoMueble(p);
+}
+function nuevoIdPlano(base) { let id = 'EL-' + base, n = 1; while (D().PLANO.some(e => e.elemento_id === id)) id = 'EL-' + base + '-' + (++n); return id; }
+function nuevoElemento(id, p, uid, etiqueta, tipo) {
+  const ocup = new Set(); (IX.planoPorPlanta[p.planta_id] || []).forEach(e => { for (let r = 0; r < num(e.alto); r++) for (let c = 0; c < num(e.ancho); c++) ocup.add((num(e.fila) + r) + ',' + (num(e.columna) + c)); });
+  let pos = { fila: 1, columna: 1 };
+  busca: for (let r = 1; r <= num(p.filas); r++) for (let c = 1; c < num(p.columnas); c++) if (!ocup.has(r + ',' + c) && !ocup.has(r + ',' + (c + 1))) { pos = { fila: r, columna: c }; break busca; }
+  return { elemento_id: id, planta_id: p.planta_id, ubicacion_id: uid, etiqueta, tipo, fila: pos.fila, columna: pos.columna, ancho: 2, alto: 1, color: '#d1d5db', orden: D().PLANO.length + 1, visible: true, version: '' };
+}
+function colocar(uid, p) { const id = nuevoIdPlano(uid); accion(() => D().PLANO.push(nuevoElemento(id, p, uid, uid, IX.u[uid].tipo === 'equipo' ? 'equipo' : 'mueble'))); S.sel = id; pintar(); }
+
+function arrastrar(ev, div, cell) {
+  ev.preventDefault();
+  const id = div.dataset.el; S.sel = id;
+  const e = D().PLANO.find(x => x.elemento_id === id);
+  const p = D().PLANTAS.find(x => x.planta_id === e.planta_id);
+  const redim = !!ev.target.dataset.rs;
+  const x0 = ev.clientX, y0 = ev.clientY, paso = cell + 2;
+  const ini = { fila: num(e.fila), columna: num(e.columna), ancho: num(e.ancho), alto: num(e.alto) };
+  let nuevo = Object.assign({}, ini);
+  document.querySelectorAll('.el.sel').forEach(x => x.classList.remove('sel')); div.classList.add('sel');
+  const mover = m => {
+    const dc = Math.round((m.clientX - x0) / paso), df = Math.round((m.clientY - y0) / paso);
+    if (redim) nuevo = Object.assign({}, ini, { ancho: Math.max(1, Math.min(num(p.columnas) - ini.columna + 1, ini.ancho + dc)), alto: Math.max(1, Math.min(num(p.filas) - ini.fila + 1, ini.alto + df)) });
+    else nuevo = Object.assign({}, ini, { columna: Math.max(1, Math.min(num(p.columnas) - ini.ancho + 1, ini.columna + dc)), fila: Math.max(1, Math.min(num(p.filas) - ini.alto + 1, ini.fila + df)) });
+    div.style.gridColumn = `${nuevo.columna} / span ${nuevo.ancho}`; div.style.gridRow = `${nuevo.fila} / span ${nuevo.alto}`;
+  };
+  const soltar = () => {
+    window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', soltar);
+    const cambio = ['fila', 'columna', 'ancho', 'alto'].some(k => nuevo[k] !== ini[k]);
+    if (cambio) cambiar('PLANO', id, nuevo); else pintar();
+  };
+  window.addEventListener('pointermove', mover); window.addEventListener('pointerup', soltar);
+}
+
+/* ============================== vista: ubicación ============================== */
+function vistaUbicacion(id) {
+  const u = IX.u[id], ed = !!S.borrador;
+  const r = ruta(id), pid = plantaDe(id);
+  S.vista.planta = pid || S.vista.planta;
+  $('#nav').innerHTML = `<div class="crumbs">
+      <button data-go="plano">Taller</button><span class="sep">›</span>
+      <button data-go="planta">${esc(nombrePlanta(pid))}</button>
+      ${r.map(x => `<span class="sep">›</span>${x.ubicacion_id === id ? `<b>${esc(etiquetaUbic(x))}</b>` : `<button data-u="${esc(x.ubicacion_id)}">${esc(etiquetaUbic(x))}</button>`}`).join('')}
+    </div><span class="spacer"></span>
+    ${r.length > 1 ? `<button class="btn sm" data-u="${esc(r[r.length - 2].ubicacion_id)}">↑ Subir a ${esc(capital(r[r.length - 2].nombre))}</button>` : ''}
+    <button class="btn sm" data-go="planta">← Volver al plano</button>`;
+  $('#nav').querySelectorAll('[data-go]').forEach(b => b.onclick = () => ir({ tipo: 'plano', planta: pid }));
+  $('#nav').querySelectorAll('[data-u]').forEach(b => b.onclick = () => irUbicacion(b.dataset.u));
+
+  const hijos = IX.hijos[id] || [];
+  const items = IX.items[id] || [];
+  const nBaldas = cuenta(id, 'balda'), nCajones = cuenta(id, 'cajon'), nCajas = cuenta(id, 'caja'), nSecc = cuenta(id, 'seccion');
+  const esMueble = !u.padre_id;
+  const enPlano = IX.elPorUbic[r[0].ubicacion_id];
+
+  $('#main').innerHTML = `
+    <div class="card">
+      <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+        ${enPlano ? `<span style="width:16px;height:44px;border-radius:4px;background:${esc(enPlano.color)};flex:none"></span>` : ''}
+        <div style="flex:1;min-width:220px">
+          <div class="meta">${esc(TIPO_TXT[u.tipo] || u.tipo)} · <b>${esc(u.ubicacion_id)}</b></div>
+          <h2>${esc(capital(u.nombre))}</h2>
+          <div class="meta">
+            <span>Planta: <b>${esc(nombrePlanta(pid))}</b></span>
+            ${nSecc ? `<span>Secciones: <b>${nSecc}</b></span>` : ''}${nBaldas ? `<span>Baldas: <b>${nBaldas}</b></span>` : ''}
+            ${nCajones ? `<span>Cajones: <b>${nCajones}</b></span>` : ''}${nCajas ? `<span>Cajas: <b>${nCajas}</b></span>` : ''}
+            <span>Artículos: <b>${IX.total[id]}</b></span>
+            ${esMueble && !enPlano ? '<span style="color:var(--warn)">No está dibujado en el plano</span>' : ''}
+          </div>
+          ${u.descripcion ? `<p style="margin:6px 0 0">${esc(u.descripcion)}</p>` : ''}${u.notas ? `<p class="meta" style="margin-top:4px">Notas: ${esc(u.notas)}</p>` : ''}
+        </div>
+        ${hijos.length > 3 ? `<input class="filtro" id="filtroCajas" placeholder="Buscar caja o balda aquí…" value="${esc(S.filtroCajas)}">` : ''}
+      </div>
+      ${ed ? editorUbicacion(u) : ''}
+    </div>
+    ${hijos.length ? `<div class="card"><h3>Distribución</h3><div class="estructura">${estructura(id)}</div></div>` : ''}
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><h3 style="margin:0">${hijos.length ? 'Artículos sueltos aquí' : 'Contenido'} (${items.length})</h3><span class="spacer"></span>
+        ${ed ? `<button class="btn sm pri" id="nuevoArt">+ Añadir artículo</button>` : ''}</div>
+      ${items.length ? tablaArticulos(items) : `<p class="vacia">${hijos.length ? 'No hay artículos directamente aquí; están dentro de las baldas, cajones o cajas de arriba.' : 'Vacío: no hay artículos registrados en esta ubicación.'}</p>`}
+    </div>`;
+  $('#main').querySelectorAll('[data-u]').forEach(b => b.onclick = () => irUbicacion(b.dataset.u));
+  const f = $('#filtroCajas'); if (f) f.oninput = () => { S.filtroCajas = f.value; filtrarEstructura(); };
+  filtrarEstructura();
+  if (ed) enlazarEdicionUbicacion(u);
+  if (S.vista.resaltar) {
+    const tr = document.querySelector(`tr[data-a="${CSS.escape(S.vista.resaltar)}"]`) || document.querySelector(`[data-u="${CSS.escape(S.vista.resaltar)}"]`);
+    if (tr) { tr.classList.add('hit'); setTimeout(() => tr.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50); }
+  }
+}
+function cuenta(id, tipo) { let n = 0; (IX.hijos[id] || []).forEach(h => { if (h.tipo === tipo) n++; n += cuenta(h.ubicacion_id, tipo); }); return n; }
+function filtrarEstructura() {
+  const q = norm(S.filtroCajas);
+  document.querySelectorAll('.estructura [data-busca]').forEach(x => { x.style.display = !q || norm(x.dataset.busca).includes(q) ? '' : 'none'; });
+}
+
+/** Dibuja el interior: secciones en columnas, baldas/cajones apilados como estantes, cajas como tarjetas. */
+function estructura(id) {
+  const hijos = IX.hijos[id] || [];
+  const apilables = hijos.filter(h => h.tipo === 'balda' || h.tipo === 'cajon');
+  const secciones = hijos.filter(h => !['balda', 'cajon', 'caja'].includes(h.tipo));
+  const cajas = hijos.filter(h => h.tipo === 'caja');
+  let html = '';
+  if (apilables.length) html += `<div class="seccion" style="flex-basis:100%"><div class="bd"><div class="estante">${apilables.map(balda).join('')}</div></div></div>`;
+  secciones.forEach(s => {
+    const sub = IX.hijos[s.ubicacion_id] || [], it = IX.items[s.ubicacion_id] || [];
+    html += `<div class="seccion" data-busca="${esc(s.nombre + ' ' + s.ubicacion_id + ' ' + sub.map(x => x.nombre).join(' '))}">
+      <div class="tt"><button class="btn sm" data-u="${esc(s.ubicacion_id)}">${esc(capital(s.nombre))}</button><small style="color:var(--ink3)">${esc(s.ubicacion_id)} · ${IX.total[s.ubicacion_id]} art.</small></div>
+      <div class="bd">${sub.length ? `<div class="estante">${sub.filter(x => x.tipo !== 'caja').map(balda).join('')}</div>${cajasHtml(sub.filter(x => x.tipo === 'caja'))}` : ''}
+      ${it.length ? `<button class="sueltos" data-u="${esc(s.ubicacion_id)}">${it.length} artículo${it.length > 1 ? 's' : ''} ${sub.length ? 'sueltos' : ''}</button>` : (!sub.length ? '<span class="vacia">Vacía</span>' : '')}</div></div>`;
+  });
+  if (cajas.length) html += `<div class="seccion" style="flex-basis:100%"><div class="tt">Cajas</div><div class="bd">${cajasHtml(cajas)}</div></div>`;
+  return html;
+}
+function balda(b) {
+  const sub = IX.hijos[b.ubicacion_id] || [], it = IX.items[b.ubicacion_id] || [];
+  const cajas = sub.filter(x => x.tipo === 'caja'), otros = sub.filter(x => x.tipo !== 'caja');
+  const vacia = !sub.length && !it.length;
+  return `<div class="balda" data-busca="${esc(b.nombre + ' ' + b.ubicacion_id + ' ' + sub.map(x => x.nombre).join(' '))}">
+    <button class="bn" data-u="${esc(b.ubicacion_id)}"><b>${esc(capital(b.nombre))}</b><small>${esc(b.ubicacion_id)}</small></button>
+    <div class="bc">${cajasHtml(cajas)}${otros.map(o => `<button class="caja" style="background:#eef2ff;border-color:#c7d2fe" data-u="${esc(o.ubicacion_id)}"><b>${esc(capital(o.nombre))}</b><small>${esc(TIPO_TXT[o.tipo])} · ${IX.total[o.ubicacion_id]} art.</small></button>`).join('')}
+      ${it.length ? `<button class="sueltos" data-u="${esc(b.ubicacion_id)}">${it.length} artículo${it.length > 1 ? 's' : ''}${cajas.length ? ' sin caja' : ''}</button>` : ''}
+      ${vacia ? '<span class="vacia">Vacía</span>' : ''}</div></div>`;
+}
+function cajasHtml(cajas) {
+  return cajas.map(c => `<button class="caja" data-u="${esc(c.ubicacion_id)}" data-busca="${esc(c.nombre + ' ' + c.ubicacion_id)}"><b>📦 ${esc(capital(c.nombre))}</b><small>${esc(c.ubicacion_id)} · ${IX.total[c.ubicacion_id]} art.</small></button>`).join('');
+}
+
+function cantidadHtml(a) {
+  if (!vacio(a.cantidad)) {
+    const bajo = !vacio(a.stock_minimo) && num(a.cantidad) < num(a.stock_minimo);
+    return `${esc(a.cantidad)}${a.unidad ? ' ' + esc(a.unidad) : ''}${a.cantidad_texto ? ` <span class="na">(${esc(a.cantidad_texto)})</span>` : ''}${bajo ? `<span class="low">Bajo mínimo (${esc(a.stock_minimo)})</span>` : ''}`;
+  }
+  if (a.cantidad_texto) return `<span class="tx" title="Cantidad escrita como texto en la hoja">${esc(a.cantidad_texto)}</span>`;
+  return '<span class="na">No disponible</span>';
+}
+function tablaArticulos(items) {
+  const ed = !!S.borrador;
+  const cols = ['referencia', 'categoria', 'unidad', 'descripcion', 'observaciones', 'stock_minimo'].filter(c => ed || items.some(a => !vacio(a[c])));
+  const tit = { referencia: 'Referencia', categoria: 'Categoría', unidad: 'Unidad', descripcion: 'Descripción', observaciones: 'Observaciones', stock_minimo: 'Stock mín.' };
+  if (ed) {
+    const opc = ubicacionesOpciones();
+    return `<div class="tablewrap"><table><thead><tr><th>Artículo</th><th>Cantidad</th><th>Cant. texto</th>${cols.map(c => `<th>${tit[c]}</th>`).join('')}<th>Ubicación</th><th></th></tr></thead><tbody>
+      ${items.map(a => `<tr data-a="${esc(a.articulo_id)}">
+        <td><input data-f="nombre" value="${esc(a.nombre)}"><small style="color:var(--ink3)">${esc(a.articulo_id)}</small></td>
+        <td><input data-f="cantidad" type="number" min="0" step="any" value="${esc(a.cantidad)}" placeholder="?" style="width:80px"></td>
+        <td><input data-f="cantidad_texto" value="${esc(a.cantidad_texto)}"></td>
+        ${cols.map(c => `<td><input data-f="${c}" ${c === 'stock_minimo' ? 'type="number" min="0"' : ''} value="${esc(a[c])}"></td>`).join('')}
+        <td><select data-f="ubicacion_id">${opc.replace(`value="${esc(a.ubicacion_id)}"`, `value="${esc(a.ubicacion_id)}" selected`)}</select></td>
+        <td><button class="btn sm dan" data-borrar="${esc(a.articulo_id)}" title="Borrar artículo">✕</button></td></tr>`).join('')}
+      </tbody></table></div>`;
+  }
+  return `<div class="tablewrap"><table><thead><tr><th>Artículo</th><th>Cantidad</th>${cols.map(c => `<th>${tit[c]}</th>`).join('')}</tr></thead><tbody>
+    ${items.map(a => `<tr data-a="${esc(a.articulo_id)}"><td><b>${esc(a.nombre) || '<span class="na">(sin nombre)</span>'}</b><br><small style="color:var(--ink3)">${esc(a.articulo_id)}</small></td>
+      <td class="q">${cantidadHtml(a)}</td>${cols.map(c => `<td>${esc(a[c])}</td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+}
+let _opc = null;
+function ubicacionesOpciones() {
+  if (_opc && _opc.d === D() && _opc.n === D().UBICACIONES.length) return _opc.html;
+  const lista = D().UBICACIONES.map(u => [u.ubicacion_id, textoRuta(u.ubicacion_id)]).sort((a, b) => a[1].localeCompare(b[1]));
+  const html = lista.map(([id, t]) => `<option value="${esc(id)}">${esc(t)}</option>`).join('');
+  _opc = { d: D(), n: D().UBICACIONES.length, html };
+  return html;
+}
+
+/* -------- edición de ubicaciones e inventario -------- */
+function editorUbicacion(u) {
+  const opc = '<option value="">— (es un mueble del plano) —</option>' + ubicacionesOpciones();
+  return `<details style="margin-top:12px" ${S.abrirEditorU ? 'open' : ''}><summary><b>Editar esta ubicación</b></summary>
+    <div class="kv" style="margin-top:10px;max-width:560px">
+      <label>Nombre</label><input data-uf="nombre" value="${esc(u.nombre)}">
+      <label>Tipo</label><select data-uf="tipo">${TIPOS_UBIC.map(t => `<option value="${t}" ${u.tipo === t ? 'selected' : ''}>${TIPO_TXT[t]}</option>`).join('')}</select>
+      <label>Dentro de</label><select data-uf="padre_id">${opc.replace(`value="${esc(u.padre_id)}"`, `value="${esc(u.padre_id)}" selected`)}</select>
+      ${!u.padre_id ? `<label>Planta</label><select data-uf="planta_id">${D().PLANTAS.map(p => `<option value="${esc(p.planta_id)}" ${p.planta_id === u.planta_id ? 'selected' : ''}>${esc(p.nombre)}</option>`).join('')}</select>` : ''}
+      <label>Orden</label><input data-uf="orden" type="number" min="0" value="${esc(u.orden)}">
+      <label>Descripción</label><input data-uf="descripcion" value="${esc(u.descripcion)}">
+      <label>Notas</label><input data-uf="notas" value="${esc(u.notas)}">
+    </div>
+    <div class="row"><button class="btn sm" data-hijo="balda">+ Balda</button><button class="btn sm" data-hijo="cajon">+ Cajón</button><button class="btn sm" data-hijo="caja">+ Caja</button><button class="btn sm" data-hijo="seccion">+ Sección / puerta</button>
+      <span class="spacer"></span><button class="btn sm dan" id="borrarU">Borrar ubicación</button></div>
+    <p class="meta">Para mover una caja a otra balda, cambia «Dentro de». Su contenido se mueve con ella. Solo se puede borrar una ubicación vacía.</p></details>`;
+}
+function enlazarEdicionUbicacion(u) {
+  const id = u.ubicacion_id;
+  $('#main').querySelectorAll('[data-uf]').forEach(i => i.onchange = () => {
+    let v = i.type === 'number' ? Number(i.value) : i.value;
+    if (i.dataset.uf === 'padre_id' && v && ruta(v).some(x => x.ubicacion_id === id)) { toast('No se puede meter una ubicación dentro de sí misma', true); pintar(); return; }
+    S.abrirEditorU = true; cambiar('UBICACIONES', id, { [i.dataset.uf]: v });
+  });
+  $('#main').querySelectorAll('[data-hijo]').forEach(b => b.onclick = async () => {
+    const tipo = b.dataset.hijo, pref = { balda: 'B', cajon: 'C', caja: 'K', seccion: 'S' }[tipo];
+    let n = 1, nid; do { nid = `${id}-${pref}${tipo === 'caja' ? String(n).padStart(2, '0') : n}`; n++; } while (IX.u[nid]);
+    const f = await formulario(`Nueva ${TIPO_TXT[tipo].toLowerCase()} dentro de ${id}`, [{ k: 'nombre', label: 'Nombre', valor: `${TIPO_TXT[tipo]} ${n - 1}` }, { k: 'ident', label: 'Identificador', valor: nid }], 'Crear', 'El identificador debe ser único y conviene no cambiarlo después.');
+    if (!f || !f.nombre.trim() || !f.ident.trim()) return;
+    const nombre = f.nombre.trim(), ident = f.ident;
+    if (IX.u[ident.trim()]) { toast('Ese identificador ya existe', true); return; }
+    S.abrirEditorU = true;
+    accion(() => D().UBICACIONES.push({ ubicacion_id: ident.trim(), padre_id: id, planta_id: '', tipo, nombre, orden: (IX.hijos[id] || []).length + 1, descripcion: '', notas: '', activo: true, version: '' }));
+    pintar();
+  });
+  const bu = $('#borrarU');
+  if (bu) bu.onclick = async () => {
+    if ((IX.hijos[id] || []).length || (IX.items[id] || []).length) { toast('Primero mueve o borra lo que contiene', true); return; }
+    if (!await preguntar(`¿Borrar la ubicación ${id}?`, 'Borrar', 'Se guardará una copia en la pestaña HISTORIAL.')) return;
+    const padre = u.padre_id;
+    accion(() => { D().UBICACIONES = D().UBICACIONES.filter(x => x.ubicacion_id !== id); D().PLANO = D().PLANO.filter(e => e.ubicacion_id !== id); });
+    padre ? irUbicacion(padre) : ir({ tipo: 'plano' });
+  };
+  $('#main').querySelectorAll('tr[data-a] [data-f]').forEach(i => i.onchange = () => {
+    const aid = i.closest('tr').dataset.a, f = i.dataset.f;
+    let v = i.value; if (i.type === 'number') v = v === '' ? '' : Number(v);
+    if (f === 'nombre' && !String(v).trim()) { toast('El artículo necesita un nombre', true); pintar(); return; }
+    cambiar('INVENTARIO', aid, { [f]: v });
+    if (f === 'ubicacion_id') toast('Artículo movido a ' + textoRuta(v));
+  });
+  $('#main').querySelectorAll('[data-borrar]').forEach(b => b.onclick = async () => {
+    const a = D().INVENTARIO.find(x => x.articulo_id === b.dataset.borrar);
+    if (!await preguntar(`¿Borrar "${a.nombre}"?`, 'Borrar', 'Se guardará una copia en la pestaña HISTORIAL.')) return;
+    accion(() => { D().INVENTARIO = D().INVENTARIO.filter(x => x.articulo_id !== a.articulo_id); }); pintar();
+  });
+  const na = $('#nuevoArt');
+  if (na) na.onclick = async () => {
+    const f = await formulario('Nuevo artículo en ' + textoRuta(id), [{ k: 'nombre', label: 'Nombre' }, { k: 'c', label: 'Cantidad', valor: '' }], 'Añadir', 'Deja la cantidad vacía si no se conoce.');
+    if (!f || !f.nombre.trim()) return;
+    const nombre = f.nombre, c = f.c;
+    const tmp = 'NUEVO-' + Date.now();
+    accion(() => D().INVENTARIO.push({ articulo_id: tmp, ubicacion_id: id, nombre: nombre.trim(), cantidad: c === null || c.trim() === '' || isNaN(Number(c.replace(',', '.'))) ? '' : Number(c.replace(',', '.')), cantidad_texto: c && isNaN(Number(c.replace(',', '.'))) ? c.trim() : '', unidad: '', referencia: '', categoria: '', descripcion: '', observaciones: '', stock_minimo: '', origen: 'web', actualizado_en: '', version: '' }));
+    pintar();
+  };
+}
+
+/* ============================== búsqueda ============================== */
+function buscar(q) {
+  const res = [];
+  const palabras = q.split(/\s+/).filter(Boolean);
+  const casa = t => palabras.every(p => t.includes(p));
+  D().INVENTARIO.forEach(a => {
+    const r = ruta(a.ubicacion_id);
+    const t = norm([a.nombre, a.referencia, a.articulo_id, a.categoria, a.descripcion, a.observaciones, ...r.map(x => x.nombre + ' ' + x.ubicacion_id)].join(' '));
+    if (casa(t)) res.push({ tipo: 'art', a, raiz: r[0] && r[0].ubicacion_id, peso: norm(a.nombre).includes(palabras[0]) ? 0 : 1 });
+  });
+  D().UBICACIONES.forEach(u => {
+    const t = norm(u.nombre + ' ' + u.ubicacion_id + ' ' + u.descripcion);
+    if (casa(t)) res.push({ tipo: 'ubic', u, raiz: (raiz(u.ubicacion_id) || {}).ubicacion_id, peso: u.tipo === 'caja' ? -1 : -0.5 });
+  });
+  return res.sort((a, b) => a.peso - b.peso);
+}
+let selRes = -1;
+function pintarResultados() {
+  const q = norm($('#q').value), box = $('#results');
+  if (S.vista.tipo === 'plano' && S.base) vistaPlano();
+  if (q.length < 2) { box.classList.add('hidden'); return; }
+  const rs = buscar(q).slice(0, 60);
+  const nombres = {}; rs.forEach(r => { if (r.tipo === 'art') nombres[norm(r.a.nombre)] = (nombres[norm(r.a.nombre)] || 0) + 1; });
+  box.innerHTML = rs.length ? rs.map((r, i) => r.tipo === 'art'
+    ? `<button class="r ${i === selRes ? 'act' : ''}" data-i="${i}"><b>${esc(r.a.nombre)}</b> · ${vacio(r.a.cantidad) ? (r.a.cantidad_texto ? esc(r.a.cantidad_texto) : '<i>cantidad no disponible</i>') : esc(r.a.cantidad) + ' ' + esc(r.a.unidad || 'ud')}
+        ${r.a.referencia ? ` · Ref. ${esc(r.a.referencia)}` : ''}${nombres[norm(r.a.nombre)] > 1 ? ` · <span style="color:var(--warn)">${esc(r.a.articulo_id)}</span>` : ''}<small>${esc(nombrePlanta(plantaDe(r.a.ubicacion_id)))} › ${esc(textoRuta(r.a.ubicacion_id))}</small></button>`
+    : `<button class="r ${i === selRes ? 'act' : ''}" data-i="${i}">${r.u.tipo === 'caja' ? '📦' : '🗄'} <b>${esc(capital(r.u.nombre))}</b> · ${esc(TIPO_TXT[r.u.tipo])} ${esc(r.u.ubicacion_id)}<small>${esc(nombrePlanta(plantaDe(r.u.ubicacion_id)))} › ${esc(textoRuta(r.u.ubicacion_id))}</small></button>`).join('')
+    : '<div class="empty">Sin resultados. Prueba con menos palabras o una referencia.</div>';
+  box.classList.remove('hidden');
+  box.querySelectorAll('[data-i]').forEach(b => b.onclick = () => elegir(rs[+b.dataset.i]));
+  box._rs = rs;
+}
+function elegir(r) {
+  $('#results').classList.add('hidden');
+  if (r.tipo === 'art') irUbicacion(r.a.ubicacion_id, r.a.articulo_id); else irUbicacion(r.u.ubicacion_id);
+}
+$('#q').addEventListener('input', () => { selRes = -1; pintarResultados(); });
+$('#q').addEventListener('keydown', e => {
+  const rs = $('#results')._rs || [];
+  if (e.key === 'ArrowDown') { selRes = Math.min(rs.length - 1, selRes + 1); pintarResultados(); e.preventDefault(); }
+  else if (e.key === 'ArrowUp') { selRes = Math.max(0, selRes - 1); pintarResultados(); e.preventDefault(); }
+  else if (e.key === 'Enter' && rs.length) elegir(rs[Math.max(0, selRes)]);
+  else if (e.key === 'Escape') { $('#q').value = ''; pintarResultados(); }
+});
+document.addEventListener('click', e => { if (!e.target.closest('.search')) $('#results').classList.add('hidden'); });
+$('#q').addEventListener('focus', () => { if (norm($('#q').value).length >= 2) pintarResultados(); });
+
+/* ============================== modo edición ============================== */
+$('#btnAdmin').onclick = () => S.token ? salirEdicion() : dialogoCodigo();
+$('#btnSync').onclick = () => sincronizar(true);
+$('#btnIssues').onclick = () => dialogoIncidencias();
+
+function dialogoCodigo() {
+  $('#modal').innerHTML = `<div class="modal" id="mm"><form class="box" id="fcod" autocomplete="off">
+    <h3>Modo edición</h3><p class="meta">Introduce el código de acceso para editar el plano y el inventario.</p>
+    <input class="codigo" id="cod" type="password" inputmode="numeric" maxlength="12" autofocus aria-label="Código de acceso">
+    <div class="msg" id="codmsg"></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="cancod">Cancelar</button><button class="btn pri" id="okcod">Entrar</button></div></form></div>`;
+  const cerrar = () => { $('#modal').innerHTML = ''; };
+  $('#cancod').onclick = cerrar; $('#mm').onclick = e => { if (e.target.id === 'mm') cerrar(); };
+  $('#results').classList.add('hidden'); $('#cod').focus();
+  $('#fcod').onsubmit = async e => {
+    e.preventDefault(); $('#okcod').disabled = true; $('#codmsg').className = 'msg'; $('#codmsg').textContent = 'Comprobando…';
+    try {
+      const r = await API.call('apiLogin', $('#cod').value);
+      if (!r.ok) { $('#codmsg').className = 'msg err'; $('#codmsg').textContent = r.error; $('#okcod').disabled = false; $('#cod').select(); return; }
+      S.token = r.token; cerrar(); entrarEdicion();
+    } catch (err) { $('#codmsg').className = 'msg err'; $('#codmsg').textContent = 'Error de conexión: ' + (err.message || err); $('#okcod').disabled = false; }
+  };
+}
+function entrarEdicion() {
+  S.borrador = clone(S.base); S.baseEdicion = clone(S.base); S.pila = []; S.remoto = null;
+  $('#btnAdmin').classList.add('on'); $('#btnAdmin').textContent = '✎ Salir de edición';
+  toast('Modo edición activado'); pintar();
+}
+async function salirEdicion(forzar) {
+  if (!forzar && cambiosPendientes().length && !await preguntar('Hay cambios sin guardar', 'Salir y descartarlos', '¿Quieres salir del modo edición? Los cambios no guardados se perderán.')) return;
+  if (S.token) API.call('apiCerrarSesion', S.token).catch(() => {});
+  S.token = null; S.borrador = null; S.baseEdicion = null; S.pila = []; S.sel = null;
+  if (S.remoto) { S.base = S.remoto; S.remoto = null; }
+  $('#btnAdmin').classList.remove('on'); $('#btnAdmin').textContent = '✎ Modo edición';
+  pintar(); sincronizar(false);
+}
+function accion(fn) { S.pila.push(JSON.stringify(S.borrador)); if (S.pila.length > 80) S.pila.shift(); fn(); }
+function cambiar(tabla, id, campos) {
+  const key = TABLAS[tabla];
+  accion(() => { const r = D()[tabla].find(x => String(x[key]) === String(id)); if (r) Object.assign(r, campos); });
+  pintar();
+}
+function deshacer() { if (!S.pila.length) return; S.borrador = JSON.parse(S.pila.pop()); pintar(); }
+async function cancelarCambios() { if (!cambiosPendientes().length) return; if (!await preguntar('¿Descartar todos los cambios sin guardar?', 'Descartar')) return; S.borrador = clone(S.baseEdicion); S.pila = []; pintar(); }
+
+function cambiosPendientes() {
+  if (!S.borrador) return [];
+  const out = [];
+  const orden = ['PLANTAS', 'UBICACIONES', 'PLANO', 'INVENTARIO', 'CONFIG'];
+  const igual = (a, b) => String(a ?? '') === String(b ?? '') || (verdadero(a) && verdadero(b));
+  orden.forEach(t => {
+    const key = TABLAS[t], antes = {}, ahora = {};
+    S.baseEdicion[t].forEach(r => antes[r[key]] = r); S.borrador[t].forEach(r => ahora[r[key]] = r);
+    S.borrador[t].forEach(r => {
+      const a = antes[r[key]];
+      if (!a) { const campos = {}; EDITABLES[t].forEach(k => { if (!vacio(r[k])) campos[k] = r[k]; }); out.push({ tabla: t, op: 'crear', id: t === 'INVENTARIO' ? undefined : r[key], tmp: r[key], campos }); return; }
+      const campos = {}, previos = {}; EDITABLES[t].forEach(k => { if (!igual(a[k], r[k])) { campos[k] = r[k]; previos[k] = a[k]; } });
+      if (Object.keys(campos).length) out.push({ tabla: t, op: 'actualizar', id: r[key], version: a.version, campos, antes: previos });
+    });
+    S.baseEdicion[t].forEach(r => { if (!ahora[r[key]]) out.push({ tabla: t, op: 'borrar', id: r[key], version: r.version }); });
+  });
+  // Borrar primero artículos, después elementos del plano y al final ubicaciones
+  const peso = c => c.op === 'borrar' ? (c.tabla === 'UBICACIONES' ? 3 : 2) : c.op === 'crear' ? (c.tabla === 'UBICACIONES' || c.tabla === 'PLANTAS' ? 0 : 1) : 1;
+  return out.sort((a, b) => peso(a) - peso(b));
+}
+async function guardar() {
+  const cambios = cambiosPendientes();
+  if (!cambios.length) { toast('No hay cambios que guardar'); return; }
+  const errores = validar().filter(i => i.g === 'ERROR');
+  if (errores.length && !await preguntar(`Hay ${errores.length} error${errores.length > 1 ? 'es' : ''} en los datos`, 'Guardar igualmente', 'Son errores que ya existen o que has creado (pulsa ⚠ para verlos). Guardar no los empeora, pero conviene corregirlos.')) return;
+  const btn = $('#btnGuardar'); if (btn) { btn.disabled = true; btn.textContent = 'Guardando…'; }
+  try {
+    const r = await API.call('apiGuardar', S.token, cambios);
+    if (!r.ok) {
+      if (r.sesion === false) { toast(r.error, true); S.token = null; dialogoCodigo(); return; }
+      dialogoError(r); return;
+    }
+    toast(`Guardado en la hoja: ${r.aplicados} cambio${r.aplicados > 1 ? 's' : ''}`);
+    // Releer la hoja para trabajar sobre la versión real
+    const l = await API.call('apiLeer', '');
+    if (l.ok) { S.base = l.datos; S.huella = l.huella; S.ultimaSync = new Date(); S.remoto = null; S.borrador = clone(S.base); S.baseEdicion = clone(S.base); S.pila = []; }
+    pintar();
+  } catch (e) { toast('No se pudo guardar: ' + (e.message || e) + '. Tus cambios siguen aquí; vuelve a intentarlo.', true); }
+  finally { pintarAdminBar(); }
+}
+function dialogoError(r) {
+  const lista = (r.conflictos || []).concat(r.errores || []);
+  $('#modal').innerHTML = `<div class="modal"><div class="box wide"><h3>${esc(r.error || 'No se ha guardado')}</h3>
+    <p>No se ha escrito <b>nada</b> en la hoja. ${r.conflictos && r.conflictos.length ? 'Otra persona ha cambiado estos registros mientras editabas:' : ''}</p>
+    <ul>${lista.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+    <div class="row" style="justify-content:flex-end">${r.conflictos && r.conflictos.length ? '<button class="btn dan" id="recargar">Descartar mis cambios y recargar</button>' : ''}<button class="btn pri" id="seguir">Seguir editando</button></div></div></div>`;
+  $('#seguir').onclick = () => { $('#modal').innerHTML = ''; };
+  const rc = $('#recargar'); if (rc) rc.onclick = async () => { $('#modal').innerHTML = ''; const l = await API.call('apiLeer', ''); if (l.ok) { S.base = l.datos; S.huella = l.huella; S.borrador = clone(S.base); S.baseEdicion = clone(S.base); S.pila = []; S.remoto = null; pintar(); } };
+}
+function pintarAdminBar() {
+  const bar = $('#adminbar');
+  if (!S.borrador) { bar.classList.add('hidden'); return; }
+  const n = cambiosPendientes().length;
+  bar.classList.remove('hidden');
+  bar.innerHTML = `<b>Modo edición</b><span class="pill">${n} cambio${n === 1 ? '' : 's'} sin guardar</span>
+    <span class="meta">Los cambios no se escriben en la hoja hasta pulsar Guardar.</span><span class="spacer"></span>
+    <button class="btn sm" id="btnTextos">Textos</button>
+    <button class="btn sm" id="btnDeshacer" ${S.pila.length ? '' : 'disabled'}>↶ Deshacer</button>
+    <button class="btn sm" id="btnCancelar" ${n ? '' : 'disabled'}>Cancelar cambios</button>
+    <button class="btn sm pri" id="btnGuardar" ${n ? '' : 'disabled'}>Guardar en la hoja</button>`;
+  $('#btnDeshacer').onclick = deshacer; $('#btnCancelar').onclick = cancelarCambios; $('#btnGuardar').onclick = guardar; $('#btnTextos').onclick = dialogoTextos;
+}
+function dialogoTextos() {
+  const cfg = D().CONFIG;
+  $('#modal').innerHTML = `<div class="modal"><div class="box wide"><h3>Textos y parámetros (pestaña CONFIG)</h3>
+    <div class="kv">${cfg.map(c => `<label title="${esc(c.descripcion)}">${esc(c.clave)}</label><input data-c="${esc(c.clave)}" value="${esc(c.valor)}">`).join('')}</div>
+    <div class="row" style="justify-content:flex-end"><button class="btn pri" id="okt">Aplicar</button></div></div></div>`;
+  $('#okt').onclick = () => {
+    accion(() => document.querySelectorAll('[data-c]').forEach(i => { const r = D().CONFIG.find(c => c.clave === i.dataset.c); if (String(r.valor) !== i.value) r.valor = i.value; }));
+    $('#modal').innerHTML = ''; pintar();
+  };
+}
+async function dialogoNuevaPlanta() {
+  const f = await formulario('Nueva planta', [{ k: 'nombre', label: 'Nombre', valor: 'Nivel ' + D().PLANTAS.length }], 'Crear'); if (!f || !f.nombre.trim()) return;
+  const nombre = f.nombre.trim();
+  let id = 'planta-' + norm(nombre).replace(/[^a-z0-9]+/g, '-'); while (D().PLANTAS.some(p => p.planta_id === id)) id += '-2';
+  accion(() => D().PLANTAS.push({ planta_id: id, nombre, orden: D().PLANTAS.length + 1, filas: 16, columnas: 18, activo: true }));
+  S.vista.planta = id; pintar();
+}
+async function dialogoNuevoMueble(p) {
+  const f = await formulario('Nuevo mueble en ' + p.nombre, [{ k: 'id', label: 'Código', valor: '' }, { k: 'nombre', label: 'Nombre visible', valor: '' }], 'Crear', 'El código es el identificador único (p. ej. E4). Se dibujará en el primer hueco libre del plano.');
+  if (!f) return;
+  const id = f.id.trim().toUpperCase(); if (!id) return;
+  if (IX.u[id]) { toast('Ya existe una ubicación con ese código', true); return; }
+  const nombre = f.nombre.trim() || id;
+  const eid = nuevoIdPlano(id);
+  accion(() => {
+    D().UBICACIONES.push({ ubicacion_id: id, padre_id: '', planta_id: p.planta_id, tipo: 'mueble', nombre, orden: D().UBICACIONES.length + 1, descripcion: '', notas: '', activo: true, version: '' });
+    D().PLANO.push(nuevoElemento(eid, p, id, id, 'mueble'));
+  });
+  S.sel = eid; pintar();
+}
+function dialogoIncidencias() {
+  if (!S.base) return;
+  const l = validar();
+  $('#modal').innerHTML = `<div class="modal" id="mi"><div class="box wide"><h3>Revisión de los datos (${l.length})</h3>
+    <p class="meta">Se calcula con los datos actuales de la hoja cada vez que se sincroniza. Corrígelos en la hoja o en el modo edición.</p>
+    ${l.length ? l.map(i => `<div class="issue"><span class="g ${i.g}">${i.g}</span><span style="flex:1">${esc(i.t)}</span>${i.ir && IX.u[i.ir] ? `<button class="btn sm" data-ir="${esc(i.ir)}">Ver</button>` : ''}</div>`).join('') : '<p>Todo correcto.</p>'}
+    <div class="row" style="justify-content:flex-end"><button class="btn pri" id="cerrarI">Cerrar</button></div></div></div>`;
+  $('#cerrarI').onclick = () => { $('#modal').innerHTML = ''; };
+  $('#mi').onclick = e => { if (e.target.id === 'mi') $('#modal').innerHTML = ''; };
+  $('#modal').querySelectorAll('[data-ir]').forEach(b => b.onclick = () => { $('#modal').innerHTML = ''; irUbicacion(b.dataset.ir); });
+}
+window.addEventListener('beforeunload', e => { if (cambiosPendientes().length) { e.preventDefault(); e.returnValue = ''; } });
+document.addEventListener('keydown', e => { if (S.borrador && (e.ctrlKey || e.metaKey) && e.key === 'z' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); deshacer(); } });
+
+sincronizar(false);
+</script>
+</body>
+</html>
