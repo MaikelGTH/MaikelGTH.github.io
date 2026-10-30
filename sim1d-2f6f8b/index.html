@@ -3414,6 +3414,9 @@ function compute(p) {
   r.fLong = c / (2 * r.Lbox);
   r.kLo = 120 * r.fLong / p.Nmax; r.kHi = 120 * r.fLong / p.Nmin;
   r.lamH = c / r.fH; r.lumpRatio = r.Lbox / r.lamH;
+  r.rMin = p.Nmin / r.NH[0]; r.rMax = p.Nmax / r.NH[0]; r.rObj = p.NobjTr / r.NH[0];
+  r.Niso = r.NH[0] * Math.SQRT2; r.NHlim = p.Nmin / Math.SQRT2;
+  r.TrMin = 1 / Math.abs(1 - r.rMin * r.rMin); r.TrObj = 1 / Math.abs(1 - r.rObj * r.rObj);
   // ---- trompeta ----
   r.Ltot = (p.Lfix + p.Ltr + p.hLip) / 1e3;
   r.Ntr = c * p.thetaEf / (12 * r.Ltot);
@@ -3472,6 +3475,7 @@ function objective(p, r) {
   t.tr = Math.pow((r.Ntr - p.NobjTr) / p.NobjTr, 2);
   t.ex = Math.pow((r.Nex - p.NobjEx) / p.NobjEx, 2);
   if (p.boxMode === 'objetivo') t.box = Math.pow((r.NH[0] - p.NobjBox) / p.NobjBox, 2);
+  else if (p.boxMode === 'aislado') { var Nl = p.Nmin / Math.SQRT2; t.box = r.NH[0] > Nl ? Math.pow((r.NH[0] - Nl) / Nl, 2) : 0; }
   else t.box = boxZonePenalty(p, r).J;
   t.ang = r.theta > p.thetaMax ? 10 * Math.pow((r.theta - p.thetaMax) / p.thetaMax, 2) : 0;
   t.total = t.tr + t.ex + t.box + t.ang;
@@ -3535,9 +3539,9 @@ var DEF = [
     { id: 'Nmax', l: 'Rango: rpm máximas', u: 'rpm', v: 12500, s: 250, t: '' },
     { id: 'NobjTr', l: 'Objetivo trompeta (pico de par)', u: 'rpm', v: 10750, s: 250, t: '' },
     { id: 'NobjEx', l: 'Objetivo escape', u: 'rpm', v: 10750, s: 250, t: '' },
-    { id: 'boxMode', l: 'Criterio del airbox', sel: [['fuera', 'Fuera del rango'], ['objetivo', 'k = 1 en objetivo']], v: 'fuera', t: '' },
-    { id: 'NobjBox', l: 'Objetivo airbox k = 1', u: 'rpm', v: 7000, s: 250, t: '', h: 'Solo con el criterio «k = 1 en objetivo».' },
-    { id: 'marg', l: 'Ancho de la zona de resonancia ±', u: '%', v: 10, s: 1, t: 'est', h: 'Zona alrededor de cada resonancia del airbox donde aparecen pico y valle.' },
+    { id: 'boxMode', l: 'Criterio del airbox', sel: [['aislado', 'r ≥ √2 en todo el rango'], ['objetivo', 'k = 1 en objetivo'], ['fuera', 'Fuera del rango ±%']], v: 'aislado', t: '', h: 'r ≥ √2: la resonancia k = 1 queda por debajo de N mín / √2 (paso 4).' },
+    { id: 'NobjBox', l: 'Objetivo airbox k = 1', u: 'rpm', v: 7800, s: 50, t: '', h: 'Solo con «k = 1 en objetivo». Para r = √2 a una rpm N: N/√2 (11.000 → 7.780).' },
+    { id: 'marg', l: 'Ancho de la zona de resonancia ±', u: '%', v: 10, s: 1, t: 'est', h: 'Solo con «Fuera del rango ±%».' },
     { id: 'vMoto', l: 'Velocidad de la moto (ram air)', u: 'km/h', v: 150, s: 5, t: '' }
   ]},
   { g: 'Tobera (difusor)', sw: '--c-df', items: [
@@ -3582,8 +3586,8 @@ function defaults() {
   }); });
 }
 defaults();
-try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv && sv.p) { Object.keys(sv.p).forEach(function (k) { if (k in state.p) state.p[k] = sv.p[k]; }); Object.keys(sv.opt || {}).forEach(function (k) { if (state.opt[k]) state.opt[k] = sv.opt[k]; }); } } catch (e) {}
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv && sv.p && sv.v !== 2) { sv.p.boxMode = 'aislado'; if (sv.p.NobjBox === 7000) sv.p.NobjBox = 7800; } if (sv && sv.p) { Object.keys(sv.p).forEach(function (k) { if (k in state.p) state.p[k] = sv.p[k]; }); Object.keys(sv.opt || {}).forEach(function (k) { if (state.opt[k]) state.opt[k] = sv.opt[k]; }); } } catch (e) {}
+function save() { try { state.v = 2; localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
 
 /* ---------- formato ---------- */
 function n(x, d) {
@@ -3640,12 +3644,13 @@ function fillInputs() {
     el('in-' + id).value = state.p[id];
     if (state.opt[id]) { el('op-' + id).checked = state.opt[id].on; el('mn-' + id).value = state.opt[id].min; el('mx-' + id).value = state.opt[id].max; syncOpt(id); }
   });
-  el('in-NobjBox').disabled = state.p.boxMode !== 'objetivo';
+  syncBox();
 }
+function syncBox() { el('in-NobjBox').disabled = state.p.boxMode !== 'objetivo'; el('in-marg').disabled = state.p.boxMode !== 'fuera'; }
 
 /* ---------- estado ---------- */
 var R = null, lastOpt = null;
-function changed() { lastOpt = null; el('optres').innerHTML = ''; el('in-NobjBox').disabled = state.p.boxMode !== 'objetivo'; save(); render(); }
+function changed() { lastOpt = null; el('optres').innerHTML = ''; syncBox(); save(); render(); }
 
 function pillDev(N, obj) {
   var d = (N - obj) / obj * 100, a = Math.abs(d);
@@ -3663,6 +3668,7 @@ function renderStatus(p, r) {
   h += '<div class="st" style="--k:var(--c-ex)"><span class="k">Escape</span><span class="v">' + rpm(r.Nex) + '</span><span class="d">Para el objetivo: primario de ' + n(r.LpNeed) + ' mm</span>' + pillDev(r.Nex, p.NobjEx) + '</div>';
   var boxPill;
   if (p.boxMode === 'objetivo') boxPill = pillDev(r.NH[0], p.NobjBox);
+  else if (p.boxMode === 'aislado') boxPill = '<span class="pill ' + (r.rMin >= Math.SQRT2 - 1e-3 ? 'ok' : r.rMin >= 1.2 ? 'warn' : 'bad') + '">r = ' + n(r.rMin, 2) + ' a ' + n(p.Nmin) + ' rpm</span>';
   else boxPill = hits.length ? '<span class="pill bad">k = ' + hits.join(', ') + ' dentro del rango</span>' : '<span class="pill ok">fuera del rango</span>';
   h += '<div class="st" style="--k:var(--c-box)"><span class="k">Airbox</span><span class="v">' + n(r.fH, 1) + ' Hz</span><span class="d">k = 1 → ' + rpm(r.NH[0]) + ' · k = 2 → ' + rpm(r.NH[1]) + '</span>' + boxPill + '</div>';
   h += '<div class="st" style="--k:var(--c-df)"><span class="k">Tobera</span><span class="v">' + n(r.theta, 2) + '°</span><span class="d">semiángulo · relación de áreas ' + n(r.AR, 2) + '</span><span class="pill ' + (r.thetaOK ? 'ok">sin desprendimiento' : 'bad">se desprende') + '</span></div>';
@@ -3678,7 +3684,7 @@ function renderMap(p, r) {
     { name: 'Trompeta', sub: 'regla calibrada', col: '--c-tr', N: [r.Ntr], band: [r.NtrLo, r.NtrHi], obj: p.NobjTr },
     { name: 'Trompeta', sub: 'Engelman (comprobación)', col: '--c-tr', N: [r.Neng], hollow: true },
     { name: 'Escape', sub: 'onda de expansión', col: '--c-ex', N: [r.Nex], band: [r.NexLo, r.NexHi], obj: p.NobjEx },
-    { name: 'Airbox', sub: 'Helmholtz k = 1, 2, 3', col: '--c-box', N: r.NH, zones: true, obj: p.boxMode === 'objetivo' ? p.NobjBox : null }
+    { name: 'Airbox', sub: 'Helmholtz k = 1, 2, 3', col: '--c-box', N: r.NH, zones: p.boxMode === 'fuera', iso: r.Niso, obj: p.boxMode === 'objetivo' ? p.NobjBox : null }
   ];
   var H = top + rows.length * rowH + 34;
   function X(N) { return padL + (Math.min(hi, Math.max(lo, N)) - lo) / (hi - lo) * (W - padL - padR); }
@@ -3696,6 +3702,7 @@ function renderMap(p, r) {
     s += '<text class="rl" x="0" y="' + (y - 2) + '">' + row.name + '</text><text x="0" y="' + (y + 12) + '">' + row.sub + '</text>';
     s += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-dasharray="2 3"/>';
     if (row.band) s += '<rect x="' + X(row.band[0]) + '" y="' + (y - 4) + '" width="' + Math.max(1, X(row.band[1]) - X(row.band[0])) + '" height="8" rx="4" fill="' + col + '" opacity=".28"/>';
+    if (row.iso) { var xi = X(row.iso); s += '<line x1="' + xi + '" x2="' + (W - padR) + '" y1="' + (y + 13) + '" y2="' + (y + 13) + '" stroke="' + col + '" stroke-width="3" opacity=".55"/><text x="' + (xi + 4) + '" y="' + (y + 25) + '">r ≥ √2 desde ' + n(Math.round(row.iso / 10) * 10) + '</text>'; }
     if (row.obj) s += '<line x1="' + X(row.obj) + '" x2="' + X(row.obj) + '" y1="' + (y - 15) + '" y2="' + (y + 15) + '" stroke="var(--ink)" stroke-width="2"/>';
     row.N.forEach(function (N, k) {
       if (row.zones) s += '<rect x="' + X(N * (1 - p.marg / 100)) + '" y="' + (y - 9) + '" width="' + Math.max(1, X(N * (1 + p.marg / 100)) - X(N * (1 - p.marg / 100))) + '" height="18" rx="3" fill="' + col + '" opacity=".16"/>';
@@ -3703,10 +3710,10 @@ function renderMap(p, r) {
       if (out) {
         var dir = N > hi ? 1 : -1;
         s += '<path d="M' + (x - 6 * dir) + ' ' + (y - 6) + ' L' + x + ' ' + y + ' L' + (x - 6 * dir) + ' ' + (y + 6) + '" fill="none" stroke="' + col + '" stroke-width="2"/>';
-        s += '<text x="' + (x - 10 * dir) + '" y="' + (y - 10) + '" text-anchor="' + (dir > 0 ? 'end' : 'start') + '">' + (row.zones ? 'k=' + (k + 1) + ' ' : '') + n(Math.round(N / 10) * 10) + '</text>';
+        s += '<text x="' + (x - 10 * dir) + '" y="' + (y - 10) + '" text-anchor="' + (dir > 0 ? 'end' : 'start') + '">' + (row.name === 'Airbox' ? 'k=' + (k + 1) + ' ' : '') + n(Math.round(N / 10) * 10) + '</text>';
       } else {
         s += '<circle cx="' + x + '" cy="' + y + '" r="6" fill="' + (row.hollow ? 'var(--surface)' : col) + '" stroke="' + col + '" stroke-width="2"/>';
-        s += '<text x="' + x + '" y="' + (y - 11) + '" text-anchor="middle">' + (row.zones ? 'k=' + (k + 1) : n(Math.round(N / 10) * 10)) + '</text>';
+        s += '<text x="' + x + '" y="' + (y - 11) + '" text-anchor="middle">' + (row.name === 'Airbox' ? 'k=' + (k + 1) : n(Math.round(N / 10) * 10)) + '</text>';
       }
     });
   });
@@ -3736,11 +3743,14 @@ function renderCards(p, r) {
   h += '<div class="card"><h2><span class="swatch" style="background:var(--c-box)"></span>Airbox</h2>' + kv([
     ['Frecuencia Helmholtz f<sub>H</sub>', n(r.fH, 1) + ' Hz'],
     ['k = 1 / 2 / 3', r.NH.map(function (x) { return n(Math.round(x / 10) * 10); }).join(' / ') + ' rpm'],
+    ['r = N / N₁ a ' + n(p.Nmin) + ' / ' + n(p.NobjTr) + ' / ' + n(p.Nmax) + ' rpm', n(r.rMin, 2) + ' / ' + n(r.rObj, 2) + ' / ' + n(r.rMax, 2)],
+    ['Aísla (r ≥ √2) desde', rpm(r.Niso)],
+    ['Para r ≥ √2 en todo el rango', 'N₁ ≤ ' + rpm(r.NHlim)],
     ['Reflexión tobera → airbox R', n(r.Rbox, 2)],
     ['Profundidad equivalente V/A', n(r.Lbox * 1e3) + ' mm'],
     ['Modo longitudinal', n(r.fLong) + ' Hz (armónicos k ' + n(r.kLo, 1) + '–' + n(r.kHi, 1) + ')'],
     ['Profundidad / longitud de onda', n(r.lumpRatio, 3) + (r.lumpRatio < 0.1 ? ' (modelo concentrado válido)' : ' (modelo concentrado dudoso)')]
-  ]) + (p.boxMode === 'fuera' && hits.length ? '<p class="note warn">La zona ±' + n(p.marg) + ' % de k = ' + hits.join(', ') + ' cae dentro del rango.</p>' : '') + '</div>';
+  ]) + (p.boxMode === 'aislado' && r.rMin < Math.SQRT2 - 1e-3 ? '<p class="note warn">Entre ' + n(p.Nmin) + ' y ' + n(Math.round(r.Niso / 10) * 10) + ' rpm el airbox todavía no aísla (r < √2).</p>' : '') + (p.boxMode === 'fuera' && hits.length ? '<p class="note warn">La zona ±' + n(p.marg) + ' % de k = ' + hits.join(', ') + ' cae dentro del rango.</p>' : '') + '</div>';
   var calOK = p.NobjTr >= 8700 && p.NobjTr <= 10800;
   h += '<div class="card"><h2><span class="swatch" style="background:var(--c-tr)"></span>Trompeta</h2>' + kv([
     ['Longitud total (fija + trompeta + labio)', n(r.Ltot * 1e3) + ' mm'],
@@ -3843,8 +3853,15 @@ function renderForm(p, r) {
     '<p>El airbox es el muelle (volumen) y el aire de la tobera es la masa (inertancia del paso 2). El motor lo excita una vez por ciclo y en sus armónicos.</p>' +
     eq('f_H = c/(2π) · √(1 / (V·(L/A)ef))', n(c, 1) + '/(2π) · √(1 / (' + n(p.V, 2) + '·10⁻³ · ' + n(r.LA, 1) + '))', n(r.fH, 1) + ' Hz') +
     eq('N_k = 120 · f_H / k', 'k = 1, 2, 3', r.NH.map(function (x) { return n(Math.round(x / 10) * 10); }).join(' / ') + ' rpm') +
-    '<p><b>Por qué hay pico y valle.</b> Lo que le importa al motor no es lo grande que sea la oscilación, sino qué presión hay en el airbox cuando cierra la válvula de admisión. Al cruzar la resonancia, la oscilación se retrasa medio ciclo respecto al tirón del motor. A un lado coincide la sobrepresión con el cierre (pico) y al otro la depresión (valle). El lado de cada uno depende de la leva. Con la leva estimada, el simulador 1D da el valle justo por encima de k = 1 y la ganancia un 15–20 % por debajo.</p>' +
-    '<p>Por eso el criterio por defecto es sacar la zona ±' + n(p.marg) + ' % de cada armónico fuera de tu rango. ' + (p.boxMode === 'fuera' ? (hits.length ? 'Ahora mismo k = ' + hits.join(', ') + ' cae dentro.' : 'Ahora mismo se cumple.') : 'Has elegido poner k = 1 en ' + n(p.NobjBox) + ' rpm.') + '</p>'));
+    '<p><b>Cómo leer la resonancia: r = N / N₁.</b> Es un masa-muelle forzado, igual que el aislamiento de vibraciones. El motor tira del airbox una vez por ciclo. El caudal que pasa por la tobera, comparado con el pulso que pide el motor, sigue la curva de transmisibilidad:</p>' +
+    eq('|q_tobera / q_motor| = 1 / |1 − r²|', 'r = ' + n(r.rMin, 2) + ' a ' + n(p.Nmin) + ' rpm → ' + n(r.TrMin, 2) + ' · r = ' + n(r.rObj, 2) + ' a ' + n(p.NobjTr) + ' rpm → ' + n(r.TrObj, 2), '', 'Por debajo de 1 la tobera ya no transmite el pulso: lo absorbe el volumen.') +
+    '<ul class="plain">' +
+    '<li><b>r &lt; 1:</b> el aire de la tobera arranca y frena en cada ciclo con el motor. Pasa el pulso entero, con picos de velocidad, pérdidas y ruido. La presión del airbox sigue al motor.</li>' +
+    '<li><b>r ≈ 1:</b> resonancia con el ciclo del motor (no con la trompeta). La oscilación se amplifica. Que sea sobrepresión o depresión al cierre de admisión depende de la fase, es decir, de la leva. Con la leva estimada, el simulador 1D da un <b>valle</b> justo por encima de N₁ (r ≈ 1,0–1,15).</li>' +
+    '<li><b>r &gt; √2:</b> la masa de la tobera ya no puede seguir los tirones. Por la tobera pasa un caudal casi constante y el airbox es un depósito de presión casi uniforme. Queda una oscilación pequeña, ≈ γ·p·ΔV/V, que baja al subir el volumen. Con la boca de la trompeta descargando en una presión estable, la trompeta funciona como se calcula. El √2 no depende del amortiguamiento: todas las curvas cruzan 1 ahí.</li>' +
+    '</ul>' +
+    '<p>En el simulador 1D, el par a 11.000 rpm sube con r (24,3 / 25,4 / 26,3 / 26,6 N·m para r = 1,0 / 1,17 / 1,39 / 1,66) y se aplana a partir de r ≈ 1,4. Bajar N₁ cuesta volumen (V ∝ 1/f_H²) y lleva el valle al régimen medio: con ' + n(p.V, 1) + ' L cae hacia ' + n(Math.round(r.NH[0] * 1.1 / 10) * 10) + ' rpm.</p>' +
+    eq('Criterio por defecto: N₁ ≤ N_mín / √2', n(p.Nmin) + ' / 1,414', n(Math.round(r.NHlim / 10) * 10) + ' rpm', 'Ahora N₁ = ' + n(Math.round(r.NH[0] / 10) * 10) + ' rpm: el airbox aísla a partir de ' + n(Math.round(r.Niso / 10) * 10) + ' rpm. ' + (p.boxMode === 'aislado' ? (r.NH[0] <= r.NHlim ? 'Se cumple en todo el rango.' : 'No se cumple al inicio del rango.') : p.boxMode === 'objetivo' ? 'Has elegido poner k = 1 en ' + n(p.NobjBox) + ' rpm (para r = √2 a N: N/√2).' : 'Has elegido sacar la zona ±' + n(p.marg) + ' % de cada armónico fuera del rango.'))));
   s.push(step('f5', '5', 'Comprobaciones del airbox', ['geo', 'teo'],
     '<p><b>Reflexión tobera → airbox.</b> Una onda que llega al airbox rebota según el salto de sección. R = −1 es un extremo abierto perfecto (el airbox se comporta como atmósfera) y R = 0 es que no ve ningún cambio.</p>' +
     eq('R = (A₂ − A_box) / (A₂ + A_box)', '(' + n(p.dAout) + ' − ' + n(p.Abox) + ') / (' + n(p.dAout) + ' + ' + n(p.Abox) + ')', n(r.Rbox, 2), Math.abs(r.Rbox) < 0.6 ? 'Salto pequeño: parte de la onda sigue dentro del airbox en vez de rebotar.' : 'Salto grande: buen extremo abierto.') +
@@ -3882,7 +3899,7 @@ function renderForm(p, r) {
     eq('J = J_trompeta + J_escape + J_airbox + J_ángulo', '', r.J.total.toExponential(2).replace('.', ',')) +
     eq('J_trompeta = ((N_pico − N_obj) / N_obj)²', '', r.J.tr.toExponential(2).replace('.', ',')) +
     eq('J_escape = ((N_ex − N_obj) / N_obj)²', '', r.J.ex.toExponential(2).replace('.', ',')) +
-    eq(p.boxMode === 'fuera' ? 'J_airbox = Σk (d_k / N_medio)²' : 'J_airbox = ((N₁ − N_obj) / N_obj)²', '', r.J.box.toExponential(2).replace('.', ','), p.boxMode === 'fuera' ? 'd_k = cuántas rpm le faltan a la zona ±' + n(p.marg) + ' % del armónico k para salir del rango.' : '') +
+    eq(p.boxMode === 'fuera' ? 'J_airbox = Σk (d_k / N_medio)²' : p.boxMode === 'aislado' ? 'J_airbox = ((N₁ − N_mín/√2) / (N_mín/√2))²  si N₁ > N_mín/√2' : 'J_airbox = ((N₁ − N_obj) / N_obj)²', '', r.J.box.toExponential(2).replace('.', ','), p.boxMode === 'fuera' ? 'd_k = cuántas rpm le faltan a la zona ±' + n(p.marg) + ' % del armónico k para salir del rango.' : '') +
     eq('J_ángulo = 10 · ((θ − θmax) / θmax)²  si θ > θmax', '', r.J.ang.toExponential(2).replace('.', ',')) +
     '<p><b>Método: búsqueda por patrones.</b> Parte de tus valores actuales. Prueba a subir y bajar cada variable marcada un paso; si J baja, se queda con el cambio; si ninguna mejora, divide el paso a la mitad. Para cuando el paso es despreciable. Como arranca de tus valores, devuelve el cambio más pequeño que cumple. Si no llega a J = 0, prueba también tres arranques distintos y se queda con el mejor.</p>' +
     '<p><b>Qué se puede optimizar.</b> Solo las variables que mueven algún término de J: longitud de trompeta y de primario, y volumen del airbox y geometría de la tobera (mueven la resonancia del airbox y el ángulo). Los diámetros de tubo, labio, primario y cámara y la sección del airbox no tienen un criterio simple y fiable, así que se quedan como dato tuyo.</p>'));
@@ -3906,7 +3923,7 @@ function renderRemoved() {
     '<ul class="plain">' +
     '<li><b>T del gas de escape y EVO.</b> Mueven la sintonía del escape unas ±1.000 rpm (ver la banda del mapa). Con un termopar en el primario y midiendo la leva, desaparece.</li>' +
     '<li><b>θef y K.</b> Calibrados con 6 trompetas en banco. Fiables entre 8.740 y 10.790 rpm.</li>' +
-    '<li><b>Ancho de la zona de resonancia del airbox (±%).</b> Criterio tuyo.</li>' +
+    '<li><b>Criterio del airbox.</b> El límite r ≥ √2 es teoría estándar; la posición del valle (justo por encima de N₁) sale del simulador 1D con la leva estimada.</li>' +
     '<li><b>ηd de la tobera y ηv.</b> Su efecto es pequeño en los resultados.</li>' +
     '</ul>';
 }
