@@ -289,8 +289,10 @@ let IX = null;
 function indexar() {
   const d = D(); if (!d) return;
   const ix = { u: {}, hijos: {}, items: {}, plantas: [], planoPorPlanta: {}, cfg: {}, total: {}, elPorUbic: {} };
-  d.UBICACIONES.forEach(u => { ix.u[u.ubicacion_id] = u; });
-  d.UBICACIONES.forEach(u => { const p = u.padre_id || ''; (ix.hijos[p] = ix.hijos[p] || []).push(u); });
+  // Una fila sin identificador no puede contener nada ni ser padre de nada (sale en ⚠)
+  const ubics = d.UBICACIONES.filter(u => String(u.ubicacion_id ?? '').trim() !== '');
+  ubics.forEach(u => { ix.u[u.ubicacion_id] = u; });
+  ubics.forEach(u => { const p = u.padre_id || ''; (ix.hijos[p] = ix.hijos[p] || []).push(u); });
   Object.values(ix.hijos).forEach(l => l.sort((a, b) => (num(a.orden) || 0) - (num(b.orden) || 0) || String(a.ubicacion_id).localeCompare(b.ubicacion_id)));
   d.INVENTARIO.forEach(a => { (ix.items[a.ubicacion_id] = ix.items[a.ubicacion_id] || []).push(a); });
   ix.plantas = d.PLANTAS.filter(p => p.activo === '' || verdadero(p.activo)).sort((a, b) => (num(a.orden) || 0) - (num(b.orden) || 0));
@@ -309,7 +311,7 @@ function indexar() {
 function ruta(id) {
   const out = []; const vistos = {};
   let u = IX.u[id];
-  while (u && !vistos[u.ubicacion_id]) { vistos[u.ubicacion_id] = 1; out.unshift(u); u = IX.u[u.padre_id]; }
+  while (u && !vistos[u.ubicacion_id]) { vistos[u.ubicacion_id] = 1; out.unshift(u); u = u.padre_id ? IX.u[u.padre_id] : null; }
   return out;
 }
 function raiz(id) { const r = ruta(id); return r[0]; }
@@ -332,7 +334,7 @@ function validar() {
     });
   });
   const plantas = new Set(d.PLANTAS.map(p => p.planta_id));
-  d.UBICACIONES.forEach(u => {
+  d.UBICACIONES.filter(u => IX.u[u.ubicacion_id] === u).forEach(u => {
     if (u.padre_id && !IX.u[u.padre_id]) add('ERROR', `Ubicación ${u.ubicacion_id}: su padre "${u.padre_id}" no existe`, u.ubicacion_id);
     if (!u.padre_id && !plantas.has(u.planta_id)) add('ERROR', `Mueble ${u.ubicacion_id}: planta "${u.planta_id || '(vacía)'}" no existe`, u.ubicacion_id);
     if (!TIPOS_UBIC.includes(u.tipo)) add('ERROR', `Ubicación ${u.ubicacion_id}: tipo "${u.tipo}" no válido`, u.ubicacion_id);
