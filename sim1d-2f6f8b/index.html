@@ -280,6 +280,7 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
     <div class="brand"><b>Simulador 1D Admisión-Escape</b><span>UPM MotoStudent Petrol · Motor</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" data-view="pre" aria-selected="true">Precálculo</button>
+      <button class="tab" role="tab" data-view="dim" aria-selected="false">Dimensionado</button>
       <button class="tab" role="tab" data-view="sim" aria-selected="false">Simulador</button>
       <button class="tab" role="tab" data-view="sweep" aria-selected="false">Barrido rpm</button>
       <button class="tab" role="tab" data-view="opt" aria-selected="false">Trompeta variable</button>
@@ -293,6 +294,8 @@ window.MathJax = { tex: { inlineMath: [['$', '$']], displayMath: [['\\[', '\\]']
 
 <div class="page">
   <!-- ===================== SIMULADOR ===================== -->
+  <!-- ===================== DIMENSIONADO ===================== -->
+  <div class="view" id="view-dim" hidden><div id="dim-host"></div></div>
   <!-- ===================== PRECÁLCULO ===================== -->
   <div class="view" id="view-pre">
     <div class="main">
@@ -3340,6 +3343,593 @@ var CH = (function () {
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
+</script>
+<script>
+/* Dimensionado: montado en shadow DOM para no mezclar estilos con el simulador */
+(function () {
+'use strict';
+var host = document.getElementById('dim-host'); if (!host || !host.attachShadow) return;
+var root = host.attachShadow({ mode: 'open' });
+root.innerHTML = "<style>\n/* Layout: banco de trabajo en dos columnas — entradas a la izquierda, resultados/formulario a la derecha; una columna en móvil */\n:host { display: block; color: var(--ink); font-family: var(--f-body);\n  --sunk: var(--surface2); --range: var(--accent-soft); --accent-ink: var(--surface);\n  --c-tr: var(--accent); --c-ex: var(--exh); --c-box: var(--accent2); --c-df: var(--s4);\n  --tag-geo: var(--accent); --tag-dato: var(--muted); --tag-cal: var(--s5); --tag-est: var(--warn); --tag-teo: var(--accent2);\n  --f-mono: ui-monospace, \"SFMono-Regular\", Menlo, Consolas, monospace; }\n* { box-sizing: border-box }\n[hidden] { display: none !important }\n\n.wrap { font-size: 15px; line-height: 1.45 }\nheader.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 16px }\n.ttl { font-family: var(--f-display); font-weight: 600; font-size: 1.6rem; letter-spacing: .01em; margin: 0; text-wrap: balance }\n.sub { color: var(--muted); margin: 2px 0 0; max-width: 70ch }\n.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: .8rem; color: var(--muted) }\n.legend span { display: inline-flex; align-items: center; gap: 5px }\n\n.grid { display: grid; grid-template-columns: minmax(330px, 420px) minmax(0, 1fr); gap: 20px; align-items: start }\n@media (max-width: 900px) { .grid { grid-template-columns: minmax(0, 1fr) } }\n\n/* entradas */\n.inputs { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden }\n.inputs-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--sunk) }\n.inputs-bar b { font-family: var(--f-display); font-weight: 600; font-size: 1rem; letter-spacing: .02em }\ndetails.grp { border-bottom: 1px solid var(--line) }\ndetails.grp:last-child { border-bottom: 0 }\ndetails.grp > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-family: var(--f-display); font-weight: 600; font-size: .95rem; letter-spacing: .06em; text-transform: uppercase }\ndetails.grp > summary::-webkit-details-marker { display: none }\ndetails.grp > summary::after { content: \"+\"; margin-left: auto; font-family: var(--f-mono); color: var(--muted) }\ndetails.grp[open] > summary::after { content: \"–\" }\n.swatch { width: 10px; height: 10px; border-radius: 2px; flex: none }\n.rows { padding: 2px 14px 12px; display: grid; gap: 8px }\n.row { display: grid; grid-template-columns: minmax(0, 1fr) 118px; gap: 4px 10px; align-items: center }\n.row label { font-size: .88rem; line-height: 1.25; min-width: 0 }\n.row .hint { grid-column: 1 / -1; font-size: .76rem; color: var(--muted); margin-top: -2px }\n.field { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 5px; background: var(--sunk); overflow: hidden }\n.field:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px var(--range) }\n.field input, .field select { width: 100%; min-width: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--f-mono); font-size: .86rem; padding: 6px 7px; text-align: right; font-variant-numeric: tabular-nums }\n.field select { text-align: left; font-family: var(--f-body); font-size: .84rem; padding-right: 2px }\n.field input:focus, .field select:focus { outline: none }\n.field input:disabled { color: var(--muted) }\n.unit { font-family: var(--f-mono); font-size: .72rem; color: var(--muted); padding: 0 7px 0 2px; white-space: nowrap }\n.row.wide { grid-template-columns: minmax(0, 1fr) 190px }\n.lab-line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px }\n.tag { font-family: var(--f-mono); font-size: .62rem; font-weight: 500; letter-spacing: .04em; padding: 1px 5px; border-radius: 3px; border: 1px solid currentColor; line-height: 1.3; white-space: nowrap }\n.tag.geo { color: var(--tag-geo) } .tag.dato { color: var(--tag-dato) } .tag.cal { color: var(--tag-cal) } .tag.est { color: var(--tag-est) } .tag.teo { color: var(--tag-teo) }\n.optbox { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: .8rem; color: var(--muted) }\n.optbox label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: .8rem; color: var(--ink) }\n.optbox input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px }\n.optbox .mm { display: inline-flex; align-items: center; gap: 4px }\n.optbox .mm input { width: 66px; border: 1px solid var(--line); border-radius: 4px; background: var(--sunk); color: var(--ink); font-family: var(--f-mono); font-size: .78rem; padding: 3px 5px; text-align: right }\n.row.is-opt .field { border-color: var(--accent) }\n\n/* tabs */\n.main { min-width: 0; display: grid; gap: 16px }\n.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); overflow-x: auto }\n.tabs button { font-family: var(--f-display); font-weight: 600; font-size: 1rem; letter-spacing: .03em; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--muted); padding: 8px 14px 7px; cursor: pointer; white-space: nowrap }\n.tabs button[aria-selected=true] { color: var(--ink); border-bottom-color: var(--accent) }\n.tabs button:focus-visible, .btn:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }\n.panel { display: grid; gap: 16px; min-width: 0 }\n\n/* estado */\n.status { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px }\n.st { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px 11px; display: grid; gap: 2px; border-top: 3px solid var(--k, var(--line)); min-width: 0 }\n.st .k { font-family: var(--f-display); font-weight: 600; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }\n.st .v { font-family: var(--f-mono); font-size: 1.2rem; font-weight: 500; font-variant-numeric: tabular-nums }\n.st .d { font-size: .8rem; color: var(--muted) }\n.pill { display: inline-block; font-size: .72rem; font-weight: 600; padding: 1px 7px; border-radius: 99px; border: 1px solid currentColor; width: fit-content; margin-top: 3px }\n.pill.ok { color: var(--ok) } .pill.warn { color: var(--warn) } .pill.bad { color: var(--bad) }\n\n.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0 }\n.card h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; letter-spacing: .02em; margin: 0 0 4px; display: flex; align-items: center; gap: 8px }\n.card .lead { color: var(--muted); font-size: .86rem; margin: 0 0 10px; max-width: 75ch }\n.map-wrap { overflow-x: auto }\n.map-wrap svg { display: block; width: 100%; min-width: 560px; height: auto }\nsvg text { font-family: var(--f-mono); font-size: 11px; fill: var(--muted) }\nsvg .rl { font-family: var(--f-body); font-size: 12.5px; fill: var(--ink) }\n\n.cards2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px }\ntable.kv { width: 100%; border-collapse: collapse; font-size: .86rem }\ntable.kv td { padding: 5px 0; border-bottom: 1px solid var(--line); vertical-align: top }\ntable.kv tr:last-child td { border-bottom: 0 }\ntable.kv td:last-child { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; padding-left: 10px; overflow-wrap: anywhere }\ntable.kv td:first-child { width: 55% }\n.note { font-size: .82rem; color: var(--muted); margin: 8px 0 0 }\n.note.warn { color: var(--warn) }\n\n/* optimizador */\n.btn { font-family: var(--f-display); font-weight: 600; letter-spacing: .03em; font-size: .95rem; border-radius: 6px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); padding: 7px 14px; cursor: pointer }\n.btn.ghost { background: transparent; color: var(--accent) }\n.btn:disabled { opacity: .45; cursor: not-allowed }\n.btn.sm { font-size: .82rem; padding: 4px 10px }\n.optrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }\n.tbl-wrap { overflow-x: auto }\ntable.res { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 10px }\ntable.res th { text-align: left; font-family: var(--f-display); font-weight: 600; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding: 6px 8px 6px 0 }\ntable.res td { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums }\ntable.res td.n, table.res th.n { text-align: right; font-family: var(--f-mono) }\n\n/* formulario */\n.steps { display: grid; gap: 14px }\n.step { scroll-margin-top: 96px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; min-width: 0 }\n.step h3 { margin: 0 0 4px; font-family: var(--f-display); font-weight: 600; font-size: 1.1rem; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px }\n.step h3 .num { font-family: var(--f-mono); font-size: .8rem; color: var(--accent); border: 1px solid var(--accent); border-radius: 4px; padding: 0 6px }\n.step p { margin: 6px 0; max-width: 78ch; font-size: .9rem }\n.eq { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 8px 10px; margin: 8px 0; background: var(--sunk); border-left: 3px solid var(--line); border-radius: 0 6px 6px 0; overflow-x: auto }\n.eq .f { font-family: var(--f-mono); font-size: .86rem; white-space: nowrap }\n.eq .s { font-family: var(--f-mono); font-size: .8rem; color: var(--muted); white-space: nowrap }\n.eq .r { font-family: var(--f-mono); font-size: .9rem; font-weight: 500; white-space: nowrap }\n.eq .r b { color: var(--accent); font-weight: 500 }\n.eq .w { font-size: .78rem; color: var(--muted); font-family: var(--f-body) }\nvar { font-style: italic; font-family: var(--f-mono) }\nul.plain { margin: 6px 0; padding-left: 18px; font-size: .9rem; max-width: 80ch }\nul.plain li { margin: 4px 0 }\n.toc { display: flex; flex-wrap: wrap; gap: 6px }\n.toc a { font-size: .8rem; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; background: var(--surface) }\n@media (prefers-reduced-motion: no-preference) { .st, .card { transition: border-color .2s } }\n</style>\n\n<div class=\"wrap\">\n  <header class=\"top\">\n    <div>\n      <h2 class=\"ttl\">Dimensionado</h2>\n      <p class=\"sub\">Calcula dónde caen las sintonías de trompeta, escape y airbox, y cuánto da el ram air. No predice par: solo sitúa cada efecto en rpm con fórmulas que puedes seguir en el Formulario.</p>\n    </div>\n    <div class=\"legend\" aria-label=\"Tipo de dato\">\n      <span><i class=\"tag geo\">GEO</i> geometría</span>\n      <span><i class=\"tag dato\">DATO</i> medido / conocido</span>\n      <span><i class=\"tag cal\">CAL</i> calibrado con banco</span>\n      <span><i class=\"tag teo\">TEO</i> teoría estándar</span>\n      <span><i class=\"tag est\">EST</i> estimado</span>\n    </div>\n  </header>\n\n  <div class=\"grid\">\n    <aside class=\"inputs\" aria-label=\"Entradas\">\n      <div class=\"inputs-bar\"><b>Entradas</b><button class=\"btn ghost sm\" id=\"reset\" type=\"button\">Restablecer valores</button></div>\n      <div id=\"inputs\"></div>\n    </aside>\n\n    <main class=\"main\">\n      <div class=\"tabs\" role=\"tablist\">\n        <button role=\"tab\" id=\"tab-res\" aria-selected=\"true\" data-p=\"p-res\">Resultados</button>\n        <button role=\"tab\" id=\"tab-form\" aria-selected=\"false\" data-p=\"p-form\">Formulario</button>\n        <button role=\"tab\" id=\"tab-out\" aria-selected=\"false\" data-p=\"p-out\">Qué se ha quitado</button>\n      </div>\n\n      <section class=\"panel\" id=\"p-res\" role=\"tabpanel\">\n        <div class=\"status\" id=\"status\"></div>\n        <div class=\"card\">\n          <h2>Mapa de sintonías</h2>\n          <p class=\"lead\">Franja sombreada: tu rango de rpm. Marcador: valor calculado. Barra: incertidumbre de los datos estimados o calibrados. Raya vertical: objetivo.</p>\n          <div class=\"map-wrap\" id=\"map\"></div>\n        </div>\n        <div class=\"card\">\n          <h2>Optimizar</h2>\n          <p class=\"lead\">Marca en las entradas las variables que quieres mover (casilla «optimizar») y sus límites. Las demás se quedan fijas. El método está en el paso 9 del Formulario.</p>\n          <div class=\"optrow\">\n            <button class=\"btn\" id=\"run\" type=\"button\">Optimizar variables marcadas</button>\n            <span id=\"optinfo\" class=\"note\" style=\"margin:0\"></span>\n          </div>\n          <div id=\"optres\"></div>\n        </div>\n        <div class=\"cards2\" id=\"cards\"></div>\n      </section>\n\n      <section class=\"panel\" id=\"p-form\" role=\"tabpanel\" hidden>\n        <div class=\"toc\" id=\"toc\"></div>\n        <div class=\"steps\" id=\"steps\"></div>\n      </section>\n\n      <section class=\"panel\" id=\"p-out\" role=\"tabpanel\" hidden>\n        <div class=\"card\" id=\"removed\"></div>\n      </section>\n    </main>\n  </div>\n</div>\n\n";
+/* ===== Núcleo de cálculo: funciones puras, sin DOM ===== */
+var RG = 287.05, GA = 1.4, PI = Math.PI;
+// Ensayos de banco del TFG: longitud de la pieza (con labio, mm) → rpm del pico de par medido
+var TFG = [[117, 8737], [88.3, 9625], [64.8, 10141], [45.3, 9788], [36.6, 10312], [28.7, 10790]];
+var DIN = 0.61, DOUT = 0.85; // correcciones de extremo δ/r: extremo libre / extremo con pestaña
+
+function inertDiff(L, A1, A2, shape) { // ∫dx/A(x) del difusor, m⁻¹
+  if (Math.abs(A2 - A1) < 1e-9) return L / A1;
+  if (shape === 'cono') return L / Math.sqrt(A1 * A2);
+  return L * Math.log(A2 / A1) / (A2 - A1);
+}
+
+function compute(p) {
+  var r = {};
+  var T = p.Tamb + 273.15, pa = p.pAtm * 1e3;
+  r.T = T; r.pa = pa;
+  r.c = Math.sqrt(GA * RG * T);
+  r.rho = pa / (RG * T);
+  var c = r.c, rho = r.rho;
+  var Vd = p.Vd * 1e-6;
+  r.Vc = Vd / (p.CR - 1);
+  // caudal
+  r.Nflow = p.Nmax;
+  r.mdot = p.etaV * rho * Vd * r.Nflow / 120;      // kg/s
+  r.Q = r.mdot / rho;                                // m³/s
+  // ---- tobera ----
+  var L = p.dL / 1e3, A1 = p.dAin * 1e-4, A2 = p.dAout * 1e-4;
+  r.A1 = A1; r.A2 = A2; r.AR = A2 / A1;
+  r.r1 = Math.sqrt(A1 / PI); r.r2 = Math.sqrt(A2 / PI);
+  r.theta = Math.atan((r.r2 - r.r1) / L) * 180 / PI;
+  r.thetaOK = r.theta <= p.thetaMax;
+  r.Iduct = inertDiff(L, A1, A2, p.dShape);
+  r.Aeq = L / r.Iduct; r.Deq = 2 * Math.sqrt(r.Aeq / PI);
+  r.Aari = (A1 + A2) / 2; r.Ageo = Math.sqrt(A1 * A2);
+  r.dIn = DIN * r.r1 / A1; r.dOut = DOUT * r.r2 / A2;
+  r.LA = r.Iduct + r.dIn + r.dOut;
+  // ---- ram air ----
+  r.vinf = p.vMoto / 3.6;
+  r.v1 = r.Q / A1; r.v2 = r.Q / A2;
+  r.qinf = 0.5 * rho * r.vinf * r.vinf;
+  r.q1 = 0.5 * rho * r.v1 * r.v1; r.q2 = 0.5 * rho * r.v2 * r.v2;
+  r.MFR = r.vinf > 0 ? r.v1 / r.vinf : Infinity;
+  r.dpDiff = (1 - p.dEta) * (r.q1 - r.q2) + r.q2;  // pérdida con difusor
+  r.dpStr = r.q1;                                     // sin difusor: Borda-Carnot, se pierde toda q1
+  r.dpSaved = r.dpStr - r.dpDiff;
+  r.ram = r.qinf - r.dpDiff;                          // sobrepresión neta en el airbox
+  r.ramPct = r.ram / pa * 100;
+  r.ramKW = p.Pref * r.ram / pa;
+  r.savedPct = r.dpSaved / pa * 100;
+  r.savedKW = p.Pref * r.dpSaved / pa;
+  r.savedW = r.dpSaved * r.Q;
+  r.Acap = r.vinf > 0 ? r.Q / r.vinf : Infinity;     // tubo de corriente capturado
+  // ---- airbox ----
+  var V = p.V * 1e-3, Ab = p.Abox * 1e-4;
+  r.fH = c / (2 * PI) * Math.sqrt(1 / (V * r.LA));
+  r.NH = [1, 2, 3].map(function (k) { return 120 * r.fH / k; });
+  r.Rbox = (A2 - Ab) / (A2 + Ab);
+  r.Lbox = V / Ab;
+  r.fLong = c / (2 * r.Lbox);
+  r.kLo = 120 * r.fLong / p.Nmax; r.kHi = 120 * r.fLong / p.Nmin;
+  r.lamH = c / r.fH; r.lumpRatio = r.Lbox / r.lamH;
+  // ---- trompeta ----
+  r.Ltot = (p.Lfix + p.Ltr + p.hLip) / 1e3;
+  r.Ntr = c * p.thetaEf / (12 * r.Ltot);
+  r.calib = TFG.map(function (d) {
+    var Lt = (p.Lfix + d[0]) / 1e3;
+    return { Lp: d[0], N: d[1], Lt: Lt, th: 12 * d[1] * Lt / c };
+  });
+  var ths = r.calib.map(function (x) { return x.th; });
+  r.thMin = Math.min.apply(null, ths); r.thMax = Math.max.apply(null, ths);
+  r.NtrLo = c * r.thMin / (12 * r.Ltot); r.NtrHi = c * r.thMax / (12 * r.Ltot);
+  r.LtotNeed = c * p.thetaEf / (12 * p.NobjTr);
+  r.LtrNeed = r.LtotNeed * 1e3 - p.Lfix - p.hLip;
+  r.At = PI / 4 * Math.pow(p.Dtube / 1e3, 2);
+  r.Alip = PI / 4 * Math.pow(p.Dlip / 1e3, 2);
+  r.rLip = p.Dlip / 2e3; r.dEnd = DIN * r.rLip;
+  r.Lef = r.Ltot + r.dEnd;
+  r.Vef = Vd / 2 + r.Vc;
+  r.fcyl = c / (2 * PI) * Math.sqrt(r.At / (r.Lef * r.Vef));
+  r.Neng = 60 * r.fcyl / p.Keng;
+  r.calibK = TFG.map(function (d) {
+    var Lef = (p.Lfix + d[0]) / 1e3 + r.dEnd;
+    var f = c / (2 * PI) * Math.sqrt(r.At / (Lef * r.Vef));
+    return 60 * f / d[1];
+  });
+  r.vTube = r.Q / r.At;
+  r.Mtube = r.vTube / c;
+  // ---- escape ----
+  r.cEx = Math.sqrt(p.gEx * RG * p.Tex);
+  r.Lex = (p.Lport + p.Lp) / 1e3;
+  r.thEx = 180 + p.EVO;
+  r.Nex = r.cEx * r.thEx / (12 * r.Lex);
+  var cLo = Math.sqrt(p.gEx * RG * (p.Tex - 100)), cHi = Math.sqrt(p.gEx * RG * (p.Tex + 100));
+  r.NexLo = cLo * (r.thEx - 5) / (12 * r.Lex); r.NexHi = cHi * (r.thEx + 5) / (12 * r.Lex);
+  r.LexNeed = r.cEx * r.thEx / (12 * p.NobjEx);
+  r.LpNeed = r.LexNeed * 1e3 - p.Lport;
+  var Ap = PI / 4 * Math.pow(p.Dp / 1e3, 2), Ach = PI / 4 * Math.pow(p.Dch / 1e3, 2);
+  r.ARex = Ach / Ap; r.Rex = (Ap - Ach) / (Ap + Ach); r.Eex = r.Rex * r.Rex;
+  // ---- función objetivo ----
+  r.J = objective(p, r);
+  return r;
+}
+
+function boxZonePenalty(p, r) {
+  // distancia que le falta a la zona ±m de cada armónico k=1..3 para salir del rango
+  var m = p.marg / 100, tot = 0, ref = (p.Nmin + p.Nmax) / 2, det = [];
+  r.NH.forEach(function (N, i) {
+    var lo = N * (1 - m), hi = N * (1 + m), d = 0;
+    if (hi > p.Nmin && lo < p.Nmax) d = Math.min(hi - p.Nmin, p.Nmax - lo);
+    det.push(d); tot += Math.pow(d / ref, 2);
+  });
+  return { J: tot, d: det };
+}
+
+function objective(p, r) {
+  var t = {};
+  t.tr = Math.pow((r.Ntr - p.NobjTr) / p.NobjTr, 2);
+  t.ex = Math.pow((r.Nex - p.NobjEx) / p.NobjEx, 2);
+  if (p.boxMode === 'objetivo') t.box = Math.pow((r.NH[0] - p.NobjBox) / p.NobjBox, 2);
+  else t.box = boxZonePenalty(p, r).J;
+  t.ang = r.theta > p.thetaMax ? 10 * Math.pow((r.theta - p.thetaMax) / p.thetaMax, 2) : 0;
+  t.total = t.tr + t.ex + t.box + t.ang;
+  return t;
+}
+
+// Búsqueda por patrones (Hooke-Jeeves) en variables normalizadas [0,1]
+function optimize(p, vars) {
+  function toP(x) {
+    var q = Object.assign({}, p);
+    vars.forEach(function (v, i) { q[v.id] = v.min + x[i] * (v.max - v.min); });
+    return q;
+  }
+  function J(x) { return compute(toP(x)).J.total; }
+  function search(x0) {
+    var x = x0.slice(), fx = J(x), step = 0.1, evals = 1;
+    while (step > 1e-5 && evals < 4000) {
+      var improved = false;
+      for (var i = 0; i < x.length; i++) {
+        for (var s = -1; s <= 1; s += 2) {
+          var y = x.slice(); y[i] = Math.min(1, Math.max(0, y[i] + s * step));
+          var fy = J(y); evals++;
+          if (fy < fx - 1e-14) { x = y; fx = fy; improved = true; break; }
+        }
+      }
+      if (!improved) step /= 2;
+    }
+    return { x: x, f: fx };
+  }
+  var x0 = vars.map(function (v) { return Math.min(1, Math.max(0, (p[v.id] - v.min) / (v.max - v.min))); });
+  var best = search(x0); best.start = 'actual';
+  // arranques extra solo si desde el valor actual no se cumple todo
+  if (best.f > 1e-6) {
+    var seeds = [0.15, 0.5, 0.85];
+    seeds.forEach(function (s, j) {
+      var xs = vars.map(function (_, i) { return seeds[(i + j) % 3]; });
+      var res = search(xs);
+      if (res.f < best.f - 1e-9) { best = res; best.start = 'alternativo'; }
+    });
+  }
+  var q = toP(best.x);
+  var out = {};
+  vars.forEach(function (v) { out[v.id] = q[v.id]; });
+  return { values: out, J0: compute(p).J, J1: compute(q).J, start: best.start };
+}
+
+
+
+
+var DEF = [
+  { g: 'Motor y aire', sw: '--muted', items: [
+    { id: 'Vd', l: 'Cilindrada', u: 'cc', v: 250, s: 1, t: 'dato' },
+    { id: 'CR', l: 'Relación de compresión', u: '–', v: 14.5, s: 0.1, t: 'dato' },
+    { id: 'Tamb', l: 'Temperatura del aire', u: '°C', v: 22, s: 1, t: 'dato' },
+    { id: 'pAtm', l: 'Presión ambiente', u: 'kPa', v: 101.3, s: 0.1, t: 'dato' },
+    { id: 'etaV', l: 'Rendimiento volumétrico ηv', u: '–', v: 1.0, s: 0.01, t: 'est', h: 'Solo se usa para el caudal de aire (paso 1). 1,0 = llena la cilindrada entera.' },
+    { id: 'Pref', l: 'Potencia de referencia', u: 'kW', v: 33, s: 0.5, t: 'dato', h: 'Solo para pasar % de presión a kW.' }
+  ]},
+  { g: 'Rango y objetivos', sw: '--accent', items: [
+    { id: 'Nmin', l: 'Rango: rpm mínimas', u: 'rpm', v: 9000, s: 250, t: '' },
+    { id: 'Nmax', l: 'Rango: rpm máximas', u: 'rpm', v: 12500, s: 250, t: '' },
+    { id: 'NobjTr', l: 'Objetivo trompeta (pico de par)', u: 'rpm', v: 10750, s: 250, t: '' },
+    { id: 'NobjEx', l: 'Objetivo escape', u: 'rpm', v: 10750, s: 250, t: '' },
+    { id: 'boxMode', l: 'Criterio del airbox', sel: [['fuera', 'Fuera del rango'], ['objetivo', 'k = 1 en objetivo']], v: 'fuera', t: '' },
+    { id: 'NobjBox', l: 'Objetivo airbox k = 1', u: 'rpm', v: 7000, s: 250, t: '', h: 'Solo con el criterio «k = 1 en objetivo».' },
+    { id: 'marg', l: 'Ancho de la zona de resonancia ±', u: '%', v: 10, s: 1, t: 'est', h: 'Zona alrededor de cada resonancia del airbox donde aparecen pico y valle.' },
+    { id: 'vMoto', l: 'Velocidad de la moto (ram air)', u: 'km/h', v: 150, s: 5, t: '' }
+  ]},
+  { g: 'Tobera (difusor)', sw: '--c-df', items: [
+    { id: 'dL', l: 'Longitud', u: 'mm', v: 600, s: 10, t: 'geo', opt: [200, 800] },
+    { id: 'dAin', l: 'Sección de entrada (boca)', u: 'cm²', v: 30, s: 1, t: 'geo', opt: [10, 60] },
+    { id: 'dAout', l: 'Sección de salida (al airbox)', u: 'cm²', v: 120, s: 1, t: 'geo', opt: [40, 250] },
+    { id: 'dShape', l: 'Cómo varía la sección', sel: [['area', 'Área lineal'], ['cono', 'Cono']], v: 'area', t: 'geo' },
+    { id: 'dEta', l: 'Eficiencia del difusor ηd', u: '–', v: 0.80, s: 0.05, t: 'est', h: 'Fracción de la presión dinámica interna que recupera. Afecta poco (paso 3).' },
+    { id: 'thetaMax', l: 'Semiángulo máx. sin desprendimiento', u: '°', v: 4, s: 0.5, t: 'teo' }
+  ]},
+  { g: 'Airbox', sw: '--c-box', items: [
+    { id: 'V', l: 'Volumen de aire', u: 'L', v: 7.0, s: 0.1, t: 'geo', opt: [2, 12] },
+    { id: 'Abox', l: 'Sección transversal (frente a la tobera)', u: 'cm²', v: 274, s: 1, t: 'geo' }
+  ]},
+  { g: 'Trompeta', sw: '--c-tr', items: [
+    { id: 'Lfix', l: 'Longitud fija (puerto de culata + mariposa)', u: 'mm', v: 170, s: 1, t: 'dato' },
+    { id: 'Ltr', l: 'Longitud de la trompeta (tramo recto)', u: 'mm', v: 117, s: 1, t: 'geo', opt: [0, 200], h: 'Sin el labio. Longitud total = fija + trompeta + labio.' },
+    { id: 'hLip', l: 'Altura del labio', u: 'mm', v: 10, s: 1, t: 'geo' },
+    { id: 'Dtube', l: 'Ø del tubo', u: 'mm', v: 46, s: 0.5, t: 'geo' },
+    { id: 'Dlip', l: 'Ø del labio (boca)', u: 'mm', v: 64, s: 0.5, t: 'geo' },
+    { id: 'thetaEf', l: 'Ventana efectiva θef', u: '°', v: 86, s: 1, t: 'cal', h: 'Sale de los ensayos de banco del TFG (paso 6).' },
+    { id: 'Keng', l: 'Constante de Engelman K', u: '–', v: 2.25, s: 0.01, t: 'cal', h: 'Solo para la comprobación del paso 7.' }
+  ]},
+  { g: 'Escape', sw: '--c-ex', items: [
+    { id: 'Lport', l: 'Puerto de escape (válvula → brida)', u: 'mm', v: 55, s: 1, t: 'est' },
+    { id: 'Lp', l: 'Longitud del primario (brida → cámara)', u: 'mm', v: 900, s: 10, t: 'geo', opt: [400, 1300] },
+    { id: 'Dp', l: 'Ø del primario', u: 'mm', v: 42, s: 0.5, t: 'geo' },
+    { id: 'Dch', l: 'Ø de la cámara de expansión', u: 'mm', v: 94, s: 1, t: 'geo' },
+    { id: 'EVO', l: 'Apertura de escape EVO', u: '° APMI', v: 60, s: 1, t: 'est', h: 'Leva estimada. Mídela.' },
+    { id: 'Tex', l: 'Temperatura media del gas', u: 'K', v: 800, s: 10, t: 'est' },
+    { id: 'gEx', l: 'γ del gas de escape', u: '–', v: 1.35, s: 0.01, t: 'teo' }
+  ]}
+];
+var ITEMS = {}; DEF.forEach(function (g) { g.items.forEach(function (it) { ITEMS[it.id] = it; }); });
+var KEY = 'dim-adm-esc-v1';
+var state = { p: {}, opt: {} };
+function defaults() {
+  state.p = {}; state.opt = {};
+  DEF.forEach(function (g) { g.items.forEach(function (it) {
+    state.p[it.id] = it.v;
+    if (it.opt) state.opt[it.id] = { on: false, min: it.opt[0], max: it.opt[1] };
+  }); });
+}
+defaults();
+try { var sv = JSON.parse(localStorage.getItem(KEY) || 'null'); if (sv && sv.p) { Object.keys(sv.p).forEach(function (k) { if (k in state.p) state.p[k] = sv.p[k]; }); Object.keys(sv.opt || {}).forEach(function (k) { if (state.opt[k]) state.opt[k] = sv.opt[k]; }); } } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+/* ---------- formato ---------- */
+function n(x, d) {
+  if (x === Infinity) return '∞';
+  if (!isFinite(x)) return '–';
+  d = d || 0;
+  var neg = x < 0, s = Math.abs(x).toFixed(d), parts = s.split('.'), i = parts[0];
+  if (i.length > 3) i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return (neg && +s !== 0 ? '−' : '') + i + (parts[1] ? ',' + parts[1] : '');
+}
+function rpm(x) { return n(Math.round(x / 10) * 10) + ' rpm'; }
+function el(id) { return root.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+
+/* ---------- entradas ---------- */
+var TAGTXT = { geo: 'GEO', dato: 'DATO', cal: 'CAL', est: 'EST', teo: 'TEO' };
+function buildInputs() {
+  var h = '';
+  DEF.forEach(function (g, gi) {
+    h += '<details class="grp"' + (gi < 6 ? ' open' : '') + '><summary><span class="swatch" style="background:var(' + g.sw + ')"></span>' + g.g + '</summary><div class="rows">';
+    g.items.forEach(function (it) {
+      var tag = it.t ? ' <i class="tag ' + it.t + '">' + TAGTXT[it.t] + '</i>' : '';
+      h += '<div class="row' + (it.sel ? ' wide' : '') + '" id="row-' + it.id + '"><label for="in-' + it.id + '"><span class="lab-line">' + it.l + tag + '</span></label>';
+      if (it.sel) {
+        h += '<div class="field"><select id="in-' + it.id + '">' + it.sel.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + '</option>'; }).join('') + '</select></div>';
+      } else {
+        h += '<div class="field"><input id="in-' + it.id + '" type="number" inputmode="decimal" step="' + it.s + '"><span class="unit">' + it.u + '</span></div>';
+      }
+      if (it.h) h += '<div class="hint">' + it.h + '</div>';
+      if (it.opt) h += '<div class="optbox"><label><input type="checkbox" id="op-' + it.id + '"> optimizar</label><span class="mm" id="mm-' + it.id + '">entre <input id="mn-' + it.id + '" type="number" step="' + it.s + '" aria-label="mínimo"> y <input id="mx-' + it.id + '" type="number" step="' + it.s + '" aria-label="máximo"> ' + it.u + '</span></div>';
+      h += '</div>';
+    });
+    h += '</div></details>';
+  });
+  el('inputs').innerHTML = h;
+  Object.keys(ITEMS).forEach(function (id) {
+    var it = ITEMS[id], inp = el('in-' + id);
+    inp.addEventListener(it.sel ? 'change' : 'input', function () {
+      var v = it.sel ? inp.value : parseFloat(inp.value);
+      if (!it.sel && !isFinite(v)) return;
+      state.p[id] = v; changed();
+    });
+    if (it.opt) {
+      el('op-' + id).addEventListener('change', function (e) { state.opt[id].on = e.target.checked; syncOpt(id); changed(); });
+      ['mn', 'mx'].forEach(function (k) { el(k + '-' + id).addEventListener('input', function (e) { var v = parseFloat(e.target.value); if (isFinite(v)) { state.opt[id][k === 'mn' ? 'min' : 'max'] = v; changed(); } }); });
+    }
+  });
+}
+function syncOpt(id) {
+  var o = state.opt[id]; el('mm-' + id).hidden = !o.on; el('row-' + id).classList.toggle('is-opt', o.on);
+}
+function fillInputs() {
+  Object.keys(ITEMS).forEach(function (id) {
+    el('in-' + id).value = state.p[id];
+    if (state.opt[id]) { el('op-' + id).checked = state.opt[id].on; el('mn-' + id).value = state.opt[id].min; el('mx-' + id).value = state.opt[id].max; syncOpt(id); }
+  });
+  el('in-NobjBox').disabled = state.p.boxMode !== 'objetivo';
+}
+
+/* ---------- estado ---------- */
+var R = null, lastOpt = null;
+function changed() { lastOpt = null; el('optres').innerHTML = ''; el('in-NobjBox').disabled = state.p.boxMode !== 'objetivo'; save(); render(); }
+
+function pillDev(N, obj) {
+  var d = (N - obj) / obj * 100, a = Math.abs(d);
+  var cls = a <= 3 ? 'ok' : a <= 8 ? 'warn' : 'bad';
+  return '<span class="pill ' + cls + '">' + (d >= 0 ? '+' : '−') + n(a, 1) + ' % vs objetivo</span>';
+}
+function boxInRange(p, r) {
+  var m = p.marg / 100, hits = [];
+  r.NH.forEach(function (N, i) { if (N * (1 + m) > p.Nmin && N * (1 - m) < p.Nmax) hits.push(i + 1); });
+  return hits;
+}
+function renderStatus(p, r) {
+  var hits = boxInRange(p, r), h = '';
+  h += '<div class="st" style="--k:var(--c-tr)"><span class="k">Trompeta</span><span class="v">' + rpm(r.Ntr) + '</span><span class="d">L total ' + n(r.Ltot * 1e3) + ' mm · para el objetivo: ' + n(r.LtrNeed) + ' mm de trompeta</span>' + pillDev(r.Ntr, p.NobjTr) + '</div>';
+  h += '<div class="st" style="--k:var(--c-ex)"><span class="k">Escape</span><span class="v">' + rpm(r.Nex) + '</span><span class="d">Para el objetivo: primario de ' + n(r.LpNeed) + ' mm</span>' + pillDev(r.Nex, p.NobjEx) + '</div>';
+  var boxPill;
+  if (p.boxMode === 'objetivo') boxPill = pillDev(r.NH[0], p.NobjBox);
+  else boxPill = hits.length ? '<span class="pill bad">k = ' + hits.join(', ') + ' dentro del rango</span>' : '<span class="pill ok">fuera del rango</span>';
+  h += '<div class="st" style="--k:var(--c-box)"><span class="k">Airbox</span><span class="v">' + n(r.fH, 1) + ' Hz</span><span class="d">k = 1 → ' + rpm(r.NH[0]) + ' · k = 2 → ' + rpm(r.NH[1]) + '</span>' + boxPill + '</div>';
+  h += '<div class="st" style="--k:var(--c-df)"><span class="k">Tobera</span><span class="v">' + n(r.theta, 2) + '°</span><span class="d">semiángulo · relación de áreas ' + n(r.AR, 2) + '</span><span class="pill ' + (r.thetaOK ? 'ok">sin desprendimiento' : 'bad">se desprende') + '</span></div>';
+  h += '<div class="st" style="--k:var(--accent)"><span class="k">Ram air a ' + n(p.vMoto) + ' km/h</span><span class="v">+' + n(r.ramPct, 2) + ' %</span><span class="d">≈ ' + n(r.ramKW, 2) + ' kW · la tobera aporta ' + n(r.savedPct, 3) + ' %</span></div>';
+  el('status').innerHTML = h;
+}
+
+/* ---------- mapa de sintonías (SVG) ---------- */
+function renderMap(p, r) {
+  var W = 820, padL = 185, padR = 24, top = 18, rowH = 46;
+  var lo = 2000, hi = Math.max(16000, Math.ceil(p.Nmax * 1.25 / 1000) * 1000);
+  var rows = [
+    { name: 'Trompeta', sub: 'regla calibrada', col: '--c-tr', N: [r.Ntr], band: [r.NtrLo, r.NtrHi], obj: p.NobjTr },
+    { name: 'Trompeta', sub: 'Engelman (comprobación)', col: '--c-tr', N: [r.Neng], hollow: true },
+    { name: 'Escape', sub: 'onda de expansión', col: '--c-ex', N: [r.Nex], band: [r.NexLo, r.NexHi], obj: p.NobjEx },
+    { name: 'Airbox', sub: 'Helmholtz k = 1, 2, 3', col: '--c-box', N: r.NH, zones: true, obj: p.boxMode === 'objetivo' ? p.NobjBox : null }
+  ];
+  var H = top + rows.length * rowH + 34;
+  function X(N) { return padL + (Math.min(hi, Math.max(lo, N)) - lo) / (hi - lo) * (W - padL - padR); }
+  var s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Mapa de sintonías en rpm">';
+  var yB = top + rows.length * rowH;
+  s += '<rect x="' + X(p.Nmin) + '" y="' + (top - 6) + '" width="' + (X(p.Nmax) - X(p.Nmin)) + '" height="' + (yB - top + 6) + '" fill="var(--range)"/>';
+  for (var t = lo; t <= hi; t += 1000) {
+    var x = X(t), major = t % 2000 === 0;
+    s += '<line x1="' + x + '" x2="' + x + '" y1="' + (top - 6) + '" y2="' + yB + '" stroke="var(--line)" stroke-width="' + (major ? 1 : 0.5) + '"/>';
+    if (major) s += '<text x="' + x + '" y="' + (yB + 16) + '" text-anchor="middle">' + n(t / 1000) + '</text>';
+  }
+  s += '<text x="' + (W - padR) + '" y="' + (yB + 30) + '" text-anchor="end">× 1.000 rpm</text>';
+  rows.forEach(function (row, i) {
+    var y = top + i * rowH + rowH / 2, col = 'var(' + row.col + ')';
+    s += '<text class="rl" x="0" y="' + (y - 2) + '">' + row.name + '</text><text x="0" y="' + (y + 12) + '">' + row.sub + '</text>';
+    s += '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)" stroke-dasharray="2 3"/>';
+    if (row.band) s += '<rect x="' + X(row.band[0]) + '" y="' + (y - 4) + '" width="' + Math.max(1, X(row.band[1]) - X(row.band[0])) + '" height="8" rx="4" fill="' + col + '" opacity=".28"/>';
+    if (row.obj) s += '<line x1="' + X(row.obj) + '" x2="' + X(row.obj) + '" y1="' + (y - 15) + '" y2="' + (y + 15) + '" stroke="var(--ink)" stroke-width="2"/>';
+    row.N.forEach(function (N, k) {
+      if (row.zones) s += '<rect x="' + X(N * (1 - p.marg / 100)) + '" y="' + (y - 9) + '" width="' + Math.max(1, X(N * (1 + p.marg / 100)) - X(N * (1 - p.marg / 100))) + '" height="18" rx="3" fill="' + col + '" opacity=".16"/>';
+      var out = N > hi || N < lo, x = X(N);
+      if (out) {
+        var dir = N > hi ? 1 : -1;
+        s += '<path d="M' + (x - 6 * dir) + ' ' + (y - 6) + ' L' + x + ' ' + y + ' L' + (x - 6 * dir) + ' ' + (y + 6) + '" fill="none" stroke="' + col + '" stroke-width="2"/>';
+        s += '<text x="' + (x - 10 * dir) + '" y="' + (y - 10) + '" text-anchor="' + (dir > 0 ? 'end' : 'start') + '">' + (row.zones ? 'k=' + (k + 1) + ' ' : '') + n(Math.round(N / 10) * 10) + '</text>';
+      } else {
+        s += '<circle cx="' + x + '" cy="' + y + '" r="6" fill="' + (row.hollow ? 'var(--surface)' : col) + '" stroke="' + col + '" stroke-width="2"/>';
+        s += '<text x="' + x + '" y="' + (y - 11) + '" text-anchor="middle">' + (row.zones ? 'k=' + (k + 1) : n(Math.round(N / 10) * 10)) + '</text>';
+      }
+    });
+  });
+  s += '</svg>';
+  el('map').innerHTML = s;
+}
+
+/* ---------- tarjetas ---------- */
+function kv(rows) { return '<table class="kv">' + rows.map(function (r) { return '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>'; }).join('') + '</table>'; }
+function renderCards(p, r) {
+  var h = '';
+  h += '<div class="card"><h2><span class="swatch" style="background:var(--c-df)"></span>Tobera y ram air</h2>' + kv([
+    ['Relación de áreas A₂/A₁', n(r.AR, 2)],
+    ['Semiángulo equivalente', n(r.theta, 2) + '° (máx. ' + n(p.thetaMax, 1) + '°)'],
+    ['Sección equivalente para resonancia', n(r.Aeq * 1e4, 1) + ' cm² (Ø ' + n(r.Deq * 1e3) + ' mm)'],
+    ['Inertancia (L/A)ef', n(r.LA, 1) + ' m⁻¹'],
+    ['Caudal a ' + n(p.Nmax) + ' rpm', n(r.mdot * 1e3, 1) + ' g/s · ' + n(r.Q * 1e3, 1) + ' L/s'],
+    ['Velocidad en la boca v₁', n(r.v1, 1) + ' m/s (moto ' + n(r.vinf, 1) + ')'],
+    ['Presión dinámica de la moto q∞', n(r.qinf) + ' Pa'],
+    ['Presión dinámica en la boca q₁', n(r.q1) + ' Pa'],
+    ['Pérdida sin tobera (tubo recto)', n(r.dpStr, 1) + ' Pa'],
+    ['Pérdida con tobera', n(r.dpDiff, 1) + ' Pa'],
+    ['Lo que salva la tobera', n(r.savedPct, 3) + ' % ≈ ' + n(r.savedKW * 1e3) + ' W de motor'],
+    ['Ganancia neta ram air', '+' + n(r.ramPct, 2) + ' % ≈ ' + n(r.ramKW, 2) + ' kW']
+  ]) + (r.MFR < 1 ? '<p class="note">La boca recibe ' + n(r.MFR * 100) + ' % de la velocidad de la moto: casi toda la compresión ocurre fuera, delante de la boca. La tobera solo recupera la poca presión dinámica que entra (q₁).</p>' : '<p class="note warn">El motor pide más aire del que entra a la velocidad de la moto: el aire se acelera hacia la boca y la tobera sí trabaja.</p>') + '</div>';
+  var hits = boxInRange(p, r);
+  h += '<div class="card"><h2><span class="swatch" style="background:var(--c-box)"></span>Airbox</h2>' + kv([
+    ['Frecuencia Helmholtz f<sub>H</sub>', n(r.fH, 1) + ' Hz'],
+    ['k = 1 / 2 / 3', r.NH.map(function (x) { return n(Math.round(x / 10) * 10); }).join(' / ') + ' rpm'],
+    ['Reflexión tobera → airbox R', n(r.Rbox, 2)],
+    ['Profundidad equivalente V/A', n(r.Lbox * 1e3) + ' mm'],
+    ['Modo longitudinal', n(r.fLong) + ' Hz (armónicos k ' + n(r.kLo, 1) + '–' + n(r.kHi, 1) + ')'],
+    ['Profundidad / longitud de onda', n(r.lumpRatio, 3) + (r.lumpRatio < 0.1 ? ' (modelo concentrado válido)' : ' (modelo concentrado dudoso)')]
+  ]) + (p.boxMode === 'fuera' && hits.length ? '<p class="note warn">La zona ±' + n(p.marg) + ' % de k = ' + hits.join(', ') + ' cae dentro del rango.</p>' : '') + '</div>';
+  var calOK = p.NobjTr >= 8700 && p.NobjTr <= 10800;
+  h += '<div class="card"><h2><span class="swatch" style="background:var(--c-tr)"></span>Trompeta</h2>' + kv([
+    ['Longitud total (fija + trompeta + labio)', n(r.Ltot * 1e3) + ' mm'],
+    ['Pico de par (regla calibrada)', rpm(r.Ntr)],
+    ['Banda por la calibración', n(Math.round(r.NtrLo / 10) * 10) + '–' + n(Math.round(r.NtrHi / 10) * 10) + ' rpm'],
+    ['Engelman (comprobación)', rpm(r.Neng)],
+    ['Trompeta para ' + n(p.NobjTr) + ' rpm', n(r.LtrNeed) + ' mm (total ' + n(r.LtotNeed * 1e3) + ')'],
+    ['Relación de áreas labio/tubo', n(r.Alip / r.At, 2)],
+    ['Velocidad media en el tubo a ' + n(p.Nmax), n(r.vTube, 1) + ' m/s']
+  ]) + (r.LtrNeed < 0 ? '<p class="note warn">El objetivo pide menos longitud que la parte fija: no cabe con esta culata y mariposa.</p>' : '') + (!calOK ? '<p class="note warn">El objetivo está fuera de lo medido en banco (8.740–10.790 rpm): la regla extrapola.</p>' : '') + '</div>';
+  h += '<div class="card"><h2><span class="swatch" style="background:var(--c-ex)"></span>Escape</h2>' + kv([
+    ['Velocidad del sonido en el gas', n(r.cEx) + ' m/s'],
+    ['Longitud válvula → cámara', n(r.Lex * 1e3) + ' mm'],
+    ['Ventana EVO → PMS de cruce', n(r.thEx) + '°'],
+    ['Sintonía', rpm(r.Nex)],
+    ['Banda (T ±100 K, EVO ±5°)', n(Math.round(r.NexLo / 10) * 10) + '–' + n(Math.round(r.NexHi / 10) * 10) + ' rpm'],
+    ['Primario para ' + n(p.NobjEx) + ' rpm', n(r.LpNeed) + ' mm'],
+    ['Relación de áreas cámara/primario', n(r.ARex, 2)],
+    ['Reflexión R / energía devuelta', n(r.Rex, 2) + ' / ' + n(r.Eex * 100) + ' %']
+  ]) + '</div>';
+  el('cards').innerHTML = h;
+}
+
+/* ---------- optimizador ---------- */
+function markedVars() {
+  return Object.keys(state.opt).filter(function (id) { return state.opt[id].on; }).map(function (id) { return { id: id, min: state.opt[id].min, max: state.opt[id].max }; });
+}
+function updateOptInfo() {
+  var v = markedVars();
+  el('run').disabled = !v.length;
+  el('optinfo').textContent = v.length ? 'Marcadas: ' + v.map(function (x) { return ITEMS[x.id].l.toLowerCase(); }).join(', ') : 'Ninguna variable marcada.';
+}
+var TERMS = [['tr', 'Trompeta'], ['ex', 'Escape'], ['box', 'Airbox'], ['ang', 'Ángulo tobera'], ['total', 'J total']];
+function runOpt() {
+  var vars = markedVars(); if (!vars.length) return;
+  var bad = vars.filter(function (v) { return !(v.max > v.min); });
+  if (bad.length) { el('optres').innerHTML = '<p class="note warn">Revisa los límites de ' + bad.map(function (v) { return ITEMS[v.id].l.toLowerCase(); }).join(', ') + ': el máximo tiene que ser mayor que el mínimo.</p>'; return; }
+  var o = optimize(state.p, vars); lastOpt = o;
+  var q = Object.assign({}, state.p, o.values), r1 = compute(q);
+  var h = '<div class="tbl-wrap"><table class="res"><thead><tr><th>Variable</th><th class="n">Actual</th><th class="n">Óptimo</th><th class="n">Límites</th></tr></thead><tbody>';
+  vars.forEach(function (v) {
+    var it = ITEMS[v.id], nv = o.values[v.id], atEdge = Math.abs(nv - v.min) < 1e-3 * (v.max - v.min) || Math.abs(nv - v.max) < 1e-3 * (v.max - v.min);
+    h += '<tr><td>' + it.l + '</td><td class="n">' + n(state.p[v.id], it.s < 1 ? 1 : 0) + ' ' + it.u + '</td><td class="n"><b>' + n(nv, it.s < 1 ? 2 : 0) + '</b> ' + it.u + (atEdge ? ' ⚠' : '') + '</td><td class="n">' + n(v.min) + '–' + n(v.max) + '</td></tr>';
+  });
+  h += '</tbody></table></div><div class="tbl-wrap"><table class="res"><thead><tr><th>Término de J</th><th class="n">Antes</th><th class="n">Después</th></tr></thead><tbody>';
+  TERMS.forEach(function (t) { h += '<tr><td>' + t[1] + '</td><td class="n">' + o.J0[t[0]].toExponential(2).replace('.', ',') + '</td><td class="n">' + o.J1[t[0]].toExponential(2).replace('.', ',') + '</td></tr>'; });
+  h += '</tbody></table></div>';
+  var edge = vars.some(function (v) { var nv = o.values[v.id]; return Math.abs(nv - v.min) < 1e-3 * (v.max - v.min) || Math.abs(nv - v.max) < 1e-3 * (v.max - v.min); });
+  h += '<p class="note">Con los valores óptimos: trompeta ' + rpm(r1.Ntr) + ', escape ' + rpm(r1.Nex) + ', airbox k = 1 en ' + rpm(r1.NH[0]) + ', semiángulo ' + n(r1.theta, 2) + '°.' + (o.J1.total > 1e-4 ? ' No se cumplen todos los objetivos dentro de los límites: J no llega a cero.' : '') + (edge ? ' ⚠ = la variable se ha quedado en un límite.' : '') + (o.start === 'alternativo' ? ' El mejor resultado salió de un arranque distinto a tus valores actuales.' : '') + '</p>';
+  h += '<div class="optrow" style="margin-top:10px"><button class="btn" id="apply" type="button">Aplicar a las entradas</button></div>';
+  el('optres').innerHTML = h;
+  el('apply').addEventListener('click', function () {
+    vars.forEach(function (v) { var it = ITEMS[v.id], d = it.s < 1 ? 2 : 0; state.p[v.id] = +o.values[v.id].toFixed(d); });
+    fillInputs(); changed();
+    el('optres').innerHTML = '<p class="note">Valores aplicados.</p>';
+  });
+}
+
+/* ---------- formulario ---------- */
+function eq(f, s, r, w) { return '<div class="eq"><span class="f">' + f + '</span>' + (s ? '<span class="s">= ' + s + '</span>' : '') + (r ? '<span class="r">= <b>' + r + '</b></span>' : '') + (w ? '<span class="w">' + w + '</span>' : '') + '</div>'; }
+function tg(t) { return '<i class="tag ' + t + '">' + TAGTXT[t] + '</i>'; }
+function step(id, num, title, tags, body) { return '<article class="step" id="' + id + '"><h3><span class="num">' + num + '</span>' + title + ' ' + tags.map(tg).join(' ') + '</h3>' + body + '</article>'; }
+function renderForm(p, r) {
+  var c = r.c, s = [];
+  s.push(step('f0', '0', 'Propiedades del aire', ['dato', 'teo'],
+    '<p>Todo lo acústico depende de la velocidad del sonido; todo lo de presión dinámica, de la densidad.</p>' +
+    eq('c = √(γ·R·T)', '√(1,4 · 287 · ' + n(r.T, 1) + ')', n(c, 1) + ' m/s') +
+    eq('ρ = p / (R·T)', n(r.pa) + ' / (287 · ' + n(r.T, 1) + ')', n(r.rho, 3) + ' kg/m³')));
+  s.push(step('f1', '1', 'Caudal de aire del motor', ['dato', 'est'],
+    '<p>Monocilíndrico de 4 tiempos: una admisión cada dos vueltas, así que N/120 admisiones por segundo. Se calcula a las rpm máximas del rango, donde el caudal es mayor. Solo se usa en el ram air y en la velocidad del tubo.</p>' +
+    eq('ṁ = ηv · ρ · Vd · N / 120', n(p.etaV, 2) + ' · ' + n(r.rho, 3) + ' · ' + n(p.Vd) + '·10⁻⁶ · ' + n(p.Nmax) + ' / 120', n(r.mdot * 1e3, 1) + ' g/s') +
+    eq('Q = ṁ / ρ', '', n(r.Q * 1e3, 2) + ' L/s')));
+  var ari = r.Aari * 1e4;
+  s.push(step('f2', '2', 'Geometría de la tobera', ['geo', 'teo'],
+    '<p><b>Ángulo.</b> Se pasa cada sección a un radio equivalente y se mira el semiángulo. Por encima de unos 4° de semiángulo (7–8° de ángulo total) la capa límite se despega y el difusor deja de recuperar presión.</p>' +
+    eq('r = √(A/π)', '', 'r₁ = ' + n(r.r1 * 1e3, 1) + ' mm · r₂ = ' + n(r.r2 * 1e3, 1) + ' mm', 'Área lineal: paredes planas, la sección crece de forma lineal. Cono: el radio crece de forma lineal.') +
+    eq('θ = atan((r₂ − r₁) / L)', 'atan((' + n(r.r2 * 1e3, 1) + ' − ' + n(r.r1 * 1e3, 1) + ') / ' + n(p.dL) + ')', n(r.theta, 2) + '°', r.thetaOK ? 'Por debajo del límite: no se desprende.' : 'Por encima del límite: se desprende.') +
+    '<p><b>Qué sección usar para la resonancia.</b> No es la media aritmética. Lo que manda en un conducto de sección variable es la inercia del aire que hay dentro, la inertancia ∫dx/A. La sección equivalente es la de un cilindro de la misma longitud con la misma inertancia.</p>' +
+    (p.dShape === 'cono'
+      ? eq('∫dx/A = L / √(A₁·A₂)', n(p.dL / 1e3, 3) + ' / √(' + n(p.dAin) + '·' + n(p.dAout) + '·10⁻⁸)', n(r.Iduct, 1) + ' m⁻¹', 'Cono (radio lineal): la sección equivalente es la media geométrica.')
+      : eq('∫dx/A = L · ln(A₂/A₁) / (A₂ − A₁)', n(p.dL / 1e3, 3) + ' · ln(' + n(r.AR, 2) + ') / (' + n((r.A2 - r.A1) * 1e4, 1) + '·10⁻⁴)', n(r.Iduct, 1) + ' m⁻¹', 'Área lineal: la sección equivalente es la media logarítmica.')) +
+    eq('A_eq = L / ∫dx/A', '', n(r.Aeq * 1e4, 1) + ' cm² (Ø ' + n(r.Deq * 1e3) + ' mm)', 'Media aritmética ' + n(ari, 1) + ' cm² (no usar); media geométrica ' + n(r.Ageo * 1e4, 1) + ' cm².') +
+    '<p>A eso se suman las correcciones de extremo: el aire de justo fuera de cada boca también se mueve con la columna. 0,61·r en la boca libre y 0,85·r en la salida, que da a la pared del airbox.</p>' +
+    eq('(L/A)ef = ∫dx/A + 0,61·r₁/A₁ + 0,85·r₂/A₂', n(r.Iduct, 1) + ' + ' + n(r.dIn, 1) + ' + ' + n(r.dOut, 1), n(r.LA, 1) + ' m⁻¹')));
+  s.push(step('f3', '3', 'Ram air: presión dinámica y pérdidas', ['teo', 'est'],
+    '<p>La presión que puede ganar el airbox es la presión dinámica de la marcha. El matiz importante es que el caudal no lo pone la moto, lo pone el motor. Si el motor pide menos aire del que cabe por la boca a la velocidad de la moto, el aire frena antes de llegar a la boca, por fuera, casi sin pérdidas. Dentro de la tobera solo queda la poca velocidad que pide el motor.</p>' +
+    eq('q∞ = ½·ρ·v∞²', '0,5 · ' + n(r.rho, 3) + ' · ' + n(r.vinf, 1) + '²', n(r.qinf) + ' Pa', 'Lo máximo que puede ganar el airbox a ' + n(p.vMoto) + ' km/h.') +
+    eq('v₁ = Q / A₁', n(r.Q * 1e3, 2) + '·10⁻³ / ' + n(p.dAin) + '·10⁻⁴', n(r.v1, 2) + ' m/s', 'Relación de caudal v₁/v∞ = ' + n(r.MFR, 2) + '. La corriente que entra viene de un tubo de ' + n(r.Acap * 1e4, 1) + ' cm² aguas arriba.') +
+    eq('q₁ = ½·ρ·v₁²', '', n(r.q1, 1) + ' Pa', 'Esto es lo único que la tobera puede recuperar o perder.') +
+    '<p><b>Sin tobera</b> (tubo recto de sección A₁ que descarga al airbox): el chorro se despega en la entrada al airbox y toda la presión dinámica interna se pierde en turbulencia (pérdida de Borda–Carnot).</p>' +
+    eq('Δp_recto = q₁', '', n(r.dpStr, 1) + ' Pa') +
+    '<p><b>Con tobera</b>: recupera una fracción ηd de lo que frena entre la entrada y la salida, y lo que queda a la salida (q₂) se pierde al entrar al airbox.</p>' +
+    eq('Δp_tobera = (1 − ηd)·(q₁ − q₂) + q₂', '(1 − ' + n(p.dEta, 2) + ') · (' + n(r.q1, 1) + ' − ' + n(r.q2, 1) + ') + ' + n(r.q2, 1), n(r.dpDiff, 1) + ' Pa') +
+    eq('Ahorro = Δp_recto − Δp_tobera', '', n(r.dpSaved, 1) + ' Pa') +
+    '<p>Pasar a potencia: la masa que entra al cilindro es proporcional a la presión del airbox, así que la potencia cambia en la misma proporción que Δp/p.</p>' +
+    eq('ΔP/P ≈ Δp / p', n(r.dpSaved, 1) + ' / ' + n(r.pa), n(r.savedPct, 3) + ' % ≈ ' + n(r.savedKW * 1e3) + ' W', 'Energía de flujo perdida: Δp·Q = ' + n(r.savedW, 1) + ' W. Es menor que el efecto sobre el motor, que se mide por el llenado.') +
+    eq('Ganancia neta = (q∞ − Δp_tobera) / p', '(' + n(r.qinf) + ' − ' + n(r.dpDiff, 1) + ') / ' + n(r.pa), '+' + n(r.ramPct, 2) + ' % ≈ ' + n(r.ramKW, 2) + ' kW')));
+  var hits = boxInRange(p, r);
+  s.push(step('f4', '4', 'Resonancia Helmholtz del airbox', ['teo'],
+    '<p>El airbox es el muelle (volumen) y el aire de la tobera es la masa (inertancia del paso 2). El motor lo excita una vez por ciclo y en sus armónicos.</p>' +
+    eq('f_H = c/(2π) · √(1 / (V·(L/A)ef))', n(c, 1) + '/(2π) · √(1 / (' + n(p.V, 2) + '·10⁻³ · ' + n(r.LA, 1) + '))', n(r.fH, 1) + ' Hz') +
+    eq('N_k = 120 · f_H / k', 'k = 1, 2, 3', r.NH.map(function (x) { return n(Math.round(x / 10) * 10); }).join(' / ') + ' rpm') +
+    '<p><b>Por qué hay pico y valle.</b> Lo que le importa al motor no es lo grande que sea la oscilación, sino qué presión hay en el airbox cuando cierra la válvula de admisión. Al cruzar la resonancia, la oscilación se retrasa medio ciclo respecto al tirón del motor. A un lado coincide la sobrepresión con el cierre (pico) y al otro la depresión (valle). El lado de cada uno depende de la leva. Con la leva estimada, el simulador 1D da el valle justo por encima de k = 1 y la ganancia un 15–20 % por debajo.</p>' +
+    '<p>Por eso el criterio por defecto es sacar la zona ±' + n(p.marg) + ' % de cada armónico fuera de tu rango. ' + (p.boxMode === 'fuera' ? (hits.length ? 'Ahora mismo k = ' + hits.join(', ') + ' cae dentro.' : 'Ahora mismo se cumple.') : 'Has elegido poner k = 1 en ' + n(p.NobjBox) + ' rpm.') + '</p>'));
+  s.push(step('f5', '5', 'Comprobaciones del airbox', ['geo', 'teo'],
+    '<p><b>Reflexión tobera → airbox.</b> Una onda que llega al airbox rebota según el salto de sección. R = −1 es un extremo abierto perfecto (el airbox se comporta como atmósfera) y R = 0 es que no ve ningún cambio.</p>' +
+    eq('R = (A₂ − A_box) / (A₂ + A_box)', '(' + n(p.dAout) + ' − ' + n(p.Abox) + ') / (' + n(p.dAout) + ' + ' + n(p.Abox) + ')', n(r.Rbox, 2), Math.abs(r.Rbox) < 0.6 ? 'Salto pequeño: parte de la onda sigue dentro del airbox en vez de rebotar.' : 'Salto grande: buen extremo abierto.') +
+    eq('Profundidad equivalente = V / A_box', '', n(r.Lbox * 1e3) + ' mm') +
+    eq('f_long = c / (2·L_box)', n(c, 1) + ' / (2 · ' + n(r.Lbox, 3) + ')', n(r.fLong) + ' Hz', 'En tu rango lo excitan los armónicos k ≈ ' + n(r.kLo, 1) + '–' + n(r.kHi, 1) + ', que son débiles. Solo informativo.') +
+    eq('Profundidad / λ_H', n(r.Lbox, 3) + ' / ' + n(r.lamH, 2), n(r.lumpRatio, 3), 'Por debajo de 0,1 el airbox se puede tratar como un volumen único (modelo concentrado).')));
+  var rowsCal = r.calib.map(function (x, i) { return '<tr><td class="n">' + n(x.Lp, 1) + '</td><td class="n">' + n(x.Lt * 1e3, 1) + '</td><td class="n">' + n(x.N) + '</td><td class="n">' + n(x.th, 1) + '°</td><td class="n">' + n(r.calibK[i], 2) + '</td></tr>'; }).join('');
+  s.push(step('f6', '6', 'Trompeta: regla calibrada', ['geo', 'cal'],
+    '<p>Al abrir la admisión sale una depresión hacia la boca, rebota en el airbox y vuelve como sobrepresión. El pico de par aparece cuando esa vuelta llega dentro de una ventana fija de grados de cigüeñal antes del cierre.</p>' +
+    eq('L = L_fija + L_trompeta + h_labio', n(p.Lfix) + ' + ' + n(p.Ltr) + ' + ' + n(p.hLip), n(r.Ltot * 1e3) + ' mm') +
+    eq('θ = 6·N · (2L/c) = 12·N·L / c', '', '', 'Grados que gira el cigüeñal mientras la onda va y vuelve (6·N grados por segundo).') +
+    eq('N_pico = c · θef / (12 · L)', n(c, 1) + ' · ' + n(p.thetaEf) + ' / (12 · ' + n(r.Ltot, 3) + ')', rpm(r.Ntr)) +
+    eq('L_trompeta necesaria = c·θef/(12·N_obj) − L_fija − h_labio', n(r.LtotNeed * 1e3) + ' − ' + n(p.Lfix) + ' − ' + n(p.hLip), n(r.LtrNeed) + ' mm', 'Para ' + n(p.NobjTr) + ' rpm.') +
+    '<p><b>De dónde sale θef.</b> De los ensayos de banco del TFG: para cada trompeta se despeja θ = 12·N·L/c con su pico de par medido. Las largas dan unos 86°; las cortas, unos 74°, porque el pico se queda atascado hacia 10.000–10.800 rpm (lo limita la leva). La banda del mapa va del θ mínimo al máximo de esta tabla. No lleva corrección de extremo porque θef ya la incluye; si se la sumas, hay que recalibrar.</p>' +
+    '<div class="tbl-wrap"><table class="res"><thead><tr><th class="n">Pieza (mm)</th><th class="n">L total (mm)</th><th class="n">Pico medido (rpm)</th><th class="n">θ despejado</th><th class="n">K Engelman</th></tr></thead><tbody>' + rowsCal + '</tbody></table></div>' +
+    '<p class="note">Válido entre 8.740 y 10.790 rpm, que es lo medido. Fuera de ahí la regla extrapola.</p>'));
+  s.push(step('f7', '7', 'Trompeta: comprobación de Engelman', ['cal', 'dato'],
+    '<p>Otra forma de ver lo mismo: el cilindro a media carrera es un volumen y el conducto es el cuello de un resonador Helmholtz. Usa el Ø del tubo y el labio (corrección de extremo), que la regla del paso 6 no ve. Sirve de contraste, no entra en la optimización.</p>' +
+    eq('V_ef = Vd/2 + Vc', n(p.Vd / 2, 1) + ' + ' + n(r.Vc * 1e6, 1), n(r.Vef * 1e6, 1) + ' cm³') +
+    eq('L_ef = L + 0,61 · r_labio', n(r.Ltot * 1e3) + ' + ' + n(r.dEnd * 1e3, 1), n(r.Lef * 1e3, 1) + ' mm') +
+    eq('f = c/(2π) · √(A_tubo / (L_ef · V_ef))', '', n(r.fcyl) + ' Hz') +
+    eq('N = 60 · f / K', '60 · ' + n(r.fcyl) + ' / ' + n(p.Keng, 2), rpm(r.Neng), 'K calibrado con la misma tabla del paso 6 (columna K): ' + n(Math.min.apply(null, r.calibK), 2) + '–' + n(Math.max.apply(null, r.calibK), 2) + '. Supone el mismo Ø de tubo en todas las trompetas del ensayo.') +
+    eq('v_media = Q / A_tubo', n(r.Q * 1e3, 2) + '·10⁻³ / ' + n(r.At * 1e4, 2) + '·10⁻⁴', n(r.vTube, 1) + ' m/s', 'Media del ciclo a ' + n(p.Nmax) + ' rpm. Durante la admisión, que dura un tercio del ciclo, es unas tres veces mayor.')));
+  s.push(step('f8', '8', 'Escape: onda de expansión', ['geo', 'est', 'teo'],
+    '<p>Al abrir el escape sale un pulso de presión. En el salto del primario a la cámara rebota como depresión y vuelve a la válvula. Interesa que llegue durante el cruce, alrededor del PMS, para vaciar el cilindro y ayudar a que entre mezcla fresca.</p>' +
+    eq('c_ex = √(γ·R·T_ex)', '√(' + n(p.gEx, 2) + ' · 287 · ' + n(p.Tex) + ')', n(r.cEx) + ' m/s', 'T_ex estimada: es el dato más incierto del escape.') +
+    eq('L = L_puerto + L_primario', n(p.Lport) + ' + ' + n(p.Lp), n(r.Lex * 1e3) + ' mm') +
+    eq('θ_ex = 180° + EVO', '180 + ' + n(p.EVO), n(r.thEx) + '°', 'Grados de EVO al PMS de cruce.') +
+    eq('N = c_ex · θ_ex / (12 · L)', n(r.cEx) + ' · ' + n(r.thEx) + ' / (12 · ' + n(r.Lex, 3) + ')', rpm(r.Nex), 'Con T ±100 K y EVO ±5°: ' + n(Math.round(r.NexLo / 10) * 10) + '–' + n(Math.round(r.NexHi / 10) * 10) + ' rpm.') +
+    eq('L_primario necesaria = c_ex·θ_ex/(12·N_obj) − L_puerto', '', n(r.LpNeed) + ' mm', 'Para ' + n(p.NobjEx) + ' rpm.') +
+    '<p><b>Fuerza de la onda.</b> Solo depende del salto de sección. R negativo significa que vuelve como depresión; R² es la fracción de energía que vuelve.</p>' +
+    eq('R = (A_p − A_cám) / (A_p + A_cám)', '(1 − ' + n(r.ARex, 2) + ') / (1 + ' + n(r.ARex, 2) + ')', n(r.Rex, 2) + ' · energía ' + n(r.Eex * 100) + ' %')));
+  s.push(step('f9', '9', 'Optimizador', ['teo'],
+    '<p>Minimiza una suma de errores al cuadrado. Cada término es cero cuando su objetivo se cumple, así que J = 0 significa que todo cae donde lo pediste.</p>' +
+    eq('J = J_trompeta + J_escape + J_airbox + J_ángulo', '', r.J.total.toExponential(2).replace('.', ',')) +
+    eq('J_trompeta = ((N_pico − N_obj) / N_obj)²', '', r.J.tr.toExponential(2).replace('.', ',')) +
+    eq('J_escape = ((N_ex − N_obj) / N_obj)²', '', r.J.ex.toExponential(2).replace('.', ',')) +
+    eq(p.boxMode === 'fuera' ? 'J_airbox = Σk (d_k / N_medio)²' : 'J_airbox = ((N₁ − N_obj) / N_obj)²', '', r.J.box.toExponential(2).replace('.', ','), p.boxMode === 'fuera' ? 'd_k = cuántas rpm le faltan a la zona ±' + n(p.marg) + ' % del armónico k para salir del rango.' : '') +
+    eq('J_ángulo = 10 · ((θ − θmax) / θmax)²  si θ > θmax', '', r.J.ang.toExponential(2).replace('.', ',')) +
+    '<p><b>Método: búsqueda por patrones.</b> Parte de tus valores actuales. Prueba a subir y bajar cada variable marcada un paso; si J baja, se queda con el cambio; si ninguna mejora, divide el paso a la mitad. Para cuando el paso es despreciable. Como arranca de tus valores, devuelve el cambio más pequeño que cumple. Si no llega a J = 0, prueba también tres arranques distintos y se queda con el mejor.</p>' +
+    '<p><b>Qué se puede optimizar.</b> Solo las variables que mueven algún término de J: longitud de trompeta y de primario, y volumen del airbox y geometría de la tobera (mueven la resonancia del airbox y el ángulo). Los diámetros de tubo, labio, primario y cámara y la sección del airbox no tienen un criterio simple y fiable, así que se quedan como dato tuyo.</p>'));
+  el('steps').innerHTML = s.join('');
+  el('toc').innerHTML = ['Aire', 'Caudal', 'Tobera', 'Ram air', 'Helmholtz airbox', 'Comprobaciones airbox', 'Trompeta', 'Engelman', 'Escape', 'Optimizador'].map(function (t, i) { return '<a href="#" data-to="f' + i + '">' + i + ' · ' + t + '</a>'; }).join('');
+}
+
+function renderRemoved() {
+  el('removed').innerHTML = '<h2>Qué se ha quitado y por qué</h2>' +
+    '<p class="lead">Este programa solo usa geometría, datos que puedes medir y dos constantes calibradas con banco. Todo lo que exigía inventarse valores o resolver ondas en el tiempo está fuera.</p>' +
+    '<ul class="plain">' +
+    '<li><b>Presión en la cámara de escape y en el cilindro.</b> Solo sale de una simulación 1D de ondas en el tiempo o de un sensor rápido. No es un dato que se pueda poner a mano sin inventarlo.</li>' +
+    '<li><b>Par y potencia.</b> Este programa no predice curvas: dice dónde cae cada sintonía. El par absoluto depende de la leva, la combustión y la fricción.</li>' +
+    '<li><b>Leva completa (IVO, IVC, alzadas).</b> La trompeta usa θef, que ya incluye el efecto de la leva real porque sale del banco. Solo queda EVO para el escape, marcado como estimado.</li>' +
+    '<li><b>Lana, silenciador y cola del escape.</b> Solo primario y cámara.</li>' +
+    '<li><b>Modos 3D del airbox.</b> Solo el longitudinal, como comprobación.</li>' +
+    '<li><b>Corrección de extremo en la regla de la trompeta.</b> Ya está dentro de θef calibrado.</li>' +
+    '<li><b>Pérdidas de filtro y mariposa, y curva de ηv con las rpm.</b> No hay datos medidos; ηv es un solo número y solo afecta al caudal.</li>' +
+    '</ul>' +
+    '<h2 style="margin-top:14px">Lo que sigue siendo estimado</h2>' +
+    '<ul class="plain">' +
+    '<li><b>T del gas de escape y EVO.</b> Mueven la sintonía del escape unas ±1.000 rpm (ver la banda del mapa). Con un termopar en el primario y midiendo la leva, desaparece.</li>' +
+    '<li><b>θef y K.</b> Calibrados con 6 trompetas en banco. Fiables entre 8.740 y 10.790 rpm.</li>' +
+    '<li><b>Ancho de la zona de resonancia del airbox (±%).</b> Criterio tuyo.</li>' +
+    '<li><b>ηd de la tobera y ηv.</b> Su efecto es pequeño en los resultados.</li>' +
+    '</ul>';
+}
+
+function render() {
+  var p = state.p;
+  R = compute(p);
+  renderStatus(p, R); renderMap(p, R); renderCards(p, R); renderForm(p, R); updateOptInfo();
+}
+
+/* ---------- arranque ---------- */
+buildInputs(); fillInputs(); renderRemoved(); render();
+el('run').addEventListener('click', runOpt);
+el('toc').addEventListener('click', function (e) { var a = e.target.closest('a'); if (!a) return; e.preventDefault(); var t = el(a.getAttribute('data-to')); if (t) t.scrollIntoView({ block: 'start' }); });
+el('reset').addEventListener('click', function () { defaults(); fillInputs(); changed(); });
+var tabs = root.querySelectorAll('.tabs button');
+function showTab(btn) {
+  tabs.forEach(function (b) { var on = b === btn; b.setAttribute('aria-selected', on); el(b.dataset.p).hidden = !on; });
+  try { localStorage.setItem(KEY + '-tab', btn.id); } catch (e) {}
+}
+tabs.forEach(function (b) { b.addEventListener('click', function () { showTab(b); }); });
+try { var t0 = localStorage.getItem(KEY + '-tab'); if (t0 && el(t0)) showTab(el(t0)); } catch (e) {}
+
 })();
 
 </script>
