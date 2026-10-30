@@ -249,7 +249,7 @@ const S = {
   pila: [],          // deshacer
   huella: '', ultimaSync: null, errorSync: null, sincronizando: false,
   vista: { tipo: 'plano', planta: null, id: null, resaltar: null },
-  token: null, sel: null, zoom: 1, filtroCajas: '', timer: null
+  token: null, tokenCaduca: null, sel: null, zoom: 1, filtroCajas: '', timer: null
 };
 const D = () => S.borrador || S.base;
 
@@ -777,7 +777,8 @@ async function subirFoto(aid, file, boton) {
   try {
     const datos = await reducirImagen(file);
     const r = await API.call('apiSubirImagen', S.token, aid, base.version, file.name, datos);
-    if (!r.ok) { if (r.sesion === false) { S.token = null; dialogoCodigo(); } toast(r.error + (r.conflictos ? ': ' + r.conflictos.join('; ') : ''), true); pintar(); return; }
+    if (!r.ok) { if (r.sesion === false) { sesionCaducada(r.error); return; } toast(r.error + (r.conflictos ? ': ' + r.conflictos.join('; ') : ''), true); pintar(); return; }
+    recordarSesion(r);
     // La foto ya está guardada en la hoja: se actualiza aquí sin tocar el resto del borrador
     [S.base, S.baseEdicion, S.borrador].forEach(t => { const x = t && t.INVENTARIO.find(y => y.articulo_id === aid); if (x) { x.imagen = r.imagen; x.version = r.version; } });
     toast('Foto guardada en la hoja'); pintar();
@@ -937,7 +938,37 @@ document.addEventListener('click', e => { if (!e.target.closest('.search')) $('#
 $('#q').addEventListener('focus', () => { if (norm($('#q').value).length >= 2) pintarResultados(); });
 
 /* ============================== modo edición ============================== */
-$('#btnAdmin').onclick = () => S.token ? salirEdicion() : dialogoCodigo();
+$('#btnAdmin').onclick = () => S.borrador ? salirEdicion() : (sesionActiva() ? entrarEdicion() : dialogoCodigo());
+
+/* ---------- Sesión de edición recordada en este dispositivo ---------- */
+const CLAVE_SESION = 'taller_sesion_edicion';
+function sesionActiva() { return !!S.token && (!S.tokenCaduca || S.tokenCaduca > Date.now()); }
+/** Guarda el token que devuelve el servidor (al entrar y en cada guardado, que lo renueva). */
+function recordarSesion(r) {
+  if (!r || !r.token) return;
+  S.token = r.token; S.tokenCaduca = r.caduca || null;
+  try { localStorage.setItem(CLAVE_SESION, JSON.stringify({ token: S.token, caduca: S.tokenCaduca })); } catch (e) { /* navegador sin almacenamiento: dura lo que la pestaña */ }
+}
+function olvidarSesion() {
+  S.token = null; S.tokenCaduca = null;
+  try { localStorage.removeItem(CLAVE_SESION); } catch (e) { }
+}
+function textoCaducidad() {
+  if (!S.tokenCaduca) return '';
+  const d = new Date(S.tokenCaduca);
+  return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+}
+try {
+  const g = JSON.parse(localStorage.getItem(CLAVE_SESION) || 'null');
+  if (g && g.token && (!g.caduca || g.caduca > Date.now())) { S.token = g.token; S.tokenCaduca = g.caduca || null; }
+  else localStorage.removeItem(CLAVE_SESION);
+} catch (e) { }
+/** La sesión ha caducado en el servidor: se pide el código otra vez SIN perder el borrador. */
+function sesionCaducada(msg) {
+  olvidarSesion();
+  toast((msg || 'La sesión de edición ha caducado.') + ' Tus cambios siguen aquí.', true);
+  dialogoCodigo();
+}
 $('#btnSync').onclick = () => sincronizar(true);
 $('#btnIssues').onclick = () => dialogoIncidencias();
 
@@ -955,7 +986,9 @@ function dialogoCodigo() {
     try {
       const r = await API.call('apiLogin', $('#cod').value);
       if (!r.ok) { $('#codmsg').className = 'msg err'; $('#codmsg').textContent = r.error; $('#okcod').disabled = false; $('#cod').select(); return; }
-      S.token = r.token; cerrar(); entrarEdicion();
+      recordarSesion(r); cerrar();
+      if (S.borrador) { toast('Sesión renovada. Ya puedes volver a pulsar Guardar.'); pintarAdminBar(); }
+      else entrarEdicion();
     } catch (err) { $('#codmsg').className = 'msg err'; $('#codmsg').textContent = 'Error de conexión: ' + (err.message || err); $('#okcod').disabled = false; }
   };
 }
@@ -966,8 +999,8 @@ function entrarEdicion() {
 }
 async function salirEdicion(forzar) {
   if (!forzar && cambiosPendientes().length && !await preguntar('Hay cambios sin guardar', 'Salir y descartarlos', '¿Quieres salir del modo edición? Los cambios no guardados se perderán.')) return;
-  if (S.token) API.call('apiCerrarSesion', S.token).catch(() => {});
-  S.token = null; S.borrador = null; S.baseEdicion = null; S.pila = []; S.sel = null;
+  // Salir de edición NO cierra la sesión: la próxima vez entra sin pedir el código (botón «Cerrar sesión» para eso)
+  S.borrador = null; S.baseEdicion = null; S.pila = []; S.sel = null;
   if (S.remoto) { S.base = S.remoto; S.remoto = null; }
   $('#btnAdmin').classList.remove('on'); $('#btnAdmin').textContent = '✎ Modo edición';
   pintar(); sincronizar(false);
@@ -1010,9 +1043,10 @@ async function guardar() {
   try {
     const r = await API.call('apiGuardar', S.token, cambios);
     if (!r.ok) {
-      if (r.sesion === false) { toast(r.error, true); S.token = null; dialogoCodigo(); return; }
+      if (r.sesion === false) { sesionCaducada(r.error); return; }
       dialogoError(r); return;
     }
+    recordarSesion(r);
     toast(`Guardado en la hoja: ${r.aplicados} cambio${r.aplicados > 1 ? 's' : ''}`);
     // Releer la hoja para trabajar sobre la versión real
     const l = await API.call('apiLeer', '');
@@ -1036,11 +1070,16 @@ function pintarAdminBar() {
   const n = cambiosPendientes().length;
   bar.classList.remove('hidden');
   bar.innerHTML = `<b>Modo edición</b><span class="pill">${n} cambio${n === 1 ? '' : 's'} sin guardar</span>
-    <span class="meta">Los cambios no se escriben en la hoja hasta pulsar Guardar.</span><span class="spacer"></span>
+    <span class="meta">Los cambios no se escriben en la hoja hasta pulsar Guardar.${S.tokenCaduca ? ` Sesión hasta el ${esc(textoCaducidad())}.` : ''}</span><span class="spacer"></span>
+    <button class="btn sm" id="btnCerrarSesion" title="Olvida el código en este dispositivo (útil en ordenadores compartidos)">Cerrar sesión</button>
     <button class="btn sm" id="btnTextos">Textos</button>
     <button class="btn sm" id="btnDeshacer" ${S.pila.length ? '' : 'disabled'}>↶ Deshacer</button>
     <button class="btn sm" id="btnCancelar" ${n ? '' : 'disabled'}>Cancelar cambios</button>
     <button class="btn sm pri" id="btnGuardar" ${n ? '' : 'disabled'}>Guardar en la hoja</button>`;
+  $('#btnCerrarSesion').onclick = async () => {
+    if (cambiosPendientes().length && !await preguntar('Hay cambios sin guardar', 'Cerrar sesión y descartarlos', 'Se perderán los cambios no guardados.')) return;
+    olvidarSesion(); await salirEdicion(true); toast('Sesión cerrada en este dispositivo');
+  };
   $('#btnDeshacer').onclick = deshacer; $('#btnCancelar').onclick = cancelarCambios; $('#btnGuardar').onclick = guardar; $('#btnTextos').onclick = dialogoTextos;
 }
 function dialogoTextos() {
