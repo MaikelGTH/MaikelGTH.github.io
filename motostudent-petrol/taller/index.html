@@ -372,7 +372,12 @@ async function sincronizar(manual) {
     if (!r.sinCambios) {
       S.huella = r.huella;
       if (S.borrador) { S.remoto = r.datos; }
-      else { S.base = r.datos; indexar(); pintar(); }
+      else {
+        const primera = !S.base;
+        S.base = r.datos; indexar();
+        if (primera && S.urlPendiente) { const p = S.urlPendiente; S.urlPendiente = null; aplicarParametros(p); }
+        else pintar();
+      }
     }
     if (manual) toast(r.sinCambios ? 'Ya estaba al día' : 'Datos actualizados desde la hoja');
   } catch (e) {
@@ -405,7 +410,55 @@ function pintarBanners() {
 }
 
 /* ============================== navegación ============================== */
-function ir(v) { S.vista = Object.assign({ tipo: 'plano', planta: S.vista.planta, id: null, resaltar: null }, v); S.sel = null; pintar(); window.scrollTo(0, 0); }
+function ir(v, sinHistorial) {
+  S.vista = Object.assign({ tipo: 'plano', planta: S.vista.planta, id: null, resaltar: null }, v); S.sel = null; S.filtroCajas = '';
+  pintar(); window.scrollTo(0, 0);
+  if (!sinHistorial) guardarEnURL(false);
+}
+
+/* ---------- Enlaces directos (para QR): ?u=E2-B4-K02 · ?a=ART-0473 · ?planta=nivel-0 ---------- */
+const EN_APPS_SCRIPT = !!(window.google && google.script && google.script.history);
+function parametrosVista(v) {
+  const p = {};
+  if (v.tipo === 'ubicacion' && v.id) p.u = v.id; else if (v.planta) p.planta = v.planta;
+  if (v.resaltar) p.a = v.resaltar;
+  return p;
+}
+function enlaceVista(v) {
+  const q = new URLSearchParams(parametrosVista(v)).toString();
+  return location.origin + location.pathname + (q ? '?' + q : '');
+}
+function guardarEnURL(reemplazar) {
+  const p = parametrosVista(S.vista);
+  try {
+    if (EN_APPS_SCRIPT) google.script.history[reemplazar ? 'replace' : 'push'](p, p);
+    else history[reemplazar ? 'replaceState' : 'pushState'](p, '', enlaceVista(S.vista));
+  } catch (e) { /* el navegador no deja cambiar la URL: no es grave */ }
+}
+/** Abre la vista que indica la URL. Acepta también ?item=, ?caja= y ?armario= con el identificador. */
+function aplicarParametros(p) {
+  if (!S.base) { S.urlPendiente = p; return; }
+  const buscaUbic = id => { if (!id) return null; if (IX.u[id]) return id; const n = norm(id); return Object.keys(IX.u).find(k => norm(k) === n) || null; };
+  const art = p.a && D().INVENTARIO.find(x => norm(x.articulo_id) === norm(p.a));
+  const pedido = p.u || p.item || p.caja || p.armario || p.mueble;
+  const uid = buscaUbic(pedido) || (art && art.ubicacion_id);
+  if (uid) { ir({ tipo: 'ubicacion', id: uid, resaltar: art ? art.articulo_id : null, planta: plantaDe(uid) || S.vista.planta }, true); return; }
+  if (pedido || p.a) toast(`No existe "${pedido || p.a}" en el inventario. Puede que se haya renombrado.`, true);
+  ir({ tipo: 'plano', planta: p.planta && IX.plantas.some(x => x.planta_id === p.planta) ? p.planta : S.vista.planta }, true);
+}
+function leerURL(cb) {
+  if (EN_APPS_SCRIPT && google.script.url) google.script.url.getLocation(l => cb(Object.fromEntries(Object.entries(l.parameter || {}))));
+  else cb(Object.fromEntries(new URLSearchParams(location.search)));
+}
+window.addEventListener('popstate', () => leerURL(aplicarParametros));
+if (EN_APPS_SCRIPT) google.script.history.setChangeHandler(e => aplicarParametros(e.state || {}));
+leerURL(p => { if (Object.keys(p).length) S.urlPendiente = p; });
+function copiarEnlace(v) {
+  const url = enlaceVista(v);
+  const ok = () => toast('Enlace copiado: ' + url);
+  if (navigator.clipboard) navigator.clipboard.writeText(url).then(ok, () => prompt('Copia este enlace:', url));
+  else prompt('Copia este enlace:', url);
+}
 function irUbicacion(id, resaltar) { ir({ tipo: 'ubicacion', id, resaltar, planta: plantaDe(id) || S.vista.planta }); }
 
 function pintar() {
@@ -434,7 +487,7 @@ function vistaPlano() {
     <div class="tabs">${IX.plantas.map(pl => `<button class="tab ${pl.planta_id === S.vista.planta ? 'act' : ''}" data-planta="${esc(pl.planta_id)}">${esc(pl.nombre)}</button>`).join('')}</div>
     <span class="spacer"></span>
     <div class="zoom"><button class="btn sm" data-zoom="-1" title="Reducir">−</button><button class="btn sm" data-zoom="0" title="Tamaño normal">${Math.round(S.zoom * 100)}%</button><button class="btn sm" data-zoom="1" title="Ampliar">+</button></div>`;
-  $('#nav').querySelectorAll('[data-planta]').forEach(b => b.onclick = () => { S.vista.planta = b.dataset.planta; S.sel = null; pintar(); });
+  $('#nav').querySelectorAll('[data-planta]').forEach(b => b.onclick = () => ir({ tipo: 'plano', planta: b.dataset.planta }));
   $('#nav').querySelectorAll('[data-zoom]').forEach(b => b.onclick = () => { const z = +b.dataset.zoom; S.zoom = z === 0 ? 1 : Math.min(2.5, Math.max(0.4, S.zoom + z * 0.2)); pintar(); });
   if (!p) { $('#main').innerHTML = '<div class="card">No hay plantas definidas en la pestaña PLANTAS.</div>'; return; }
 
@@ -599,7 +652,10 @@ function vistaUbicacion(id) {
           </div>
           ${u.descripcion ? `<p style="margin:6px 0 0">${esc(u.descripcion)}</p>` : ''}${u.notas ? `<p class="meta" style="margin-top:4px">Notas: ${esc(u.notas)}</p>` : ''}
         </div>
-        ${hijos.length > 3 ? `<input class="filtro" id="filtroCajas" placeholder="Buscar caja o balda aquí…" value="${esc(S.filtroCajas)}">` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          ${!EN_APPS_SCRIPT ? `<button class="btn sm" id="copiarEnlace" title="Copia la dirección de esta ${esc((TIPO_TXT[u.tipo] || '').toLowerCase())} para hacer un QR">🔗 Copiar enlace</button>` : ''}
+          ${hijos.length > 3 ? `<input class="filtro" id="filtroCajas" placeholder="Buscar caja o balda aquí…" value="${esc(S.filtroCajas)}">` : ''}
+        </div>
       </div>
       ${ed ? editorUbicacion(u) : ''}
     </div>
@@ -610,6 +666,7 @@ function vistaUbicacion(id) {
       ${items.length ? tablaArticulos(items) : `<p class="vacia">${hijos.length ? 'No hay artículos directamente aquí; están dentro de las baldas, cajones o cajas de arriba.' : 'Vacío: no hay artículos registrados en esta ubicación.'}</p>`}
     </div>`;
   $('#main').querySelectorAll('[data-u]').forEach(b => b.onclick = () => irUbicacion(b.dataset.u));
+  const ce = $('#copiarEnlace'); if (ce) ce.onclick = () => copiarEnlace({ tipo: 'ubicacion', id });
   const f = $('#filtroCajas'); if (f) f.oninput = () => { S.filtroCajas = f.value; filtrarEstructura(); };
   filtrarEstructura();
   if (ed) enlazarEdicionUbicacion(u);
