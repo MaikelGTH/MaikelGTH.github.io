@@ -142,7 +142,15 @@ td .tx{color:var(--warn);font-weight:500}
 tr.hit td{background:#fef9c3;animation:flash 1.6s ease 2}
 @keyframes flash{50%{background:#fde047}}
 td input,td select{width:100%;min-width:70px;padding:4px 6px;border:1px solid var(--line);border-radius:5px}
-td input[data-f=nombre]{min-width:220px}td input[data-f=observaciones],td input[data-f=descripcion]{min-width:160px}td select[data-f=ubicacion_id]{min-width:180px}
+td input[data-f=nombre]{min-width:220px}
+.thumb{width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--line);cursor:zoom-in;background:#f3f4f6;display:block}
+.thumb.sm{width:36px;height:36px;float:left;margin-right:8px}
+td.foto{width:60px}
+.fotoed{display:flex;flex-direction:column;gap:4px;align-items:flex-start;min-width:96px}
+.fotoed label{cursor:pointer}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;cursor:zoom-out}
+.lightbox img{max-width:100%;max-height:85vh;border-radius:8px;background:#fff}
+.lightbox p{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#fff;margin:0}td input[data-f=observaciones],td input[data-f=descripcion]{min-width:160px}td select[data-f=ubicacion_id]{min-width:180px}
 .low{color:var(--err);font-size:11px;display:block}
 .filtro{padding:6px 10px;border:1px solid var(--line);border-radius:8px;min-width:200px}
 
@@ -213,6 +221,7 @@ const API = {
       if (fn === 'apiLeer') return fetch(url + '?api=leer&huella=' + encodeURIComponent(args[0] || ''), { cache: 'no-store' }).then(json);
       const cuerpo = fn === 'apiLogin' ? { accion: 'login', codigo: args[0] }
         : fn === 'apiGuardar' ? { accion: 'guardar', token: args[0], cambios: args[1] }
+        : fn === 'apiSubirImagen' ? { accion: 'imagen', token: args[0], articuloId: args[1], version: args[2], nombre: args[3], datos: args[4] }
           : { accion: 'cerrar', token: args[0] };
       // text/plain evita la comprobación previa CORS que Apps Script no admite
       return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(cuerpo) }).then(json);
@@ -229,7 +238,7 @@ const EDITABLES = {
   PLANTAS: ['nombre', 'orden', 'filas', 'columnas', 'activo'],
   UBICACIONES: ['padre_id', 'planta_id', 'tipo', 'nombre', 'orden', 'descripcion', 'notas', 'activo'],
   PLANO: ['planta_id', 'ubicacion_id', 'etiqueta', 'tipo', 'fila', 'columna', 'ancho', 'alto', 'color', 'orden', 'visible'],
-  INVENTARIO: ['ubicacion_id', 'nombre', 'cantidad', 'cantidad_texto', 'unidad', 'referencia', 'categoria', 'descripcion', 'observaciones', 'stock_minimo'],
+  INVENTARIO: ['ubicacion_id', 'nombre', 'cantidad', 'cantidad_texto', 'unidad', 'referencia', 'categoria', 'descripcion', 'observaciones', 'stock_minimo', 'imagen'],
   CONFIG: ['valor']
 };
 
@@ -723,14 +732,69 @@ function cantidadHtml(a) {
   if (a.cantidad_texto) return `<span class="tx" title="Cantidad escrita como texto en la hoja">${esc(a.cantidad_texto)}</span>`;
   return '<span class="na">No disponible</span>';
 }
+/* ---------- Fotos de artículos ---------- */
+/** imagen puede ser: id de Drive, enlace http(s) o "local:archivo" (servidor de pruebas). */
+function urlImagen(v, ancho) {
+  v = String(v ?? '').trim();
+  if (!v) return '';
+  if (/^https?:\/\//i.test(v)) return v;
+  if (v.startsWith('local:')) return '/foto/' + encodeURIComponent(v.slice(6));
+  return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(v) + '&sz=w' + (ancho || 400);
+}
+function miniatura(a, cls) {
+  const u = urlImagen(a.imagen, 200);
+  return u ? `<img class="thumb ${cls || ''}" loading="lazy" src="${esc(u)}" alt="Foto de ${esc(a.nombre)}" data-zoom="${esc(a.articulo_id)}">` : '';
+}
+function ampliarFoto(aid) {
+  const a = D().INVENTARIO.find(x => x.articulo_id === aid); if (!a || !a.imagen) return;
+  const d = document.createElement('div'); d.className = 'lightbox';
+  d.innerHTML = `<img src="${esc(urlImagen(a.imagen, 1600))}" alt="Foto de ${esc(a.nombre)}"><p>${esc(a.nombre)} · ${esc(textoRuta(a.ubicacion_id))}</p>`;
+  d.onclick = () => d.remove();
+  document.addEventListener('keydown', function f(e) { if (e.key === 'Escape') { d.remove(); document.removeEventListener('keydown', f); } });
+  document.body.appendChild(d);
+}
+document.addEventListener('click', e => { const z = e.target.closest('[data-zoom]'); if (z) { e.preventDefault(); e.stopPropagation(); ampliarFoto(z.dataset.zoom); } }, true);
+/** Reduce la foto en el navegador (máx. 1600 px, JPEG) para que suba rápido desde el móvil. */
+function reducirImagen(file, max) {
+  max = max || 1600;
+  return new Promise((res, rej) => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('No se puede leer esa imagen (prueba con JPG o PNG).')); };
+    img.src = url;
+  });
+}
+async function subirFoto(aid, file, boton) {
+  if (String(aid).startsWith('NUEVO-')) { toast('Guarda primero el artículo nuevo y después añade la foto', true); return; }
+  const base = S.baseEdicion.INVENTARIO.find(x => x.articulo_id === aid);
+  if (!base) { toast('Ese artículo ya no está en la hoja', true); return; }
+  if (boton) { boton.textContent = 'Subiendo…'; boton.style.pointerEvents = 'none'; }
+  try {
+    const datos = await reducirImagen(file);
+    const r = await API.call('apiSubirImagen', S.token, aid, base.version, file.name, datos);
+    if (!r.ok) { if (r.sesion === false) { S.token = null; dialogoCodigo(); } toast(r.error + (r.conflictos ? ': ' + r.conflictos.join('; ') : ''), true); pintar(); return; }
+    // La foto ya está guardada en la hoja: se actualiza aquí sin tocar el resto del borrador
+    [S.base, S.baseEdicion, S.borrador].forEach(t => { const x = t && t.INVENTARIO.find(y => y.articulo_id === aid); if (x) { x.imagen = r.imagen; x.version = r.version; } });
+    toast('Foto guardada en la hoja'); pintar();
+  } catch (e) { toast('No se pudo subir la foto: ' + (e.message || e), true); pintar(); }
+}
+
 function tablaArticulos(items) {
   const ed = !!S.borrador;
   const cols = ['referencia', 'categoria', 'unidad', 'descripcion', 'observaciones', 'stock_minimo'].filter(c => ed || items.some(a => !vacio(a[c])));
   const tit = { referencia: 'Referencia', categoria: 'Categoría', unidad: 'Unidad', descripcion: 'Descripción', observaciones: 'Observaciones', stock_minimo: 'Stock mín.' };
   if (ed) {
     const opc = ubicacionesOpciones();
-    return `<div class="tablewrap"><table><thead><tr><th>Artículo</th><th>Cantidad</th><th>Cant. texto</th>${cols.map(c => `<th>${tit[c]}</th>`).join('')}<th>Ubicación</th><th></th></tr></thead><tbody>
+    return `<div class="tablewrap"><table><thead><tr><th>Foto</th><th>Artículo</th><th>Cantidad</th><th>Cant. texto</th>${cols.map(c => `<th>${tit[c]}</th>`).join('')}<th>Ubicación</th><th></th></tr></thead><tbody>
       ${items.map(a => `<tr data-a="${esc(a.articulo_id)}">
+        <td class="foto"><div class="fotoed">${miniatura(a)}
+          <label class="btn sm" title="Hacer o elegir una foto">📷 ${a.imagen ? 'Cambiar' : 'Añadir'}<input type="file" accept="image/*" data-foto="${esc(a.articulo_id)}" hidden></label>
+          ${a.imagen ? `<button class="btn sm" data-quitarfoto="${esc(a.articulo_id)}" title="Quitar la foto de este artículo (el archivo sigue en Drive)">Quitar</button>` : ''}</div></td>
         <td><input data-f="nombre" value="${esc(a.nombre)}"><small style="color:var(--ink3)">${esc(a.articulo_id)}</small></td>
         <td><input data-f="cantidad" type="number" min="0" step="any" value="${esc(a.cantidad)}" placeholder="?" style="width:80px"></td>
         <td><input data-f="cantidad_texto" value="${esc(a.cantidad_texto)}"></td>
@@ -739,8 +803,9 @@ function tablaArticulos(items) {
         <td><button class="btn sm dan" data-borrar="${esc(a.articulo_id)}" title="Borrar artículo">✕</button></td></tr>`).join('')}
       </tbody></table></div>`;
   }
-  return `<div class="tablewrap"><table><thead><tr><th>Artículo</th><th>Cantidad</th>${cols.map(c => `<th>${tit[c]}</th>`).join('')}</tr></thead><tbody>
-    ${items.map(a => `<tr data-a="${esc(a.articulo_id)}"><td><b>${esc(a.nombre) || '<span class="na">(sin nombre)</span>'}</b><br><small style="color:var(--ink3)">${esc(a.articulo_id)}</small></td>
+  const fotos = items.some(a => a.imagen);
+  return `<div class="tablewrap"><table><thead><tr>${fotos ? '<th>Foto</th>' : ''}<th>Artículo</th><th>Cantidad</th>${cols.map(c => `<th>${tit[c]}</th>`).join('')}</tr></thead><tbody>
+    ${items.map(a => `<tr data-a="${esc(a.articulo_id)}">${fotos ? `<td class="foto">${miniatura(a)}</td>` : ''}<td><b>${esc(a.nombre) || '<span class="na">(sin nombre)</span>'}</b><br><small style="color:var(--ink3)">${esc(a.articulo_id)}</small></td>
       <td class="q">${cantidadHtml(a)}</td>${cols.map(c => `<td>${esc(a[c])}</td>`).join('')}</tr>`).join('')}
     </tbody></table></div>`;
 }
@@ -803,6 +868,11 @@ function enlazarEdicionUbicacion(u) {
     cambiar('INVENTARIO', aid, { [f]: v });
     if (f === 'ubicacion_id') toast('Artículo movido a ' + textoRuta(v));
   });
+  $('#main').querySelectorAll('[data-foto]').forEach(i => i.onchange = () => { if (i.files[0]) subirFoto(i.dataset.foto, i.files[0], i.closest('label')); });
+  $('#main').querySelectorAll('[data-quitarfoto]').forEach(b => b.onclick = async () => {
+    if (!await preguntar('¿Quitar la foto de este artículo?', 'Quitar', 'Se quita de la web al guardar. El archivo sigue en la carpeta de fotos de Drive.')) return;
+    cambiar('INVENTARIO', b.dataset.quitarfoto, { imagen: '' });
+  });
   $('#main').querySelectorAll('[data-borrar]').forEach(b => b.onclick = async () => {
     const a = D().INVENTARIO.find(x => x.articulo_id === b.dataset.borrar);
     if (!await preguntar(`¿Borrar "${a.nombre}"?`, 'Borrar', 'Se guardará una copia en la pestaña HISTORIAL.')) return;
@@ -843,7 +913,7 @@ function pintarResultados() {
   const rs = buscar(q).slice(0, 60);
   const nombres = {}; rs.forEach(r => { if (r.tipo === 'art') nombres[norm(r.a.nombre)] = (nombres[norm(r.a.nombre)] || 0) + 1; });
   box.innerHTML = rs.length ? rs.map((r, i) => r.tipo === 'art'
-    ? `<button class="r ${i === selRes ? 'act' : ''}" data-i="${i}"><b>${esc(r.a.nombre)}</b> · ${vacio(r.a.cantidad) ? (r.a.cantidad_texto ? esc(r.a.cantidad_texto) : '<i>cantidad no disponible</i>') : esc(r.a.cantidad) + ' ' + esc(r.a.unidad || 'ud')}
+    ? `<button class="r ${i === selRes ? 'act' : ''}" data-i="${i}">${r.a.imagen ? `<img class="thumb sm" loading="lazy" src="${esc(urlImagen(r.a.imagen, 120))}" alt="">` : ''}<b>${esc(r.a.nombre)}</b> · ${vacio(r.a.cantidad) ? (r.a.cantidad_texto ? esc(r.a.cantidad_texto) : '<i>cantidad no disponible</i>') : esc(r.a.cantidad) + ' ' + esc(r.a.unidad || 'ud')}
         ${r.a.referencia ? ` · Ref. ${esc(r.a.referencia)}` : ''}${nombres[norm(r.a.nombre)] > 1 ? ` · <span style="color:var(--warn)">${esc(r.a.articulo_id)}</span>` : ''}<small>${esc(nombrePlanta(plantaDe(r.a.ubicacion_id)))} › ${esc(textoRuta(r.a.ubicacion_id))}</small></button>`
     : `<button class="r ${i === selRes ? 'act' : ''}" data-i="${i}">${r.u.tipo === 'caja' ? '📦' : '🗄'} <b>${esc(capital(r.u.nombre))}</b> · ${esc(TIPO_TXT[r.u.tipo])} ${esc(r.u.ubicacion_id)}<small>${esc(nombrePlanta(plantaDe(r.u.ubicacion_id)))} › ${esc(textoRuta(r.u.ubicacion_id))}</small></button>`).join('')
     : '<div class="empty">Sin resultados. Prueba con menos palabras o una referencia.</div>';
